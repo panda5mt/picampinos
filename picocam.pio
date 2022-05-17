@@ -1,0 +1,66 @@
+.program picocam
+
+; pin8=vsync,pin9=fref,pin10=pclk,pin0-pin7=D[2:9]
+
+start0:
+    mov    isr,null
+    ;set     pindirs,0x0 ; all input
+    ;pull    block       ; TX_FIFO->OSR(blocking)
+    out     x, 32       ; X <= TX_FIFO(32bit) :the X must be 4^n
+    out     y, 32       ; Y: Num of HSYNC
+    wait 0  pin 8       ; wait intil VSYNC=0
+    wait 1  pin 8       ; wait until VSYNC=1
+    
+loop0:
+    wait 0  pin 9
+    wait 1  pin 9
+    jmp y-- loop0       ; Count HSYNC
+
+loop1:
+    wait 1  pin 9
+    wait 1  pin 10      ; wait until PCLK = 1
+    in      pins, 8     ; get camera RGB data-> ISR
+    wait 0  pin 10
+    jmp     x--, loop1
+    jmp     start0
+
+
+% c-sdk {
+static inline void picocam_program_init( PIO pio, uint32_t sm, uint32_t offset, uint32_t in_base ,uint32_t in_pin_num )
+{
+    pio_sm_config c = picocam_program_get_default_config( offset );
+        /* PIOステートマシンコンフィグのデフォルト値を取得 */
+
+    sm_config_set_set_pins(&c, in_base, in_pin_num);
+    sm_config_set_in_pins( &c, in_base );
+        /* PIOステートマシンコンフィグの出力ピン設定を編集する */
+        /* ベースピン番号とベースから何ピンまで使うかを指定 */
+ 
+    sm_config_set_in_shift( &c, true, true, 32); // auto push
+    sm_config_set_out_shift( &c, false, true, 32); //auto pull
+
+    //sm_config_set_fifo_join( &c, PIO_FIFO_JOIN_RX);
+    
+    {
+        uint32_t pin_offset;
+        for ( pin_offset = 0; pin_offset < in_pin_num; pin_offset++ )
+        {
+            pio_gpio_init( pio, in_base + pin_offset );
+            /* GPIOをPIOに割り当てる */
+        }
+
+    }
+
+    pio_sm_set_consecutive_pindirs( pio, sm, in_base, in_pin_num, false );
+        /* ピンの向きを設定 */
+
+    sm_config_set_clkdiv( &c, 1 );
+        /* クロック周波数1分周 */
+
+    pio_sm_init( pio, sm, offset, &c );
+        /* PIOステートマシンコンフィグを反映しプログラムカウンタを設定 */
+
+    pio_sm_set_enabled( pio, sm, true );
+        /* PIOステートマシンを有効にする */
+}
+%}
