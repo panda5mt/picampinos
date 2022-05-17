@@ -37,7 +37,7 @@ int main() {
    
     config_cam_buffer();    // config buffer
     capture_cam();          // get still
-    uartout_cam();          // data from USB-UART
+    uartout_cam();          // data via USB-UART
 
     // need more still?
     
@@ -49,7 +49,7 @@ int main() {
     
     // end
     free_cam();
-    
+
     while (true);
 }
 

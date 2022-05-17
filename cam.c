@@ -197,12 +197,12 @@ void uartout_cam() {
     int32_t *b;
     b = in_data;
     for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
-        iot_sram_read(pio_ram, sm_ram,(uint32_t *)in_data, iot_addr, 640*BLOCK*2, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length 
-        for (uint32_t i = 0 ; i < 640*BLOCK*2/4 ; i++) {
+        iot_sram_read(pio_ram, sm_ram,(uint32_t *)in_data, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length 
+        for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i++) {
             printf("0x%08X\r\n",in_data[i]);
         }
         // increment iot sram's address
-        iot_addr = iot_addr + 640*BLOCK*2;
+        iot_addr = iot_addr + CAM_BUF_SIZE;
 
     }
 
