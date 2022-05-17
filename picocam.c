@@ -48,6 +48,8 @@ int main() {
     */
     
     // end
+    free_cam();
+    
     while (true);
 }
 
