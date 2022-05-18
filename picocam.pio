@@ -1,6 +1,6 @@
 .program picocam
 
-; pin8=vsync,pin9=fref,pin10=pclk,pin0-pin7=D[2:9]
+; pin8=vsync,pin9=href,pin10=pclk,pin0-pin7=D[2:9]
 
 start0:
     mov    isr,null
