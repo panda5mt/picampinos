@@ -16,7 +16,7 @@ RUN git clone -b master https://github.com/raspberrypi/pico-examples.git
 WORKDIR /root
 RUN git clone https://github.com/panda5mt/picocam.git
 WORKDIR /root/picocam
-RUN echo -e '#!/bin/bash\nNOW=`date "+%Y%m%d_%H%M%S"`\ngit add .\n# git commit -m "automatically uploaded at "$NOW\ngit commit -m "Automatically uploaded"\ngit push origin main' > add_git.sh
+RUN echo -e '#!/bin/bash\nNOW=`date "+%Y%m%d_%H%M%S"`\ngit add .\n# git commit -m "automatically uploaded at "$NOW\ngit commit -m "Automatically uploaded"\ngit push origin HEAD' > add_git.sh
 RUN chmod +x add_git.sh
 RUN cp ../pico-sdk/external/pico_sdk_import.cmake .
 RUN echo -e '#!/bin/bash\nmkdir -p build\ncd build\nexport PICO_SDK_PATH=../../pico-sdk\ncmake ..\nmake' > pico_build.sh 

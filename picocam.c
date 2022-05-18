@@ -1,3 +1,33 @@
+// PICOCAM - Camera IF using RP2040
+// this project communicates OV5642(or parallel 8-bit DVP-IF Image sensor with SCCB control) using Raspberry Pi PICO
+// Need: A Raspberry Pi PICO, An IoT SRAM(APS1604M-3SQR or compatible), A DVP Camera(OV5642)
+// Connection:
+// ----- with OV Camera -----
+// PICO <-> OV5642/OV2640
+// GP0 ---> XCLK(24MHz Clock IN)
+// GP1 <--- D2
+// GP2 <--- D3
+// GP3 <--- D4
+// GP4 <--- D5
+// GP5 <--- D6
+// GP6 <--- D7
+// GP7 <--- D8
+// GP8 <--- D9
+// GP9 <--- VSYNC
+// GP10 <-- HREF(HSYNC)
+// GP11 <-- PCLK(Pixel Clock OUT)
+// GP12 --> SDA(SCCB DATA/I2C)
+// GP13 --> SCL(SCCB CLK/I2C)
+
+// ----- with IoT SRAM -----
+// PICO <-> APS1604M
+// GP14 <-> D0
+// GP15 <-> D1
+// GP16 <-> D2
+// GP17 <-> D3
+// GP18 <-> xCS
+// GP19 <-> SCLK
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "pico/stdlib.h"
@@ -6,14 +36,7 @@
 #include "pico/binary_info.h"
 #include "cam.h"
 
-#define USE_CAMERA_SYSTEM   (1)     // 1: USE CAMERA & IoT SRAM
 #define BOARD_LED           (25)
-
-#if USE_ADC
-#define ADC0_PIN            (26)    // ADC0 input pin(gp26)
-#define ADC1_PIN            (27)    // ADC1 input pin(gp27)
-#define ADC2_PIN            (28)    // ADC1 input pin(gp28)
-#endif // USE_ADC
 
 void setup() {
     // system init
