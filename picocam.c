@@ -6,14 +6,8 @@
 #include "pico/binary_info.h"
 #include "cam.h"
 
-#define USE_CAMERA_SYSTEM   (1)     // 1: USE CAMERA & IoT SRAM
 #define BOARD_LED           (25)
 
-#if USE_ADC
-#define ADC0_PIN            (26)    // ADC0 input pin(gp26)
-#define ADC1_PIN            (27)    // ADC1 input pin(gp27)
-#define ADC2_PIN            (28)    // ADC1 input pin(gp28)
-#endif // USE_ADC
 
 void setup() {
     // system init
