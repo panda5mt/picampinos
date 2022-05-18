@@ -197,10 +197,12 @@ void uartout_cam() {
     }
 
 }
+
 void free_cam() {
     
     free(in_data);
 }
+
 // camera dma config
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan) {
     dma_channel_config c = dma_channel_get_default_config(dma_chan);    
