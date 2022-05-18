@@ -6,14 +6,6 @@
 #include "hardware/dma.h"
 #include "cam.h"
 
-// camera buffer size
-// 640x480, RGB565 picture needs 640x480x2 bytes of buffers.
-// but RP2040 has no capacity such as huge buffers.
-// so, using DMA and IoT SRAM and lesser buffer to store them.
-#define BLOCK           (160)               // maximum: 160
-#define CAM_FUL_SIZE    (640 * 480 * 2)
-#define CAM_BUF_SIZE    (640 * BLOCK * 2)   // in bytes
-#define CAM_BUF_HALF    (CAM_BUF_SIZE / 2)  // in bytes
 
 static uint32_t* in_data;  // pointer of camera buffer
 static uint32_t* in_data2; // back half pointer of in_data.
@@ -37,9 +29,6 @@ int32_t DMA_CAM_RD_CH4 ;
 int32_t DMA_CAM_RD_CH5 ;
 int32_t DMA_IOT_RD_CH  ;
 int32_t DMA_IOT_WR_CH  ;
-
-
-
 
 // private functions and buffers
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
@@ -96,8 +85,9 @@ void config_cam_buffer() {
     // ------------------ CAMERA READ: withDMA   --------------------------------
 
     is_captured = false;
+    // disable IRQ
     irq_set_enabled(DMA_IRQ_0, false);
-    // Capture Image
+    
     // (5) 5th DMA Channel Config
     dma_channel_config c;
     c = get_cam_config(pio_cam, sm_cam, DMA_CAM_RD_CH5);
@@ -161,14 +151,14 @@ void config_cam_buffer() {
     );
 
     // IRQ settings
-
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH5, true);
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH4, true);
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH3, true);
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH2, true);
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH1, true);
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH0, true);
-    irq_set_exclusive_handler(DMA_IRQ_0, cam_handler);    
+    irq_set_exclusive_handler(DMA_IRQ_0, cam_handler);
+    // enable IRQ    
     irq_set_enabled(DMA_IRQ_0, true);
     
     
@@ -176,14 +166,14 @@ void config_cam_buffer() {
 
 void capture_cam() {
 
-// Start DMA
+    // Start DMA
     dma_channel_abort(DMA_CAM_RD_CH0);
     dma_start_channel_mask(1u << DMA_CAM_RD_CH0);
 
     // camera transfer settings
     pio_sm_put_blocking(pio_cam, sm_cam, (CAM_FUL_SIZE - 1));   // X: total bytes 
     pio_sm_put_blocking(pio_cam, sm_cam, 0);                    // Y: Count Hsync 
-    
+
     // wait until transfer finish
     while(false == is_captured);
     
