@@ -6,7 +6,8 @@
 #include "hardware/dma.h"
 #include "cam.h"
 
-volatile static bool is_captured = false;
+volatile bool is_captured = false; 
+volatile bool ram_in_use  = false; // priority: sram read > sram write
 
 // init PIO
 PIO pio_cam = pio0;
@@ -181,6 +182,8 @@ void capture_cam() {
 void uartout_cam() {
     // read Image
     printf("!srt\r\n");
+    ram_in_use = true;
+    sleep_ms(30); 
 
     int32_t iot_addr = 0;
     int32_t *b;
@@ -194,6 +197,7 @@ void uartout_cam() {
         iot_addr = iot_addr + CAM_BUF_SIZE;
 
     }
+    ram_in_use = false;
 
 }
 
@@ -346,8 +350,9 @@ void cam_handler() {
         //odd
         b = in_data2;
     }
-    iot_sram_write(pio_ram, sm_ram, b, iot_addr, CAM_BUF_HALF, DMA_IOT_WR_CH); //pio, sm, buffer, start_address, length
-    
+    if(false ==ram_in_use) {
+        iot_sram_write(pio_ram, sm_ram, b, iot_addr, CAM_BUF_HALF, DMA_IOT_WR_CH); //pio, sm, buffer, start_address, length
+    }
     // increment iot sram's address
     iot_addr = iot_addr + CAM_BUF_HALF;
 

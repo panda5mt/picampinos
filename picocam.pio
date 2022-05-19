@@ -3,9 +3,7 @@
 ; pin8=vsync,pin9=href,pin10=pclk,pin0-pin7=D[2:9]
 
 start0:
-    mov    isr,null
-    ;set     pindirs,0x0 ; all input
-    ;pull    block       ; TX_FIFO->OSR(blocking)
+    ;mov    isr,null
     out     x, 32       ; X <= TX_FIFO(32bit) :the X must be 4^n
     out     y, 32       ; Y: Num of HSYNC
     wait 0  pin 8       ; wait intil VSYNC=0
