@@ -6,10 +6,6 @@
 #include "hardware/dma.h"
 #include "cam.h"
 
-
-static uint32_t* in_data;  // pointer of camera buffer
-static uint32_t* in_data2; // back half pointer of in_data.
-
 volatile static bool is_captured = false;
 
 // init PIO
@@ -31,9 +27,12 @@ int32_t DMA_IOT_RD_CH  ;
 int32_t DMA_IOT_WR_CH  ;
 
 // private functions and buffers
+uint32_t* in_data;  // pointer of camera buffer
+uint32_t* in_data2; // back half pointer of in_data.
+
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
-void cam_handler();
 void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_num);
+void cam_handler();
 
 
 
