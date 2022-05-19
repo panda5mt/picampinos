@@ -29,12 +29,9 @@ loop1:
 static inline void picocam_program_init( PIO pio, uint32_t sm, uint32_t offset, uint32_t in_base ,uint32_t in_pin_num )
 {
     pio_sm_config c = picocam_program_get_default_config( offset );
-        /* PIOステートマシンコンフィグのデフォルト値を取得 */
 
     sm_config_set_set_pins(&c, in_base, in_pin_num);
     sm_config_set_in_pins( &c, in_base );
-        /* PIOステートマシンコンフィグの出力ピン設定を編集する */
-        /* ベースピン番号とベースから何ピンまで使うかを指定 */
  
     sm_config_set_in_shift( &c, true, true, 32); // auto push
     sm_config_set_out_shift( &c, false, true, 32); //auto pull
@@ -46,21 +43,16 @@ static inline void picocam_program_init( PIO pio, uint32_t sm, uint32_t offset, 
         for ( pin_offset = 0; pin_offset < in_pin_num; pin_offset++ )
         {
             pio_gpio_init( pio, in_base + pin_offset );
-            /* GPIOをPIOに割り当てる */
         }
 
     }
 
     pio_sm_set_consecutive_pindirs( pio, sm, in_base, in_pin_num, false );
-        /* ピンの向きを設定 */
 
     sm_config_set_clkdiv( &c, 1 );
-        /* クロック周波数1分周 */
 
     pio_sm_init( pio, sm, offset, &c );
-        /* PIOステートマシンコンフィグを反映しプログラムカウンタを設定 */
 
     pio_sm_set_enabled( pio, sm, true );
-        /* PIOステートマシンを有効にする */
 }
 %}
