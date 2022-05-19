@@ -25,15 +25,13 @@
 // GP15 <-> D1
 // GP16 <-> D2
 // GP17 <-> D3
-// GP18 <-> xCS
-// GP19 <-> SCLK
+// GP18 --> xCS
+// GP19 --> SCLK
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
-#include "hardware/adc.h"
-#include "pico/binary_info.h"
 #include "cam.h"
 
 #define BOARD_LED           (25)
