@@ -332,13 +332,11 @@ void cam_handler() {
             break;
         case 4:
             dma_hw->ints0 = 1u << DMA_CAM_RD_CH0;
-            
             dma_channel_set_write_addr(DMA_CAM_RD_CH0,in_data,false);   // reset write address pointer
             num_of_call_this++;
             break;
         case 5:
             dma_hw->ints0 = 1u << DMA_CAM_RD_CH1;
-            
             dma_channel_set_write_addr(DMA_CAM_RD_CH1,in_data2,false);  // reset write address pointer
             num_of_call_this = 0;
             iot_addr = 0;
