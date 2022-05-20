@@ -318,46 +318,9 @@ void cam_handler() {
         num_of_call_this = 0;
         iot_addr = 0;
         is_captured = true;
-    }        
+    }
 
-    // switch(num_of_call_this) {
-
-    //     case 0:
-    //         dma_hw->ints0 = 1u << DMA_CAM_RD_CH0;
-    //         dma_channel_set_write_addr(DMA_CAM_RD_CH0,in_data,false);   // reset write address pointer
-    //         num_of_call_this++;
-    //         break;
-    //     case 1:
-    //         dma_hw->ints0 = 1u << DMA_CAM_RD_CH1;
-    //         dma_channel_set_write_addr(DMA_CAM_RD_CH1,in_data2,false);  // reset write address pointer
-    //         num_of_call_this++;
-    //         break;
-    //     case 2:
-    //         dma_hw->ints0 = 1u << DMA_CAM_RD_CH0;
-    //         dma_channel_set_write_addr(DMA_CAM_RD_CH0,in_data,false);   // reset write address pointer
-    //         num_of_call_this++;
-    //         break;
-    //     case 3:
-    //         dma_hw->ints0 = 1u << DMA_CAM_RD_CH1;
-    //         dma_channel_set_write_addr(DMA_CAM_RD_CH1,in_data2,false);  // reset write address pointer
-    //         num_of_call_this++;
-    //         break;
-    //     case 4:
-    //         dma_hw->ints0 = 1u << DMA_CAM_RD_CH0;
-    //         dma_channel_set_write_addr(DMA_CAM_RD_CH0,in_data,false);   // reset write address pointer
-    //         num_of_call_this++;
-    //         break;
-    //     case 5:
-    //         dma_hw->ints0 = 1u << DMA_CAM_RD_CH1;
-    //         dma_channel_set_write_addr(DMA_CAM_RD_CH1,in_data2,false);  // reset write address pointer
-    //         num_of_call_this = 0;
-    //         iot_addr = 0;
-    //         is_captured = true;
-    //         break;
-    //     default:
-    //         num_of_call_this = 0;
-    //         iot_addr = 0;
-    // }
+    return;        
 }
 
 //// PWM
