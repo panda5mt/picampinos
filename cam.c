@@ -65,10 +65,6 @@ void init_cam(uint8_t DEVICE_IS) {
     // init DMA
     DMA_CAM_RD_CH0 = dma_claim_unused_channel(true);
     DMA_CAM_RD_CH1 = dma_claim_unused_channel(true);
-    // DMA_CAM_RD_CH2 = dma_claim_unused_channel(true);
-    // DMA_CAM_RD_CH3 = dma_claim_unused_channel(true);
-    // DMA_CAM_RD_CH4 = dma_claim_unused_channel(true);
-    // DMA_CAM_RD_CH5 = dma_claim_unused_channel(true);
     DMA_IOT_RD_CH  = dma_claim_unused_channel(true);
     DMA_IOT_WR_CH  = dma_claim_unused_channel(true);
 
@@ -88,50 +84,10 @@ void config_cam_buffer() {
     // disable IRQ
     irq_set_enabled(DMA_IRQ_0, false);
     
-    // (5) 5th DMA Channel Config
+    // (2) 1st DMA Channel Config
     dma_channel_config c;
-    // c = get_cam_config(pio_cam, sm_cam, DMA_CAM_RD_CH5);
-
-    // dma_channel_configure(DMA_CAM_RD_CH5, &c,
-    //     in_data2,                       // Destination pointer(back half of buffer)
-    //     &pio_cam->rxf[sm_cam],          // Source pointer
-    //     CAM_BUF_HALF/sizeof(uint32_t),  // Number of transfers
-    //     false                           // Don't Start yet
-    // );
-       
-    // // (4) 4th DMA Channel Config
-    // c = get_cam_config(pio_cam, sm_cam, DMA_CAM_RD_CH4);
-    // channel_config_set_chain_to(&c,DMA_CAM_RD_CH5); // trigger DMA_CAM_RD_CH5 when DMA_CAM_RD_CH4 completes.
-    // dma_channel_configure(DMA_CAM_RD_CH4, &c,
-    //     in_data,                        // Destination pointer(front half of buffer)
-    //     &pio_cam->rxf[sm_cam],          // Source pointer
-    //     CAM_BUF_HALF/sizeof(uint32_t),  // Number of transfers
-    //     false                           // Don't Start yet
-    // );
-
-    // // (3) 3rd DMA Channel Config
-    // c = get_cam_config(pio_cam, sm_cam, DMA_CAM_RD_CH3);
-    // channel_config_set_chain_to(&c,DMA_CAM_RD_CH4); // trigger DMA_CAM_RD_CH4 when DMA_CAM_RD_CH3 completes.    
-    // dma_channel_configure(DMA_CAM_RD_CH3, &c,
-    //     in_data2,                       // Destination pointer(back half of buffer)
-    //     &pio_cam->rxf[sm_cam],          // Source pointer
-    //     CAM_BUF_HALF/sizeof(uint32_t),  // Number of transfers
-    //     false                           // Don't Start yet
-    // );
-
-    // // (2) 2nd DMA Channel Config
-    // c = get_cam_config(pio_cam, sm_cam, DMA_CAM_RD_CH2);
-    // channel_config_set_chain_to(&c,DMA_CAM_RD_CH3); // trigger DMA_CAM_RD_CH3 when DMA_CAM_RD_CH2 completes.
-    // dma_channel_configure(DMA_CAM_RD_CH2, &c,
-    //     in_data,                        // Destination pointer(front half of buffer)
-    //     &pio_cam->rxf[sm_cam],          // Source pointer
-    //     CAM_BUF_HALF/sizeof(uint32_t),  // Number of transfers
-    //     false                           // Don't Start yet
-    // );
-
-    // (1) 1st DMA Channel Config
     c = get_cam_config(pio_cam, sm_cam, DMA_CAM_RD_CH1);
-    channel_config_set_chain_to(&c,DMA_CAM_RD_CH0); // trigger DMA_CAM_RD_CH2 when DMA_CAM_RD_CH0 completes.    
+    channel_config_set_chain_to(&c,DMA_CAM_RD_CH0); // trigger DMA_CAM_RD_CH0 when DMA_CAM_RD_CH1 completes. (ping-pong)   
     dma_channel_configure(DMA_CAM_RD_CH1, &c,
         in_data2,                       // Destination pointer(back half of buffer)
         &pio_cam->rxf[sm_cam],          // Source pointer
@@ -139,9 +95,8 @@ void config_cam_buffer() {
         false                           // Don't Start yet
     );
 
-    // (0) 0th DMA Channel Config
+    // (1) 0th DMA Channel Config
     c = get_cam_config(pio_cam, sm_cam, DMA_CAM_RD_CH0);
-
     channel_config_set_chain_to(&c,DMA_CAM_RD_CH1); // trigger DMA_CAM_RD_CH1 when DMA_CAM_RD_CH0 completes.
     dma_channel_configure(DMA_CAM_RD_CH0, &c,
         in_data,                        // Destination pointer(front half of buffer)
@@ -151,10 +106,6 @@ void config_cam_buffer() {
     );
 
     // IRQ settings
-    // dma_channel_set_irq0_enabled(DMA_CAM_RD_CH5, true);
-    // dma_channel_set_irq0_enabled(DMA_CAM_RD_CH4, true);
-    // dma_channel_set_irq0_enabled(DMA_CAM_RD_CH3, true);
-    // dma_channel_set_irq0_enabled(DMA_CAM_RD_CH2, true);
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH1, true);
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH0, true);
     irq_set_exclusive_handler(DMA_IRQ_0, cam_handler);
