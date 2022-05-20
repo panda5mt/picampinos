@@ -297,7 +297,7 @@ void cam_handler() {
         //odd
         b = in_data2;
     }
-    if(false ==ram_in_use) {
+    if(false == ram_in_use) {
         iot_sram_write(pio_ram, sm_ram, b, iot_addr, CAM_BUF_HALF, DMA_IOT_WR_CH); //pio, sm, buffer, start_address, length
     }
     // increment iot sram's address
