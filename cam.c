@@ -20,10 +20,6 @@ uint32_t sm_ram;    // IoT SRAM's state machines
 // dma channels
 uint32_t DMA_CAM_RD_CH0 ;
 uint32_t DMA_CAM_RD_CH1 ;
-// uint32_t DMA_CAM_RD_CH2 ;
-// uint32_t DMA_CAM_RD_CH3 ;
-// uint32_t DMA_CAM_RD_CH4 ;
-// uint32_t DMA_CAM_RD_CH5 ;
 uint32_t DMA_IOT_RD_CH  ;
 uint32_t DMA_IOT_WR_CH  ;
 
