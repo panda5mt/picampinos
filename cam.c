@@ -11,11 +11,11 @@ volatile bool ram_in_use  = false; // priority: sram read > sram write
 
 // init PIO
 PIO pio_cam = pio0;
-PIO pio_ram = pio1;
+PIO pio_iot = pio1;
 
 // statemachine's pointer
 uint32_t sm_cam;    // CAMERA's state machines
-uint32_t sm_ram;    // IoT SRAM's state machines
+uint32_t sm_iot;    // IoT SRAM's state machines
 
 // dma channels
 uint32_t DMA_CAM_RD_CH0 ;
@@ -26,6 +26,7 @@ uint32_t DMA_IOT_WR_CH  ;
 // private functions and buffers
 uint32_t* cam_ptr;  // pointer of camera buffer
 uint32_t* cam_ptr2; // back half pointer of cam_ptr.
+uint32_t* iot_ptr;  // pointer of IoT RAM's read buffer.
 
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
 void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_num);
@@ -53,10 +54,10 @@ void init_cam(uint8_t DEVICE_IS) {
     pio_sm_set_enabled(pio_cam, sm_cam, true);
 
     // Initialize IoT SRAM
-    uint32_t offset01 = pio_add_program(pio_ram, &iot_sram_program);
-    uint32_t sm_ram = pio_claim_unused_sm(pio_ram, true);
-    iot_sram_program_init(pio_ram, sm_ram, offset01, IOT_DAT_BASE_PIN, 4, IOT_SIG_BASE_PIN, 2); // : total 6 pins
-    iot_sram_init(pio_ram, sm_ram);
+    uint32_t offset01 = pio_add_program(pio_iot, &iot_sram_program);
+    uint32_t sm_iot = pio_claim_unused_sm(pio_iot, true);
+    iot_sram_program_init(pio_iot, sm_iot, offset01, IOT_DAT_BASE_PIN, 4, IOT_SIG_BASE_PIN, 2); // : total 6 pins
+    iot_sram_init(pio_iot, sm_iot);
 
     // init DMA
     DMA_CAM_RD_CH0 = dma_claim_unused_channel(true);
@@ -140,7 +141,7 @@ void uartout_cam() {
     int32_t *b;
     b = cam_ptr;
     for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
-        iot_sram_read(pio_ram, sm_ram,(uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length 
+        iot_sram_read(pio_iot, sm_iot,(uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length 
         for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i++) {
             printf("0x%08X\r\n",b[i]);
         }
@@ -153,7 +154,14 @@ void uartout_cam() {
 }
 
 void free_cam() {
-    
+ 
+    // IRQ settings
+    irq_set_enabled(DMA_IRQ_0, false);
+    dma_channel_set_irq0_enabled(DMA_CAM_RD_CH1, false);
+    dma_channel_set_irq0_enabled(DMA_CAM_RD_CH0, false);
+    dma_channel_abort(DMA_CAM_RD_CH0);
+    dma_channel_abort(DMA_CAM_RD_CH0);
+   
     free(cam_ptr);
 }
 
@@ -304,7 +312,7 @@ void cam_handler() {
         dma_chan = DMA_CAM_RD_CH1;
     }
     if(false == ram_in_use) {
-        iot_sram_write(pio_ram, sm_ram, b, iot_addr, CAM_BUF_HALF, DMA_IOT_WR_CH); //pio, sm, buffer, start_address, length
+        iot_sram_write(pio_iot, sm_iot, b, iot_addr, CAM_BUF_HALF, DMA_IOT_WR_CH); //pio, sm, buffer, start_address, length
     }
     // increment iot sram's address
     iot_addr = iot_addr + CAM_BUF_HALF;
