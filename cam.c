@@ -24,8 +24,8 @@ uint32_t DMA_IOT_RD_CH  ;
 uint32_t DMA_IOT_WR_CH  ;
 
 // private functions and buffers
-uint32_t* in_data;  // pointer of camera buffer
-uint32_t* in_data2; // back half pointer of in_data.
+uint32_t* cam_ptr;  // pointer of camera buffer
+uint32_t* cam_ptr2; // back half pointer of cam_ptr.
 
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
 void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_num);
@@ -68,8 +68,8 @@ void init_cam(uint8_t DEVICE_IS) {
     // but rp2040 has no such a huge ram.
     // so, transfer to IoT-SRAM using lesser ram BLOCK.
     // camera buffer
-    in_data = (uint32_t *)calloc((CAM_BUF_SIZE / sizeof(uint32_t)), sizeof(uint32_t));
-    in_data2 = &in_data[(CAM_BUF_HALF / sizeof(uint32_t))];
+    cam_ptr = (uint32_t *)calloc((CAM_BUF_SIZE / sizeof(uint32_t)), sizeof(uint32_t));
+    cam_ptr2 = &cam_ptr[(CAM_BUF_HALF / sizeof(uint32_t))];
 }
 //#endif
 
@@ -83,9 +83,10 @@ void config_cam_buffer() {
     // (2) 1st DMA Channel Config
     dma_channel_config c;
     c = get_cam_config(pio_cam, sm_cam, DMA_CAM_RD_CH1);
-    channel_config_set_chain_to(&c,DMA_CAM_RD_CH0); // trigger DMA_CAM_RD_CH0 when DMA_CAM_RD_CH1 completes. (ping-pong)   
+    // trigger DMA_CAM_RD_CH0 when DMA_CAM_RD_CH1 completes. (ping-pong)
+    channel_config_set_chain_to(&c,DMA_CAM_RD_CH0);   
     dma_channel_configure(DMA_CAM_RD_CH1, &c,
-        in_data2,                       // Destination pointer(back half of buffer)
+        cam_ptr2,                       // Destination pointer(back half of buffer)
         &pio_cam->rxf[sm_cam],          // Source pointer
         CAM_BUF_HALF/sizeof(uint32_t),  // Number of transfers
         false                           // Don't Start yet
@@ -93,9 +94,10 @@ void config_cam_buffer() {
 
     // (1) 0th DMA Channel Config
     c = get_cam_config(pio_cam, sm_cam, DMA_CAM_RD_CH0);
-    channel_config_set_chain_to(&c,DMA_CAM_RD_CH1); // trigger DMA_CAM_RD_CH1 when DMA_CAM_RD_CH0 completes.
+    // trigger DMA_CAM_RD_CH1 when DMA_CAM_RD_CH0 completes.
+    channel_config_set_chain_to(&c,DMA_CAM_RD_CH1); 
     dma_channel_configure(DMA_CAM_RD_CH0, &c,
-        in_data,                        // Destination pointer(front half of buffer)
+        cam_ptr,                        // Destination pointer(front half of buffer)
         &pio_cam->rxf[sm_cam],          // Source pointer
         CAM_BUF_HALF/sizeof(uint32_t),  // Number of transfers
         false                           // Don't Start yet
@@ -107,8 +109,6 @@ void config_cam_buffer() {
     irq_set_exclusive_handler(DMA_IRQ_0, cam_handler);
     // enable IRQ    
     irq_set_enabled(DMA_IRQ_0, true);
-    
-    
 }
 
 void capture_cam() {
@@ -117,9 +117,13 @@ void capture_cam() {
     dma_channel_abort(DMA_CAM_RD_CH0);
     dma_start_channel_mask(1u << DMA_CAM_RD_CH0);
 
-    // camera transfer settings
+    // camera transfer settings(for still)
     pio_sm_put_blocking(pio_cam, sm_cam, (CAM_FUL_SIZE - 1));   // X: total bytes 
     pio_sm_put_blocking(pio_cam, sm_cam, 0);                    // Y: Count Hsync 
+
+    // // camera transfer settings(for video)
+    // pio_sm_put_blocking(pio_cam, sm_cam, 0);                        // X=0 : indicate video mode
+    // pio_sm_put_blocking(pio_cam, sm_cam, (CAM_FUL_SIZE - 1));       // Y: total bytes in an image 
 
     // wait until transfer finish
     while(false == is_captured);
@@ -134,11 +138,11 @@ void uartout_cam() {
 
     int32_t iot_addr = 0;
     int32_t *b;
-    b = in_data;
+    b = cam_ptr;
     for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
-        iot_sram_read(pio_ram, sm_ram,(uint32_t *)in_data, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length 
+        iot_sram_read(pio_ram, sm_ram,(uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length 
         for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i++) {
-            printf("0x%08X\r\n",in_data[i]);
+            printf("0x%08X\r\n",b[i]);
         }
         // increment iot sram's address
         iot_addr = iot_addr + CAM_BUF_SIZE;
@@ -150,7 +154,7 @@ void uartout_cam() {
 
 void free_cam() {
     
-    free(in_data);
+    free(cam_ptr);
 }
 
 // camera dma config
@@ -292,11 +296,11 @@ void cam_handler() {
      // write iot sram
     if(0 == num_of_call_this % 2) {
         // even
-        b = in_data;
+        b = cam_ptr;
         dma_chan = DMA_CAM_RD_CH0; 
     } else{ 
         //odd
-        b = in_data2;
+        b = cam_ptr2;
         dma_chan = DMA_CAM_RD_CH1;
     }
     if(false == ram_in_use) {
@@ -311,7 +315,7 @@ void cam_handler() {
     // reset write address pointer
     dma_channel_set_write_addr(dma_chan, b, false);  
     
-    if(num_of_call_this < 5) {
+    if(num_of_call_this < 11) {
         num_of_call_this++;
     }
     else {
