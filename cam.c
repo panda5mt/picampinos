@@ -11,25 +11,22 @@ volatile bool ram_in_use  = false; // priority: sram read > sram write
 
 // init PIO
 PIO pio_cam = pio0;
-PIO pio_ram = pio1;
+PIO pio_iot = pio1;
 
 // statemachine's pointer
 uint32_t sm_cam;    // CAMERA's state machines
-uint32_t sm_ram;    // IoT SRAM's state machines
+uint32_t sm_iot;    // IoT SRAM's state machines
 
 // dma channels
 uint32_t DMA_CAM_RD_CH0 ;
 uint32_t DMA_CAM_RD_CH1 ;
-uint32_t DMA_CAM_RD_CH2 ;
-uint32_t DMA_CAM_RD_CH3 ;
-uint32_t DMA_CAM_RD_CH4 ;
-uint32_t DMA_CAM_RD_CH5 ;
 uint32_t DMA_IOT_RD_CH  ;
 uint32_t DMA_IOT_WR_CH  ;
 
 // private functions and buffers
-uint32_t* in_data;  // pointer of camera buffer
-uint32_t* in_data2; // back half pointer of in_data.
+uint32_t* cam_ptr;  // pointer of camera buffer
+uint32_t* cam_ptr2; // back half pointer of cam_ptr.
+uint32_t* iot_ptr;  // pointer of IoT RAM's read buffer.
 
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
 void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_num);
@@ -57,18 +54,14 @@ void init_cam(uint8_t DEVICE_IS) {
     pio_sm_set_enabled(pio_cam, sm_cam, true);
 
     // Initialize IoT SRAM
-    uint32_t offset01 = pio_add_program(pio_ram, &iot_sram_program);
-    uint32_t sm_ram = pio_claim_unused_sm(pio_ram, true);
-    iot_sram_program_init(pio_ram, sm_ram, offset01, IOT_DAT_BASE_PIN, 4, IOT_SIG_BASE_PIN, 2); // : total 6 pins
-    iot_sram_init(pio_ram, sm_ram);
+    uint32_t offset01 = pio_add_program(pio_iot, &iot_sram_program);
+    uint32_t sm_iot = pio_claim_unused_sm(pio_iot, true);
+    iot_sram_program_init(pio_iot, sm_iot, offset01, IOT_DAT_BASE_PIN, 4, IOT_SIG_BASE_PIN, 2); // : total 6 pins
+    iot_sram_init(pio_iot, sm_iot);
 
     // init DMA
     DMA_CAM_RD_CH0 = dma_claim_unused_channel(true);
     DMA_CAM_RD_CH1 = dma_claim_unused_channel(true);
-    DMA_CAM_RD_CH2 = dma_claim_unused_channel(true);
-    DMA_CAM_RD_CH3 = dma_claim_unused_channel(true);
-    DMA_CAM_RD_CH4 = dma_claim_unused_channel(true);
-    DMA_CAM_RD_CH5 = dma_claim_unused_channel(true);
     DMA_IOT_RD_CH  = dma_claim_unused_channel(true);
     DMA_IOT_WR_CH  = dma_claim_unused_channel(true);
 
@@ -76,8 +69,9 @@ void init_cam(uint8_t DEVICE_IS) {
     // but rp2040 has no such a huge ram.
     // so, transfer to IoT-SRAM using lesser ram BLOCK.
     // camera buffer
-    in_data = (uint32_t *)calloc((CAM_BUF_SIZE / sizeof(uint32_t)), sizeof(uint32_t));
-    in_data2 = &in_data[(CAM_BUF_HALF / sizeof(uint32_t))];
+    cam_ptr = (uint32_t *)calloc((CAM_BUF_SIZE / sizeof(uint32_t)), sizeof(uint32_t));
+    cam_ptr2 = &cam_ptr[(CAM_BUF_HALF / sizeof(uint32_t))];
+    iot_ptr = (uint32_t *)calloc((CAM_BUF_SIZE / sizeof(uint32_t)), sizeof(uint32_t)); // same size of cam_ptr
 }
 //#endif
 
@@ -88,110 +82,73 @@ void config_cam_buffer() {
     // disable IRQ
     irq_set_enabled(DMA_IRQ_0, false);
     
-    // (5) 5th DMA Channel Config
+    // (2) 1st DMA Channel Config
     dma_channel_config c;
-    c = get_cam_config(pio_cam, sm_cam, DMA_CAM_RD_CH5);
-
-    dma_channel_configure(DMA_CAM_RD_CH5, &c,
-        in_data2,                       // Destination pointer(back half of buffer)
-        &pio_cam->rxf[sm_cam],          // Source pointer
-        CAM_BUF_HALF/sizeof(uint32_t),  // Number of transfers
-        false                           // Don't Start yet
-    );
-       
-    // (4) 4th DMA Channel Config
-    c = get_cam_config(pio_cam, sm_cam, DMA_CAM_RD_CH4);
-    channel_config_set_chain_to(&c,DMA_CAM_RD_CH5); // trigger DMA_CAM_RD_CH5 when DMA_CAM_RD_CH4 completes.
-    dma_channel_configure(DMA_CAM_RD_CH4, &c,
-        in_data,                        // Destination pointer(front half of buffer)
-        &pio_cam->rxf[sm_cam],          // Source pointer
-        CAM_BUF_HALF/sizeof(uint32_t),  // Number of transfers
-        false                           // Don't Start yet
-    );
-
-    // (3) 3rd DMA Channel Config
-    c = get_cam_config(pio_cam, sm_cam, DMA_CAM_RD_CH3);
-    channel_config_set_chain_to(&c,DMA_CAM_RD_CH4); // trigger DMA_CAM_RD_CH4 when DMA_CAM_RD_CH3 completes.    
-    dma_channel_configure(DMA_CAM_RD_CH3, &c,
-        in_data2,                       // Destination pointer(back half of buffer)
-        &pio_cam->rxf[sm_cam],          // Source pointer
-        CAM_BUF_HALF/sizeof(uint32_t),  // Number of transfers
-        false                           // Don't Start yet
-    );
-
-    // (2) 2nd DMA Channel Config
-    c = get_cam_config(pio_cam, sm_cam, DMA_CAM_RD_CH2);
-    channel_config_set_chain_to(&c,DMA_CAM_RD_CH3); // trigger DMA_CAM_RD_CH3 when DMA_CAM_RD_CH2 completes.
-    dma_channel_configure(DMA_CAM_RD_CH2, &c,
-        in_data,                        // Destination pointer(front half of buffer)
-        &pio_cam->rxf[sm_cam],          // Source pointer
-        CAM_BUF_HALF/sizeof(uint32_t),  // Number of transfers
-        false                           // Don't Start yet
-    );
-
-    // (1) 1st DMA Channel Config
     c = get_cam_config(pio_cam, sm_cam, DMA_CAM_RD_CH1);
-    channel_config_set_chain_to(&c,DMA_CAM_RD_CH2); // trigger DMA_CAM_RD_CH2 when DMA_CAM_RD_CH1 completes.    
+    // trigger DMA_CAM_RD_CH0 when DMA_CAM_RD_CH1 completes. (ping-pong)
+    channel_config_set_chain_to(&c,DMA_CAM_RD_CH0);   
     dma_channel_configure(DMA_CAM_RD_CH1, &c,
-        in_data2,                       // Destination pointer(back half of buffer)
+        cam_ptr2,                       // Destination pointer(back half of buffer)
         &pio_cam->rxf[sm_cam],          // Source pointer
         CAM_BUF_HALF/sizeof(uint32_t),  // Number of transfers
         false                           // Don't Start yet
     );
 
-    // (0) 0th DMA Channel Config
+    // (1) 0th DMA Channel Config
     c = get_cam_config(pio_cam, sm_cam, DMA_CAM_RD_CH0);
-
-    channel_config_set_chain_to(&c,DMA_CAM_RD_CH1); // trigger DMA_CAM_RD_CH1 when DMA_CAM_RD_CH0 completes.
+    // trigger DMA_CAM_RD_CH1 when DMA_CAM_RD_CH0 completes.
+    channel_config_set_chain_to(&c,DMA_CAM_RD_CH1); 
     dma_channel_configure(DMA_CAM_RD_CH0, &c,
-        in_data,                        // Destination pointer(front half of buffer)
+        cam_ptr,                        // Destination pointer(front half of buffer)
         &pio_cam->rxf[sm_cam],          // Source pointer
         CAM_BUF_HALF/sizeof(uint32_t),  // Number of transfers
         false                           // Don't Start yet
     );
 
     // IRQ settings
-    dma_channel_set_irq0_enabled(DMA_CAM_RD_CH5, true);
-    dma_channel_set_irq0_enabled(DMA_CAM_RD_CH4, true);
-    dma_channel_set_irq0_enabled(DMA_CAM_RD_CH3, true);
-    dma_channel_set_irq0_enabled(DMA_CAM_RD_CH2, true);
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH1, true);
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH0, true);
     irq_set_exclusive_handler(DMA_IRQ_0, cam_handler);
     // enable IRQ    
     irq_set_enabled(DMA_IRQ_0, true);
-    
-    
 }
 
-void capture_cam() {
+void start_cam() {
 
     // Start DMA
     dma_channel_abort(DMA_CAM_RD_CH0);
     dma_start_channel_mask(1u << DMA_CAM_RD_CH0);
 
-    // camera transfer settings
-    pio_sm_put_blocking(pio_cam, sm_cam, (CAM_FUL_SIZE - 1));   // X: total bytes 
-    pio_sm_put_blocking(pio_cam, sm_cam, 0);                    // Y: Count Hsync 
+    // // camera transfer settings(for still)
+    // pio_sm_put_blocking(pio_cam, sm_cam, (CAM_FUL_SIZE - 1));   // X: total bytes 
+    // pio_sm_put_blocking(pio_cam, sm_cam, 0);                    // Y: Count Hsync 
+
+    // camera transfer settings(for video)
+    pio_sm_put_blocking(pio_cam, sm_cam, 0);                        // X=0 : indicate video mode
+    pio_sm_put_blocking(pio_cam, sm_cam, (CAM_FUL_SIZE - 1));       // Y: total bytes in an image 
 
     // wait until transfer finish
-    while(false == is_captured);
+    //while(false == is_captured);
     
 }
 
 void uartout_cam() {
     // read Image
     printf("!srt\r\n");
-    ram_in_use = true;
-    sleep_ms(30); 
-
+    sleep_ms(30);
+    
+    is_captured = false;
+    while(!is_captured);    // wait until an image captured
+    
+    ram_in_use = true;      // start to read
+    
     int32_t iot_addr = 0;
     int32_t *b;
-    b = in_data;
+    b = iot_ptr;
     for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
-        iot_sram_read(pio_ram, sm_ram,(uint32_t *)in_data, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length 
+        iot_sram_read(pio_iot, sm_iot,(uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length 
         for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i++) {
-            printf("0x%08X\r\n",in_data[i]);
+            printf("0x%08X\r\n",b[i]);
         }
         // increment iot sram's address
         iot_addr = iot_addr + CAM_BUF_SIZE;
@@ -202,8 +159,15 @@ void uartout_cam() {
 }
 
 void free_cam() {
-    
-    free(in_data);
+ 
+    // IRQ settings
+    irq_set_enabled(DMA_IRQ_0, false);
+    dma_channel_set_irq0_enabled(DMA_CAM_RD_CH1, false);
+    dma_channel_set_irq0_enabled(DMA_CAM_RD_CH0, false);
+    dma_channel_abort(DMA_CAM_RD_CH0);
+    dma_channel_abort(DMA_CAM_RD_CH0);
+   
+    free(cam_ptr);
 }
 
 // camera dma config
@@ -339,56 +303,40 @@ void cam_handler() {
     static uint32_t iot_addr = 0;
     static uint32_t num_of_call_this = 0;
     static uint32_t* b;
-    
-    //printf("enter %d\r\n",num_of_call_this);
+    uint32_t dma_chan;
     
      // write iot sram
     if(0 == num_of_call_this % 2) {
         // even
-        b = in_data; 
+        b = cam_ptr;
+        dma_chan = DMA_CAM_RD_CH0; 
     } else{ 
         //odd
-        b = in_data2;
+        b = cam_ptr2;
+        dma_chan = DMA_CAM_RD_CH1;
     }
-    if(false ==ram_in_use) {
-        iot_sram_write(pio_ram, sm_ram, b, iot_addr, CAM_BUF_HALF, DMA_IOT_WR_CH); //pio, sm, buffer, start_address, length
+    if(false == ram_in_use) {
+        iot_sram_write(pio_iot, sm_iot, b, iot_addr, CAM_BUF_HALF, DMA_IOT_WR_CH); //pio, sm, buffer, start_address, length
     }
     // increment iot sram's address
     iot_addr = iot_addr + CAM_BUF_HALF;
 
     // clear interrupt flag
-    switch(num_of_call_this) {
-
-        case 0:
-            dma_hw->ints0 = 1u << DMA_CAM_RD_CH0;
-            num_of_call_this++;
-            break;
-        case 1:
-            dma_hw->ints0 = 1u << DMA_CAM_RD_CH1;
-            num_of_call_this++;
-            break;
-        case 2:
-            dma_hw->ints0 = 1u << DMA_CAM_RD_CH2;
-            num_of_call_this++;
-            break;
-        case 3:
-            dma_hw->ints0 = 1u << DMA_CAM_RD_CH3;
-            num_of_call_this++;
-            break;
-        case 4:
-            dma_hw->ints0 = 1u << DMA_CAM_RD_CH4;
-            num_of_call_this++;
-            break;
-        case 5:
-            dma_hw->ints0 = 1u << DMA_CAM_RD_CH5;
-            num_of_call_this = 0;
-            iot_addr = 0;
-            is_captured = true;
-            break;
-        default:
-            num_of_call_this = 0;
-            iot_addr = 0;
+    dma_hw->ints0 = 1u << dma_chan;
+    
+    // reset write address pointer
+    dma_channel_set_write_addr(dma_chan, b, false);  
+    
+    if(num_of_call_this < 11) {
+        num_of_call_this++;
     }
+    else {
+        num_of_call_this = 0;
+        iot_addr = 0;
+        is_captured = true;
+    }
+
+    return;        
 }
 
 //// PWM

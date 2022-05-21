@@ -6,9 +6,12 @@ start0:
     ;mov    isr,null
     out     x, 32       ; X <= TX_FIFO(32bit) :the X must be 4^n
     out     y, 32       ; Y: Num of HSYNC
+start1:
     wait 0  pin 8       ; wait intil VSYNC=0
     wait 1  pin 8       ; wait until VSYNC=1
-    
+    jmp     !x, loop2   ; if (0==x) goto loop2(loop forever mode)
+
+; HSYNC counter mode (for still)   
 loop0:
     wait 0  pin 9
     wait 1  pin 9
@@ -21,6 +24,20 @@ loop1:
     wait 0  pin 10
     jmp     x--, loop1
     jmp     start0
+
+; loop forever mode (for video)
+loop2:
+    mov     x, y        ; x = y (y: number of total pixel(in bytes) in an image)
+    wait 0  pin 9
+    wait 1  pin 9
+
+loop3:
+    wait 1  pin 9
+    wait 1  pin 10      ; wait until PCLK = 1
+    in      pins, 8     ; get camera RGB data-> ISR
+    wait 0  pin 10
+    jmp     x--, loop3
+    jmp     start1
 
 
 % c-sdk {

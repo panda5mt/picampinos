@@ -57,17 +57,17 @@ int main() {
     init_cam(DEV_OV5642);
    
     config_cam_buffer();    // config buffer
-    capture_cam();          // get still
+    start_cam();            // start streaming
+    uartout_cam();          // data via USB-UART
     uartout_cam();          // data via USB-UART
 
-    // need more still?
-    
+    // need more still?    
     /*
-    config_cam_buffer();
-    capture_cam();
+    uartout_cam();
+    uartout_cam();    
     uartout_cam();
     */
-    
+
     // end
     free_cam();
 

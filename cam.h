@@ -16,7 +16,7 @@
 // 640x480, RGB565 picture needs 640x480x2 bytes of buffers.
 // but RP2040 has no capacity such as huge buffers.
 // so, using DMA and IoT SRAM and lesser buffer to store them.
-#define BLOCK           (160)               // fixed: 160
+#define BLOCK           (80)                // fixed: 80
 #define CAM_FUL_SIZE    (640 * 480 * 2)     // VGA size, RGB565(16bit) format
 #define CAM_BUF_SIZE    (640 * BLOCK * 2)   // in bytes
 #define CAM_BUF_HALF    (CAM_BUF_SIZE / 2)  // in bytes
@@ -27,7 +27,7 @@ void iot_sram_write(PIO pio, uint32_t sm, uint32_t *send_data, uint32_t address,
 void *iot_sram_read(PIO pio, uint32_t sm, uint32_t *read_data, uint32_t address, uint32_t length_in_byte, uint32_t dma_channel);
 void init_cam(uint8_t DEVICE_IS);
 void config_cam_buffer();
-void capture_cam();
+void start_cam();
 void uartout_cam();
 void free_cam();
 
