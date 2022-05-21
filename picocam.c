@@ -59,13 +59,16 @@ int main() {
     config_cam_buffer();    // config buffer
     start_cam();            // start streaming
     uartout_cam();          // data via USB-UART
-    uartout_cam();          // data via USB-UART
 
     // need more still?    
     /*
     uartout_cam();
-    uartout_cam();    
-    uartout_cam();
+    uartout_cam(); 
+    uartout_cam(); 
+    uartout_cam(); 
+    uartout_cam(); 
+    // ... 
+    //
     */
 
     // end
