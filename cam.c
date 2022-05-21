@@ -71,6 +71,7 @@ void init_cam(uint8_t DEVICE_IS) {
     // camera buffer
     cam_ptr = (uint32_t *)calloc((CAM_BUF_SIZE / sizeof(uint32_t)), sizeof(uint32_t));
     cam_ptr2 = &cam_ptr[(CAM_BUF_HALF / sizeof(uint32_t))];
+    iot_ptr = (uint32_t *)calloc((CAM_BUF_SIZE / sizeof(uint32_t)), sizeof(uint32_t)); // same size of cam_ptr
 }
 //#endif
 
@@ -112,34 +113,38 @@ void config_cam_buffer() {
     irq_set_enabled(DMA_IRQ_0, true);
 }
 
-void capture_cam() {
+void start_cam() {
 
     // Start DMA
     dma_channel_abort(DMA_CAM_RD_CH0);
     dma_start_channel_mask(1u << DMA_CAM_RD_CH0);
 
-    // camera transfer settings(for still)
-    pio_sm_put_blocking(pio_cam, sm_cam, (CAM_FUL_SIZE - 1));   // X: total bytes 
-    pio_sm_put_blocking(pio_cam, sm_cam, 0);                    // Y: Count Hsync 
+    // // camera transfer settings(for still)
+    // pio_sm_put_blocking(pio_cam, sm_cam, (CAM_FUL_SIZE - 1));   // X: total bytes 
+    // pio_sm_put_blocking(pio_cam, sm_cam, 0);                    // Y: Count Hsync 
 
-    // // camera transfer settings(for video)
-    // pio_sm_put_blocking(pio_cam, sm_cam, 0);                        // X=0 : indicate video mode
-    // pio_sm_put_blocking(pio_cam, sm_cam, (CAM_FUL_SIZE - 1));       // Y: total bytes in an image 
+    // camera transfer settings(for video)
+    pio_sm_put_blocking(pio_cam, sm_cam, 0);                        // X=0 : indicate video mode
+    pio_sm_put_blocking(pio_cam, sm_cam, (CAM_FUL_SIZE - 1));       // Y: total bytes in an image 
 
     // wait until transfer finish
-    while(false == is_captured);
+    //while(false == is_captured);
     
 }
 
 void uartout_cam() {
     // read Image
     printf("!srt\r\n");
-    ram_in_use = true;
-    sleep_ms(30); 
-
+    sleep_ms(30);
+    
+    is_captured = false;
+    while(!is_captured);    // wait until an image captured
+    
+    ram_in_use = true;      // start to read
+    
     int32_t iot_addr = 0;
     int32_t *b;
-    b = cam_ptr;
+    b = iot_ptr;
     for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
         iot_sram_read(pio_iot, sm_iot,(uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length 
         for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i++) {
@@ -299,7 +304,6 @@ void cam_handler() {
     static uint32_t num_of_call_this = 0;
     static uint32_t* b;
     uint32_t dma_chan;
-    //printf("enter %d\r\n",num_of_call_this);
     
      // write iot sram
     if(0 == num_of_call_this % 2) {
