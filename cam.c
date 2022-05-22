@@ -168,6 +168,7 @@ void free_cam() {
     dma_channel_abort(DMA_CAM_RD_CH0);
    
     free(cam_ptr);
+    free(iot_ptr);
 }
 
 // camera dma config
