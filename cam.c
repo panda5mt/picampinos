@@ -160,7 +160,7 @@ void uartout_cam() {
 
 void free_cam() {
  
-    // IRQ settings
+    // Disable IRQ settings
     irq_set_enabled(DMA_IRQ_0, false);
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH1, false);
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH0, false);
