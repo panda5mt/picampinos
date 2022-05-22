@@ -208,7 +208,7 @@ void iot_sram_write(PIO pio, uint32_t sm, uint32_t *send_data, uint32_t address,
         uint32_t length_in_byte, uint32_t dma_channel) {
 
     uint32_t *b;
-    uint32_t num_of_tran_byte; // number of trans at once.(upto 1024bytes)
+    uint32_t num_of_tran_byte; // number of trans at once.(upto LINEAR_BURST bytes)
     b = send_data;
     dma_channel_config c = dma_channel_get_default_config(dma_channel);    
     channel_config_set_read_increment(&c, true);
@@ -218,7 +218,7 @@ void iot_sram_write(PIO pio, uint32_t sm, uint32_t *send_data, uint32_t address,
 
     while (true) {
 
-        // IoT SRAM needs refresh between writing 1024bytes
+        // IoT SRAM needs refresh between writing LINEAR_BURST bytes
         if (length_in_byte > LINEAR_BURST) {
             num_of_tran_byte = LINEAR_BURST;
             length_in_byte = length_in_byte - LINEAR_BURST;
