@@ -1,8 +1,8 @@
 #!/bin/bash
 
 sudo apt update
-apt update && apt -y install --no-install-recommends sudo make libtbb2 wget coreutils udev curl time tar nano 
-apt -y install git cmake libstdc++-arm-none-eabi-newlib gcc-arm-none-eabi libnewlib-arm-none-eabi build-essential python3 
+sudo apt -y install --no-install-recommends sudo make libtbb2 wget coreutils udev curl time tar nano 
+sudo apt -y install git cmake libstdc++-arm-none-eabi-newlib gcc-arm-none-eabi libnewlib-arm-none-eabi build-essential python3 
 
 cd ~/
 mkdir pico
