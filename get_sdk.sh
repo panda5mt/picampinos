@@ -1,6 +1,6 @@
 #!/bin/bash
-
-sudo apt update
+# for raspberry pi
+sudo apt -y update
 sudo apt -y install --no-install-recommends sudo make libtbb2 wget coreutils udev curl time tar nano 
 sudo apt -y install git cmake libstdc++-arm-none-eabi-newlib gcc-arm-none-eabi libnewlib-arm-none-eabi build-essential python3 
 
