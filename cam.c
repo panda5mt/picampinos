@@ -1,10 +1,18 @@
 #include <stdio.h>
+#include "pico/stdlib.h"
+#include "pico/binary_info.h"
 #include "picocam.pio.h"
 #include "iot_sram.pio.h"
 #include "hardware/pwm.h"
+#include "hardware/spi.h"
 #include "hardware/irq.h"
 #include "hardware/dma.h"
 #include "cam.h"
+
+#define SPI1S_RX    (12)
+#define SPI1S_CSn   (13)
+#define SPI1S_SCK   (14)
+#define SPI1S_TX    (15)
 
 volatile bool is_captured = false; 
 volatile bool ram_in_use  = false; // priority: sram read > sram write
@@ -27,12 +35,11 @@ uint32_t DMA_IOT_WR_CH  ;
 uint32_t* cam_ptr;  // pointer of camera buffer
 uint32_t* cam_ptr2; // back half pointer of cam_ptr.
 uint32_t* iot_ptr;  // pointer of IoT RAM's read buffer.
-
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
 void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_num);
 void cam_handler();
-
-
+void spi_slave_init();
+void printbuf(uint8_t buf[], size_t len) ;
 
 //#if USE_CAMERA_SYSTEM
 void init_cam(uint8_t DEVICE_IS) {
@@ -171,7 +178,7 @@ void free_cam() {
     free(iot_ptr);
 }
 
-// camera dma config
+/// camera dma config
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan) {
     dma_channel_config c = dma_channel_get_default_config(dma_chan);    
     channel_config_set_read_increment(&c, false);
@@ -180,8 +187,99 @@ dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan) {
     return c;
 }
 
+void cam_handler() {
+    static uint32_t iot_addr = 0;
+    static uint32_t num_of_call_this = 0;
+    static uint32_t* b;
+    uint32_t dma_chan;
+    
+     // write iot sram
+    if(0 == num_of_call_this % 2) {
+        // even
+        b = cam_ptr;
+        dma_chan = DMA_CAM_RD_CH0; 
+    } else{ 
+        //odd
+        b = cam_ptr2;
+        dma_chan = DMA_CAM_RD_CH1;
+    }
+    if(false == ram_in_use) {
+        iot_sram_write(pio_iot, sm_iot, b, iot_addr, CAM_BUF_HALF, DMA_IOT_WR_CH); //pio, sm, buffer, start_address, length
+    }
+    // increment iot sram's address
+    iot_addr = iot_addr + CAM_BUF_HALF;
 
-// IoT SRAM:APS1604M-3SQR (AP Memory)
+    // clear interrupt flag
+    dma_hw->ints0 = 1u << dma_chan;
+    
+    // reset write address pointer
+    dma_channel_set_write_addr(dma_chan, b, false);  
+    
+    if(num_of_call_this < 11) {
+        num_of_call_this++;
+    }
+    else {
+        num_of_call_this = 0;
+        iot_addr = 0;
+        is_captured = true;
+    }
+
+    return;        
+}
+/// SPI
+void init_spi_slave() {
+    // SPI1 Slave
+    // SPI1_RX=GP12, SPI1_CSn=GP13, SPI1_SCK=GP14, SPI1_TX=GP15
+    /*
+    uint8_t BUF_LEN = 100;
+    spi_init(spi1, 20000 * 1000); // 20MHZ
+    spi_set_slave(spi1, true);
+    gpio_set_function(SPI1S_TX,  GPIO_FUNC_SPI);
+    gpio_set_function(SPI1S_SCK, GPIO_FUNC_SPI);
+    gpio_set_function(SPI1S_RX,  GPIO_FUNC_SPI);
+    gpio_set_function(SPI1S_CSn, GPIO_FUNC_SPI);
+    // Make the SPI pins available to picotool
+    bi_decl(bi_4pins_with_func(SPI1S_RX, SPI1S_TX, SPI1S_SCK, SPI1S_CSn, GPIO_FUNC_SPI));
+
+    uint8_t out_buf[BUF_LEN], in_buf[BUF_LEN];
+
+    // Initialize output buffer
+    for (size_t i = 0; i < BUF_LEN; ++i) {
+        // bit-inverted from i. The values should be: {0xff, 0xfe, 0xfd...}
+        out_buf[i] = ~i;
+    }
+
+    printf("SPI slave says: When reading from MOSI, the following buffer will be written to MISO:\n");
+    printbuf(out_buf, BUF_LEN);
+    
+    for (size_t i = 0; ; ++i) {
+        // Write the output buffer to MISO, and at the same time read from MOSI.
+        spi_write_read_blocking(spi1, out_buf, in_buf, BUF_LEN);
+
+        // Write to stdio whatever came in on the MOSI line.
+        printf("SPI slave says: read page %d from the MOSI line:\n", i);
+        printbuf(in_buf, BUF_LEN);
+    }
+    */
+    
+}
+
+void printbuf(uint8_t buf[], size_t len) {
+    int i;
+    for (i = 0; i < len; ++i) {
+        if (i % 16 == 15)
+            printf("%02x\n", buf[i]);
+        else
+            printf("%02x ", buf[i]);
+    }
+
+    // append trailing newline if there isn't one
+    if (i % 16) {
+        putchar('\n');
+    }
+}
+
+/// IoT SRAM:APS1604M-3SQR (AP Memory)
 void iot_sram_init(PIO pio, uint32_t sm) {
     // ----------send reset
     pio_sm_put_blocking(pio, sm, 8-1);      // x=8
@@ -298,46 +396,6 @@ void *iot_sram_read(PIO pio, uint32_t sm, uint32_t *read_data, uint32_t address,
     }
 
     return (void *)read_data;
-}
-
-void cam_handler() {
-    static uint32_t iot_addr = 0;
-    static uint32_t num_of_call_this = 0;
-    static uint32_t* b;
-    uint32_t dma_chan;
-    
-     // write iot sram
-    if(0 == num_of_call_this % 2) {
-        // even
-        b = cam_ptr;
-        dma_chan = DMA_CAM_RD_CH0; 
-    } else{ 
-        //odd
-        b = cam_ptr2;
-        dma_chan = DMA_CAM_RD_CH1;
-    }
-    if(false == ram_in_use) {
-        iot_sram_write(pio_iot, sm_iot, b, iot_addr, CAM_BUF_HALF, DMA_IOT_WR_CH); //pio, sm, buffer, start_address, length
-    }
-    // increment iot sram's address
-    iot_addr = iot_addr + CAM_BUF_HALF;
-
-    // clear interrupt flag
-    dma_hw->ints0 = 1u << dma_chan;
-    
-    // reset write address pointer
-    dma_channel_set_write_addr(dma_chan, b, false);  
-    
-    if(num_of_call_this < 11) {
-        num_of_call_this++;
-    }
-    else {
-        num_of_call_this = 0;
-        iot_addr = 0;
-        is_captured = true;
-    }
-
-    return;        
 }
 
 //// PWM
