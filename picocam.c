@@ -17,6 +17,8 @@
 // GP10 <-- HREF(HSYNC)
 // GP11 <-- PCLK(Pixel Clock OUT)
 
+// GP12~GP15 : reserved for future use. (SPI1)
+
 // GP26 --> SDA(SCCB DATA/I2C)
 // GP27 --> SCL(SCCB CLK/I2C)
 
