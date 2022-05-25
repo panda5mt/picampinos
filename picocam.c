@@ -3,7 +3,7 @@
 // Need: A Raspberry Pi PICO, An IoT SRAM(APS1604M-3SQR or compatible), A DVP Camera(OV5642)
 // Connection:
 // ----- with OV Camera -----
-// PICO <-> OV5642/OV2640
+// (PICO <-> OV5642/OV2640)
 // GP0 ---> XCLK(24MHz Clock IN)
 // GP1 <--- D2
 // GP2 <--- D3
@@ -21,7 +21,7 @@
 // GP27 --> SCL(SCCB CLK/I2C)
 
 // ----- with IoT SRAM -----
-// PICO <-> APS1604M
+// (PICO <-> APS1604M)
 // GP16 <-> D0
 // GP17 <-> D1
 // GP18 <-> D2
