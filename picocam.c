@@ -16,17 +16,18 @@
 // GP9 <--- VSYNC
 // GP10 <-- HREF(HSYNC)
 // GP11 <-- PCLK(Pixel Clock OUT)
-// GP12 --> SDA(SCCB DATA/I2C)
-// GP13 --> SCL(SCCB CLK/I2C)
+
+// GP26 --> SDA(SCCB DATA/I2C)
+// GP27 --> SCL(SCCB CLK/I2C)
 
 // ----- with IoT SRAM -----
 // PICO <-> APS1604M
-// GP14 <-> D0
-// GP15 <-> D1
-// GP16 <-> D2
-// GP17 <-> D3
-// GP18 --> xCS
-// GP19 --> SCLK
+// GP16 <-> D0
+// GP17 <-> D1
+// GP18 <-> D2
+// GP19 <-> D3
+// GP20 --> xCS
+// GP21 --> SCLK
 
 #include <stdio.h>
 #include <stdlib.h>
