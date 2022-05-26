@@ -12,6 +12,16 @@
 #define IOT_SIG_BASE_PIN    (20)    // IoT SRAM's control pin (nCS, SCLK)
 #define LINEAR_BURST        (512)   // IoT SRAM's burst length(in bytes)
 
+// interfaces
+// SCCB IF
+#define I2C1_SDA    (26)
+#define I2C1_SCL    (27)
+// SPI Slave(optional)
+#define SPI1S_RX    (12)
+#define SPI1S_CSn   (13)
+#define SPI1S_SCK   (14)
+#define SPI1S_TX    (15)
+
 // camera buffer size
 // 640x480, RGB565 picture needs 640x480x2 bytes of buffers.
 // but RP2040 has no capacity such as huge buffers.

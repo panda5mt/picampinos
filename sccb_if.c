@@ -7,11 +7,8 @@
 /*******************************************************************************
  * Function Definitions
  */
-void sccb_init(uint8_t device_is) {
+void sccb_init(uint8_t device_is,const uint32_t sda_pin, const uint32_t scl_pin) {
 
-    // Pins
-    const uint32_t sda_pin = 26;
-    const uint32_t scl_pin = 27;
 
     uint8_t CAM_ADDR=(0x78>>1); // default: OV5642
 

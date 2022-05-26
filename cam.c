@@ -9,11 +9,6 @@
 #include "hardware/dma.h"
 #include "cam.h"
 
-#define SPI1S_RX    (12)
-#define SPI1S_CSn   (13)
-#define SPI1S_SCK   (14)
-#define SPI1S_TX    (15)
-
 volatile bool is_captured = false; 
 volatile bool ram_in_use  = false; // priority: sram read > sram write
 
@@ -49,7 +44,7 @@ void init_cam(uint8_t DEVICE_IS) {
     set_pwm_freq_kHz(24000, SYS_CLK_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2640
     sleep_ms(1000);
 
-    sccb_init(DEVICE_IS); // sda,scl=(gp26,gp27). see 'sccb_if.c'
+    sccb_init(DEVICE_IS, I2C1_SDA, I2C1_SCL); // sda,scl=(gp26,gp27). see 'sccb_if.c'
     sleep_ms(3000);
     
     uint32_t offset = pio_add_program(pio_cam, &picocam_program);
