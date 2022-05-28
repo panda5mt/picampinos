@@ -14,7 +14,7 @@ fileID = fopen('teraterm.log');
 while (true)
     tline = fgetl(fileID);
     %disp(tline);
-    if contains(string(tline),'!srt')
+    if contains(string(tline),'!srt') % got string '!srt'?
         disp("start signal received...");
         break;
     end
