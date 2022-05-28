@@ -37,8 +37,8 @@ end
                 img(HGT, WID) = hex2dec(data);
                 img(HGT, WID+1) = bitshift(hex2dec(data),-16);
             catch 
-                fprintf('Got error : %s, but replaced dummy data.\n',(data));      % if got error,
-                data = '0xAAAAAAAA';                    % insert dummy data
+                fprintf('Got error : %s, but replaced dummy data.\n',(data));       % if got error,
+                data = '0xAAAAAAAA';                                                % insert dummy data
                 img(HGT, WID) = hex2dec(data);
                 img(HGT, WID+1) = bitshift(hex2dec(data),-16); 
             end
