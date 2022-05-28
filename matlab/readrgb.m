@@ -1,3 +1,9 @@
+% RP2040 generates RGP565 datas via its USB-UART stdio.
+% Store these datas pipe(on unix/MacOS) or Teraterm(on Windows).
+% This program encodes that stored data in an image (640 x 480, 16bit
+% color).
+
+
 clc;
 clear;
 format long;
