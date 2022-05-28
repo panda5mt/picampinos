@@ -31,13 +31,12 @@ end
                 img(HGT, WID) = hex2dec(data);
                 img(HGT, WID+1) = bitshift(hex2dec(data),-16);
             catch 
-                disp(data);
-                data = 0;
+                disp(data);          % if got error,
+                data = '0xAAAAAAAA'; % insert dummy data
                 img(HGT, WID) = hex2dec(data);
                 img(HGT, WID+1) = bitshift(hex2dec(data),-16); 
             end
         end
-        
      end
  end
  
