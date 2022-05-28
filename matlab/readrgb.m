@@ -27,9 +27,15 @@ end
         data = fgetl(fileID);
         if -1 ~= data
             %disp(data);
-            img(HGT, WID) = hex2dec(data);
-            img(HGT, WID+1) = bitshift(hex2dec(data),-16);
-            
+            try
+                img(HGT, WID) = hex2dec(data);
+                img(HGT, WID+1) = bitshift(hex2dec(data),-16);
+            catch 
+                disp(data);
+                data = 0;
+                img(HGT, WID) = hex2dec(data);
+                img(HGT, WID+1) = bitshift(hex2dec(data),-16); 
+            end
         end
         
      end
