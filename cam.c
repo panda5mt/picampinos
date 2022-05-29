@@ -225,6 +225,15 @@ void cam_handler() {
 void init_spi_slave() {
     // SPI1 Slave
     // SPI1_RX=GP12, SPI1_CSn=GP13, SPI1_SCK=GP14, SPI1_TX=GP15
+    // SPI command(from SPI Master)
+    // 0xAA: Send an image
+    // 0xBA: Send images until stop command(=0x55)
+    // 0x55: Stop immediately 
+    // SPI response(to master)
+    // 0xff:busy
+    // 0xA1: Start data
+    // 0x1A: End data
+    
     /*
     uint8_t BUF_LEN = 100;
     spi_init(spi1, 20000 * 1000); // 20MHZ
