@@ -270,6 +270,8 @@ void spiout_cam() {
         pio_sm_put_blocking(pio_spi, sm_spi, 0xAAFF55FF);      // 
     }
     */
+
+   // TODO: reconfig CAMERA, when spi transmit finished.
 }
 
 void printbuf(uint8_t buf[], size_t len) {
