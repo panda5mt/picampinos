@@ -230,7 +230,8 @@ void cam_handler() {
 void init_spi_slave() {
     // SPI1 Slave
     // SPI1_RX=GP12, SPI1_CSn=GP13, SPI1_SCK=GP14, SPI1_TX=GP15
-    // this is not HW-SPI but pseudo-SPI Slave using PIO 
+    // this is not HW-SPI but pseudo-SPI Slave using PIO. 
+    // because RP2040's SPI Slave(PL022 by arm Limited)is not suitable. 
     if(true == spi_initialized) {
         return;
     }
