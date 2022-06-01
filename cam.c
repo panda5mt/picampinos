@@ -3,22 +3,27 @@
 #include "pico/binary_info.h"
 #include "picocam.pio.h"
 #include "iot_sram.pio.h"
+#include "ezspi_slave.pio.h"
 #include "hardware/pwm.h"
-#include "hardware/spi.h"
 #include "hardware/irq.h"
 #include "hardware/dma.h"
 #include "cam.h"
 
 volatile bool is_captured = false; 
 volatile bool ram_in_use  = false; // priority: sram read > sram write
-
+volatile bool spi_initialized = false;
 // init PIO
 PIO pio_cam = pio0;
 PIO pio_iot = pio1;
-
+PIO pio_spi = pio0;
 // statemachine's pointer
 uint32_t sm_cam;    // CAMERA's state machines
 uint32_t sm_iot;    // IoT SRAM's state machines
+uint32_t sm_spi;    // ezspi slave's state machines
+
+uint32_t offset_cam;
+uint32_t offset_iot;
+uint32_t offset_spi;
 
 // dma channels
 uint32_t DMA_CAM_RD_CH0 ;
@@ -30,10 +35,10 @@ uint32_t DMA_IOT_WR_CH  ;
 uint32_t* cam_ptr;  // pointer of camera buffer
 uint32_t* cam_ptr2; // back half pointer of cam_ptr.
 uint32_t* iot_ptr;  // pointer of IoT RAM's read buffer.
+void init_spi_slave();
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
 void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_num);
 void cam_handler();
-void spi_slave_init();
 void printbuf(uint8_t buf[], size_t len) ;
 
 //#if USE_CAMERA_SYSTEM
@@ -47,14 +52,14 @@ void init_cam(uint8_t DEVICE_IS) {
     sccb_init(DEVICE_IS, I2C1_SDA, I2C1_SCL); // sda,scl=(gp26,gp27). see 'sccb_if.c' and 'cam.h'
     sleep_ms(3000);
     
-    uint32_t offset = pio_add_program(pio_cam, &picocam_program);
+    offset_cam = pio_add_program(pio_cam, &picocam_program);
     uint32_t sm = pio_claim_unused_sm(pio_cam, true);
-    picocam_program_init(pio_cam, sm_cam, offset, CAM_BASE_PIN, 11);// VSYNC,HREF,PCLK,D[2:9] : total 11 pins
+    picocam_program_init(pio_cam, sm_cam, offset_cam, CAM_BASE_PIN, 11);// VSYNC,HREF,PCLK,D[2:9] : total 11 pins
     pio_sm_set_enabled(pio_cam, sm_cam, false);
     pio_sm_clear_fifos(pio_cam, sm_cam);
     pio_sm_restart(pio_cam, sm_cam);        
     pio_sm_set_enabled(pio_cam, sm_cam, true);
-
+    
     // Initialize IoT SRAM
     uint32_t offset01 = pio_add_program(pio_iot, &iot_sram_program);
     uint32_t sm_iot = pio_claim_unused_sm(pio_iot, true);
@@ -225,47 +230,45 @@ void cam_handler() {
 void init_spi_slave() {
     // SPI1 Slave
     // SPI1_RX=GP12, SPI1_CSn=GP13, SPI1_SCK=GP14, SPI1_TX=GP15
-    // SPI command(from SPI Master)
-    // 0xAA: Send an image
-    // 0xBA: Send images until stop command(=0x55)
-    // 0x55: Stop immediately 
-    // SPI response(to master)
-    // 0xff:busy
-    // 0xA1: Start data
-    // 0x1A: End data
-    
-    /*
-    uint8_t BUF_LEN = 100;
-    spi_init(spi1, 20000 * 1000); // 20MHZ
-    spi_set_slave(spi1, true);
-    gpio_set_function(SPI1S_TX,  GPIO_FUNC_SPI);
-    gpio_set_function(SPI1S_SCK, GPIO_FUNC_SPI);
-    gpio_set_function(SPI1S_RX,  GPIO_FUNC_SPI);
-    gpio_set_function(SPI1S_CSn, GPIO_FUNC_SPI);
-    // Make the SPI pins available to picotool
-    bi_decl(bi_4pins_with_func(SPI1S_RX, SPI1S_TX, SPI1S_SCK, SPI1S_CSn, GPIO_FUNC_SPI));
-
-    uint8_t out_buf[BUF_LEN], in_buf[BUF_LEN];
-
-    // Initialize output buffer
-    for (size_t i = 0; i < BUF_LEN; ++i) {
-        // bit-inverted from i. The values should be: {0xff, 0xfe, 0xfd...}
-        out_buf[i] = ~i;
+    // this is not HW-SPI but pseudo-SPI Slave using PIO 
+    if(true == spi_initialized) {
+        return;
     }
+    else {
+        spi_initialized = true;
+    }
+    // disable camera
+    pio_sm_set_enabled(pio_cam, sm_cam, false);
+    pio_sm_clear_fifos(pio_cam, sm_cam);
+    pio_remove_program(pio_cam,&picocam_program, offset_cam);
+    // disable camera's interrupt
+    irq_set_enabled(DMA_IRQ_0, false);
+    dma_channel_set_irq0_enabled(DMA_CAM_RD_CH1, false);
+    dma_channel_set_irq0_enabled(DMA_CAM_RD_CH0, false);
+    dma_channel_abort(DMA_CAM_RD_CH0);
+    dma_channel_abort(DMA_CAM_RD_CH0);
 
-    printf("SPI slave says: When reading from MOSI, the following buffer will be written to MISO:\n");
-    printbuf(out_buf, BUF_LEN);
+
+    offset_spi = pio_add_program(pio_spi, &ezspi_slave_program);
+    sm_spi = pio_claim_unused_sm(pio_spi, true);
+    ezspi_slave_program_init(pio_spi, sm_spi, offset_spi, SPI1S_RX, 3, SPI1S_TX, 1); // in:MSB-> {CLK, nCS, RX} <-LSB, out: TX
     
-    for (size_t i = 0; ; ++i) {
-        // Write the output buffer to MISO, and at the same time read from MOSI.
-        spi_write_read_blocking(spi1, out_buf, in_buf, BUF_LEN);
+    return;
+}
 
-        // Write to stdio whatever came in on the MOSI line.
-        printf("SPI slave says: read page %d from the MOSI line:\n", i);
-        printbuf(in_buf, BUF_LEN);
+void spiout_cam() {
+    init_spi_slave();
+    /*
+    uint8_t BUF_LEN = 10;
+    uint8_t in_buf[BUF_LEN]; 
+    uint8_t out_buf[BUF_LEN];
+    uint32_t ll = 2*1024;
+    
+    pio_sm_put_blocking(pio_spi, sm_spi, (ll)-1);         // 100bytes
+    for(int i = 0 ; i < ll/4 ; i++){
+        pio_sm_put_blocking(pio_spi, sm_spi, 0xAAFF55FF);      // 
     }
     */
-    
 }
 
 void printbuf(uint8_t buf[], size_t len) {
