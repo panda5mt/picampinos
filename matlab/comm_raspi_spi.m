@@ -1,3 +1,8 @@
+% This program is part of 'PICOCAM' (https://github.com/panda5mt/picocam/)
+% RP2040 generates RGP565 datas via its SPI Slave.
+% This program stores image and encodes that stored data in an image (640 x 480, 16bit
+% color).
+
 clc;
 clear;
 format long;
