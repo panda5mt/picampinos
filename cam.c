@@ -12,10 +12,12 @@
 volatile bool is_captured = false; 
 volatile bool ram_in_use  = false; // priority: sram read > sram write
 volatile bool spi_initialized = false;
+volatile bool irq_indicate_reset = true;
+
 // init PIO
 PIO pio_cam = pio0;
 PIO pio_iot = pio1;
-PIO pio_spi = pio0;
+PIO pio_spi = pio1; // same PIO with pio_iot
 // statemachine's pointer
 uint32_t sm_cam;    // CAMERA's state machines
 uint32_t sm_iot;    // IoT SRAM's state machines
@@ -116,6 +118,7 @@ void config_cam_buffer() {
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH1, true);
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH0, true);
     irq_set_exclusive_handler(DMA_IRQ_0, cam_handler);
+    //irq_indicate_reset = true;
     // enable IRQ    
     irq_set_enabled(DMA_IRQ_0, true);
 }
@@ -146,7 +149,6 @@ void uartout_cam() {
     
     is_captured = false;
     while(!is_captured);    // wait until an image captured
-    
     ram_in_use = true;      // start to read
     
     int32_t iot_addr = 0;
@@ -192,7 +194,15 @@ void cam_handler() {
     static uint32_t num_of_call_this = 0;
     static uint32_t* b;
     uint32_t dma_chan;
-    
+
+    // first call?
+    if(true == irq_indicate_reset) {
+        num_of_call_this = 0;
+        iot_addr = 0;
+        is_captured = false;
+        irq_indicate_reset = false;
+    }
+
      // write iot sram
     if(0 == num_of_call_this % 2) {
         // even
@@ -238,18 +248,6 @@ void init_spi_slave() {
     else {
         spi_initialized = true;
     }
-    // disable camera
-    pio_sm_set_enabled(pio_cam, sm_cam, false);
-    pio_sm_clear_fifos(pio_cam, sm_cam);
-    pio_remove_program(pio_cam,&picocam_program, offset_cam);
-    // disable camera's interrupt
-    irq_set_enabled(DMA_IRQ_0, false);
-    dma_channel_set_irq0_enabled(DMA_CAM_RD_CH1, false);
-    dma_channel_set_irq0_enabled(DMA_CAM_RD_CH0, false);
-    dma_channel_abort(DMA_CAM_RD_CH0);
-    dma_channel_abort(DMA_CAM_RD_CH0);
-
-
     offset_spi = pio_add_program(pio_spi, &ezspi_slave_program);
     sm_spi = pio_claim_unused_sm(pio_spi, true);
     ezspi_slave_program_init(pio_spi, sm_spi, offset_spi, SPI1S_RX, 3, SPI1S_TX, 1); // in:MSB-> {CLK, nCS, RX} <-LSB, out: TX
@@ -257,20 +255,61 @@ void init_spi_slave() {
     return;
 }
 
+/// SPI
+void deinit_spi_slave() {
+    // SPI1 Slave
+    // SPI1_RX=GP12, SPI1_CSn=GP13, SPI1_SCK=GP14, SPI1_TX=GP15
+    // this is not HW-SPI but pseudo-SPI Slave using PIO. 
+    // because RP2040's SPI Slave(PL022 by arm Limited)is not suitable. 
+    if(false == spi_initialized) {
+        return;
+    }
+    else {
+        spi_initialized = false;
+    }
+    // stop Spi
+    pio_sm_set_enabled(pio_spi, sm_spi, false);
+    pio_sm_clear_fifos(pio_spi, sm_spi);
+    pio_sm_unclaim(pio_spi,sm_spi);
+    pio_remove_program(pio_spi,&ezspi_slave_program, offset_spi);
+   
+    return;
+}
+
 void spiout_cam() {
-    init_spi_slave();
-    /*
+
+    
     uint8_t BUF_LEN = 10;
     uint8_t in_buf[BUF_LEN]; 
     uint8_t out_buf[BUF_LEN];
-    uint32_t ll = 2*1024;
     
-    pio_sm_put_blocking(pio_spi, sm_spi, (ll)-1);         // 100bytes
-    for(int i = 0 ; i < ll/4 ; i++){
-        pio_sm_put_blocking(pio_spi, sm_spi, 0xAAFF55FF);      // 
-    }
-    */
+    is_captured = false;
+    sleep_ms(30);
+    
+    
+    while(!is_captured);    // wait until an image captured
+    ram_in_use = true;      // start to read
+    
+    init_spi_slave();
 
+    int32_t iot_addr = 0;
+    int32_t *b;
+    b = iot_ptr;
+    for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
+        iot_sram_read(pio_iot, sm_iot,(uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length         
+        for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i += 640*2 /sizeof(uint32_t)) {
+            pio_sm_put_blocking(pio_spi, sm_spi, 640*2-1);         // 640*2 bytes (=a horizontal line)
+            for(uint32_t j = 0 ; j <  640*2 /sizeof(uint32_t) ; j++) {
+                pio_sm_put_blocking(pio_spi, sm_spi, b[i+j]);      // 
+            }
+        }
+        // increment iot sram's address
+        iot_addr = iot_addr + CAM_BUF_SIZE;
+
+    }
+   
+    //deinit_spi_slave();
+    ram_in_use = false;
    // TODO: reconfig CAMERA, when spi transmit finished.
 }
 
@@ -369,6 +408,7 @@ void *iot_sram_read(PIO pio, uint32_t sm, uint32_t *read_data, uint32_t address,
     channel_config_set_read_increment(&c, false);
     channel_config_set_write_increment(&c, true);
     channel_config_set_dreq(&c, pio_get_dreq(pio, sm, false));
+    pio_sm_set_enabled(pio, sm, true);
 
     while (true) {
 
