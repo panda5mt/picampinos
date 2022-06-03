@@ -184,10 +184,8 @@ void uartout_bin_cam() {
             //printf("0x%08X\r\n",b[i]);
             tud_cdc_write(&b[i], sizeof(uint32_t));
             tud_cdc_write_flush();
-            sleep_us(100);
+            sleep_us(150);
         }
-        sleep_ms(100);
-        printf("\r\n");
         // increment iot sram's address
         iot_addr = iot_addr + CAM_BUF_SIZE;
 

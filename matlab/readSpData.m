@@ -10,8 +10,9 @@ function readSpData(srcComObj, ~)
     global a img1;
     %% Read the ASCII data from the serialport object.
     data = read(srcComObj,640*2/4,'uint32'); %
+
     img1(a,:) = data;
-    %disp(dec2hex(uint32(data)));
+    
     disp(a);
     if a == 480
         %% decode image

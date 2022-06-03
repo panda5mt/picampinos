@@ -13,4 +13,4 @@ flush(serialObj);
 
 %% read frames from mmwave module
 % trigger "readSpData" if 640*2 byte can be read from UART
-configureCallback(serialObj,"byte",640*2,@readSpData);
+configureCallback(serialObj,"byte",128,@readSpData);
