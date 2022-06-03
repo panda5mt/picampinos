@@ -38,6 +38,7 @@ void init_cam(uint8_t DEVICE_IS);
 void config_cam_buffer();
 void start_cam();
 void uartout_cam();
-void spiout_cam();
+void uartout_bin_cam();
+//void spiout_cam();
 void free_cam();
 

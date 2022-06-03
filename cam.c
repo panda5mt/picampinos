@@ -3,7 +3,8 @@
 #include "pico/binary_info.h"
 #include "picocam.pio.h"
 #include "iot_sram.pio.h"
-#include "ezspi_slave.h"
+//#include "ezspi_slave.h"
+#include "class/cdc/cdc_device.h"
 #include "hardware/pwm.h"
 #include "hardware/irq.h"
 #include "hardware/dma.h"
@@ -162,9 +163,38 @@ void uartout_cam() {
 
     }
     ram_in_use = false;
-
 }
 
+
+void uartout_bin_cam() {
+    // read Image
+    //printf("!srt\r\n");
+    sleep_ms(30);
+    
+    is_captured = false;
+    while(!is_captured);    // wait until an image captured
+    ram_in_use = true;      // start to read
+    
+    int32_t iot_addr = 0;
+    int32_t *b;
+    b = iot_ptr;
+    for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
+        iot_sram_read(pio_iot, sm_iot,(uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length 
+        for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i++) {
+            //printf("0x%08X\r\n",b[i]);
+            tud_cdc_write(&b[i], sizeof(uint32_t));
+            tud_cdc_write_flush();
+            sleep_us(100);
+        }
+        sleep_ms(1);
+        printf("\r\n");
+        // increment iot sram's address
+        iot_addr = iot_addr + CAM_BUF_SIZE;
+
+    }
+    ram_in_use = false;
+}
+/*
 void spiout_cam() {    
     uint8_t BUF_LEN = 10;
     uint8_t in_buf[BUF_LEN]; 
@@ -201,7 +231,7 @@ void spiout_cam() {
     ram_in_use = false;
    // TODO: reconfig CAMERA, when spi transmit finished.
 }
-
+*/
 
 void free_cam() {
  

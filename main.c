@@ -61,28 +61,20 @@ int main() {
    
     config_cam_buffer();    // config buffer
     start_cam();            // start streaming
-    uartout_cam();          // data via USB-UART
 
-    // need more still?    
     /*
-    uartout_cam();
-    uartout_cam(); 
-    uartout_cam(); 
-    uartout_cam(); 
-    uartout_cam(); 
-    // ... 
-    //
-    */
-
-    // or you have Raspberry Pi3 or Pi4 and MATLAB?
-    // you can use SPI Slave. MATLAB Host program is in 'matlab/comm_raspi_spi.c'
-    // caution: this is not stable. you may add 'check data and timeout' logic. 
-    /*
+    // data via USB-UART(ASCII)
     while(true) {
-        spiout_cam();
-        printf("OK\r\n");
+        uartout_cam();          
     }
     */
+
+    // data via USB-UART(binary) 
+    // see also matlab/comm_raspi_uart_bin.m
+    while(true) {
+        uartout_bin_cam();      
+    }                           
+
 
     // end
     free_cam();
