@@ -1,12 +1,7 @@
-% This program is part of 'PICOCAM' (https://github.com/panda5mt/picocam/)
-% RP2040 generates RGP565 datas via its SPI Slave.
-% This program stores image and encodes that stored data in an image (640 x 480, 16bit
-% color).
-
 clc;
 clear;
 format long;
-
+%s = serialport("/dev/cu.usbserial-DM02NSUI",921600);
 RGB_img = zeros(480,640,3,'uint8');
 img = zeros(480,640,'uint32');
 lower5 = hex2dec('1f') .* ones(480,640,'uint32'); % 0x1f 0x1f ....
@@ -17,15 +12,28 @@ lower16 = 65535 .* ones(480,640,'uint32'); % 0xffff 0xffff ....
 %% setup raspberry pi
 mypi= raspi();
 enableSPI(mypi);
-myspidev = spidev(mypi,'CE1',0,2000000); % nCS = CE1, Mode 0, 32MHz 
+myspidev = spidev(mypi,'CE1',0,2000000); % nCS = CE1, Mode 0, 2MHz 
 
 len = 2*640/4; % one horizontal line
 out = zeros(480,len,'uint32');
 indata = ones(1,len);
+askbuf = 0xffffffff;
+respbuf = 0xDEADBEEF;
+
+
 
 %% start capture
 tic
+% seek start buffer
+while(true)
+    aaa = writeRead(myspidev,swapbytes(askbuf),'uint32');
+    if (swapbytes(aaa) == respbuf)
+       break;
+    end
+    
+end
 for i = 1:1:480
+    
     out(i,:) = writeRead(myspidev,indata,'uint32');
 end
 toc
@@ -58,6 +66,7 @@ RGB_img(:,:,3) = imgB;
 
 imshow(uint8(RGB_img));
 imwrite(RGB_img,"untitle.jpg");
+
 
 
 %disableSPI(mypi);

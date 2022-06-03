@@ -181,13 +181,15 @@ void spiout_cam() {
 
     int32_t iot_addr = 0;
     int32_t *b;
+    uint32_t resp;
     b = iot_ptr;
+
+    // send header
+    write_word_spi_slave(0xDEADBEEF);
     for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
         iot_sram_read(pio_iot, sm_iot,(uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length         
         
-        // ready to send
-        while(1)
-            write_read_word_spi_slave(0xAAAAFFFF);
+
         for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i += 640*2 /sizeof(uint32_t)) {
             write_blocking_spi_slave(&b[i], 640*2);
         }
