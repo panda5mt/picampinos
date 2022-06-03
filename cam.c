@@ -165,9 +165,7 @@ void uartout_cam() {
 
 }
 
-void spiout_cam() {
-
-    
+void spiout_cam() {    
     uint8_t BUF_LEN = 10;
     uint8_t in_buf[BUF_LEN]; 
     uint8_t out_buf[BUF_LEN];
@@ -186,6 +184,10 @@ void spiout_cam() {
     b = iot_ptr;
     for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
         iot_sram_read(pio_iot, sm_iot,(uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length         
+        
+        // ready to send
+        while(1)
+            write_read_word_spi_slave(0xAAAAFFFF);
         for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i += 640*2 /sizeof(uint32_t)) {
             write_blocking_spi_slave(&b[i], 640*2);
         }
@@ -195,6 +197,7 @@ void spiout_cam() {
    
     //deinit_spi_slave();
     ram_in_use = false;
+   // TODO: reconfig CAMERA, when spi transmit finished.
 }
 
 
