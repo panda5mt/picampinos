@@ -17,7 +17,7 @@
 // GP10 <-- HREF(HSYNC)
 // GP11 <-- PCLK(Pixel Clock OUT)
 
-// GP12~GP15 : reserved for future use. (SPI1)
+// GP12~GP15 : reserved for future use. (SPI: See also ezspi_slave.c if you want to use.)
 
 // GP26 --> SDA(SCCB DATA/I2C)
 // GP27 --> SCL(SCCB CLK/I2C)
