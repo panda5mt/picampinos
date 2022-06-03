@@ -11,6 +11,7 @@ add_executable(picocam
     picocam.c
     cam.c
     sccb_if.c
+    ezspi_slave.c
 )
 
 pico_generate_pio_header(picocam ${CMAKE_CURRENT_LIST_DIR}/picocam.pio)

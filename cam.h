@@ -16,12 +16,7 @@
 // SCCB IF
 #define I2C1_SDA    (26)
 #define I2C1_SCL    (27)
-// SPI Slave(optional)
 
-#define SPI1S_RX    (12)
-#define SPI1S_CSn   (13)
-#define SPI1S_SCK   (14)
-#define SPI1S_TX    (15)
 
 
 // camera buffer size
