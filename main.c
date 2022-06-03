@@ -76,6 +76,7 @@ int main() {
 
     // or you have Raspberry Pi3 or Pi4 and MATLAB?
     // you can use SPI Slave. MATLAB Host program is in 'matlab/comm_raspi_spi.c'
+    // caution: this is not stable. you may add 'check data and timeout' logic. 
     /* 
     while(true) {
         spiout_cam();

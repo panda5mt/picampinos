@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 17)
 pico_sdk_init()
 
 add_executable(picocam
-    picocam.c
+    main.c
     cam.c
     sccb_if.c
     ezspi_slave.c

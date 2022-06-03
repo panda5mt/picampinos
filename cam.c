@@ -195,7 +195,6 @@ void spiout_cam() {
    
     //deinit_spi_slave();
     ram_in_use = false;
-   // TODO: reconfig CAMERA, when spi transmit finished.
 }
 
 

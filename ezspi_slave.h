@@ -11,4 +11,3 @@
 void init_spi_slave() ;
 void deinit_spi_slave() ;
 void write_blocking_spi_slave(uint32_t* out_buf, uint32_t size_in_byte) ;
-void write_read_blocking_spi_slave(uint32_t* out_buf, uint32_t* in_buf, uint32_t send_size_in_byte) ;

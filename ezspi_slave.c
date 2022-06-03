@@ -50,20 +50,6 @@ void deinit_spi_slave() {
     return;
 }
 
-void write_read_blocking_spi_slave(uint32_t* out_buf, uint32_t* in_buf, uint32_t size_in_byte) {
-
-    uint32_t size_in_word = size_in_byte / sizeof(uint32_t);
-    
-    // send pio how many size we want to send and recv  
-    pio_sm_put_blocking(pio_spi, sm_spi, (size_in_byte - 1));       // size_in_byte
-
-    for(uint32_t j = 0 ; j < size_in_word ; j++) {
-        pio_sm_put_blocking(pio_spi, sm_spi, out_buf[j]);           // put data
-        //pio_sm_put_blocking(pio_spi, sm_spi, in_buf[j]);            // get data
-    }
-    
-}
-
 void write_blocking_spi_slave(uint32_t* out_buf, uint32_t size_in_byte) {
 
     uint32_t size_in_word = size_in_byte / sizeof(uint32_t);
@@ -72,8 +58,8 @@ void write_blocking_spi_slave(uint32_t* out_buf, uint32_t size_in_byte) {
     pio_sm_put_blocking(pio_spi, sm_spi, (size_in_byte - 1));       // size_in_byte
 
     for(uint32_t j = 0 ; j < size_in_word ; j++) {
-        pio_sm_put_blocking(pio_spi, sm_spi, out_buf[j]);           // put data
-        //pio_sm_put_blocking(pio_spi, sm_spi, dummy);              // get data
+        pio_sm_put_blocking(pio_spi, sm_spi, out_buf[j]);   // put data
+        //dummy = pio_sm_get_blocking(pio_spi, sm_spi);       // get data
     }
     
 }

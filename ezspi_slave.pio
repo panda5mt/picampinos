@@ -14,13 +14,13 @@ write0:
     wait 0  pin 2           ; wait until clock = low
     out     pins,1          ; TX <= OSR
     wait 1  pin 2           ; wait until clock = high
-;   in      pins 0          ; ISR <= RX
+    ;in      pins,1          ; ISR <= RX
     jmp     y--, write0     ; loop
 write1:
     jmp     x-- ,start1     ;
     wait 1  pin 1           ; wait until nCS = high
 end0:
-    mov     isr, null       ;
+    ;mov     isr, null       ;
     jmp     _start0         ; 
 
 
