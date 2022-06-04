@@ -1,7 +1,7 @@
 clc;
 clear;
 format long;
-%s = serialport("/dev/cu.usbserial-DM02NSUI",921600);
+
 RGB_img = zeros(480,640,3,'uint8');
 img = zeros(480,640,'uint32');
 lower5 = hex2dec('1f') .* ones(480,640,'uint32'); % 0x1f 0x1f ....
@@ -21,7 +21,7 @@ askbuf = 0xffffffff;
 respbuf = 0xDEADBEEF;
 
 
-
+while (true)
 %% start capture
 tic
 % seek start buffer
@@ -32,8 +32,8 @@ while(true)
     end
     
 end
+disp("GO!");
 for i = 1:1:480
-    
     out(i,:) = writeRead(myspidev,indata,'uint32');
 end
 toc
@@ -43,8 +43,8 @@ for HGT = 1:480
     for WID = 1:1:320
         try
             data = swapbytes(out(HGT,WID)); % convert endian
-            img(HGT, WID*2) = data;
-            img(HGT, WID*2-1) = bitshift(data,-16);
+            img(HGT, WID*2-1) = data;
+            img(HGT, WID*2) = bitshift(data,-16);
         catch 
             fprintf('Got error : %s, but replaced dummy data.\n',data);      % if got error,
             data = '0xAAAAAAAA';                    % insert dummy data
@@ -66,7 +66,7 @@ RGB_img(:,:,3) = imgB;
 
 imshow(uint8(RGB_img));
 imwrite(RGB_img,"untitle.jpg");
-
+end
 
 
 %disableSPI(mypi);

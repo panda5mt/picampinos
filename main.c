@@ -64,21 +64,32 @@ int main() {
 
     
     // data via USB-UART(ASCII)
-    while(true) {
-        uartout_cam();          
-    }
+    // see also 'matlab/readrgb.m'
+
+    // while(true) {
+    //     uartout_cam();          
+    // }
     
 
     // data via USB-UART(binary) 
-    // see also matlab/comm_uart_bin.m
-    // while(true) {
-    //     uartout_bin_cam();      
-    // }                           
+    // see also 'matlab/comm_uart_bin.m'
+    
+    while(true) {
+        uartout_bin_cam();      
+    }                           
 
+    // you have Raspberry Pi 3/4? and you have MATLAB?
+    // you can use SPI + RPi + MATLAB
+    // Do not forget unconnment spiout_cam() function 
+    // on 'cam.c' and 'cam.h'.
+    // and type '#include "ezspi_slave.h"' on 'cam.c'
+    // See also 'matlab/comm_raspi_spi.m'
+    
     // while(true) {
     //     spiout_cam();
     //     printf("OK\r\n");
     // }
+
 
     // end
     free_cam();
