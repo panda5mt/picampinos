@@ -64,9 +64,9 @@ int main() {
 
     
     // data via USB-UART(ASCII)
-    // while(true) {
-    //     uartout_cam();          
-    // }
+    while(true) {
+        uartout_cam();          
+    }
     
 
     // data via USB-UART(binary) 
@@ -75,10 +75,10 @@ int main() {
     //     uartout_bin_cam();      
     // }                           
 
-    while(true) {
-        spiout_cam();
-        printf("OK\r\n");
-    }
+    // while(true) {
+    //     spiout_cam();
+    //     printf("OK\r\n");
+    // }
 
     // end
     free_cam();
