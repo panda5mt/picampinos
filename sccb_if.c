@@ -300,7 +300,7 @@ void sccb_init(uint8_t device_is, const uint32_t sda_pin, const uint32_t scl_pin
         // PLL(FPS)
         // 0x3011=0x08:15fps
         // 0x3011=0x10:30fps
-        sccb_dat[0]=0x30 ; sccb_dat[1]=0x11 ; sccb_dat[2]=0x10 ; reg_write(i2c, CAM_ADDR, sccb_dat, 3) ;
+        sccb_dat[0]=0x30 ; sccb_dat[1]=0x11 ; sccb_dat[2]=0x08 ; reg_write(i2c, CAM_ADDR, sccb_dat, 3) ;
         sccb_dat[0]=0x30 ; sccb_dat[1]=0x10 ; sccb_dat[2]=0x10 ; reg_write(i2c, CAM_ADDR, sccb_dat, 3) ; 
         // VFIFO
         sccb_dat[0]=0x46 ; sccb_dat[1]=0x0c ; sccb_dat[2]=0x22 ; reg_write(i2c, CAM_ADDR, sccb_dat, 3) ;

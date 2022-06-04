@@ -169,9 +169,8 @@ void uartout_cam() {
 void uartout_bin_cam() {
     // read Image
     //printf("!srt\r\n");
-    sleep_ms(30);
+    //sleep_ms(30);
     
-    is_captured = false;
     while(!is_captured);    // wait until an image captured
     ram_in_use = true;      // start to read
     
@@ -190,7 +189,9 @@ void uartout_bin_cam() {
         iot_addr = iot_addr + CAM_BUF_SIZE;
 
     }
+    sleep_ms(300);
     ram_in_use = false;
+    is_captured = false;
 }
 /*
 void spiout_cam() {    
