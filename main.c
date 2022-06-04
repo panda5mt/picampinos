@@ -70,7 +70,7 @@ int main() {
     */
 
     // data via USB-UART(binary) 
-    // see also matlab/comm_raspi_uart_bin.m
+    // see also matlab/comm_uart_bin.m
     while(true) {
         uartout_bin_cam();      
     }                           
