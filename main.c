@@ -62,19 +62,23 @@ int main() {
     config_cam_buffer();    // config buffer
     start_cam();            // start streaming
 
-    /*
+    
     // data via USB-UART(ASCII)
-    while(true) {
-        uartout_cam();          
-    }
-    */
+    // while(true) {
+    //     uartout_cam();          
+    // }
+    
 
     // data via USB-UART(binary) 
     // see also matlab/comm_uart_bin.m
-    while(true) {
-        uartout_bin_cam();      
-    }                           
+    // while(true) {
+    //     uartout_bin_cam();      
+    // }                           
 
+    while(true) {
+        spiout_cam();
+        printf("OK\r\n");
+    }
 
     // end
     free_cam();

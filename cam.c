@@ -3,7 +3,7 @@
 #include "pico/binary_info.h"
 #include "picocam.pio.h"
 #include "iot_sram.pio.h"
-//#include "ezspi_slave.h"
+#include "ezspi_slave.h"
 #include "class/cdc/cdc_device.h"
 #include "hardware/pwm.h"
 #include "hardware/irq.h"
@@ -191,14 +191,14 @@ void uartout_bin_cam() {
     sleep_ms(300);
     ram_in_use = false;
 }
-/*
+
 void spiout_cam() {    
     uint8_t BUF_LEN = 10;
     uint8_t in_buf[BUF_LEN]; 
     uint8_t out_buf[BUF_LEN];
     
     is_captured = false;
-    sleep_ms(30);
+    sleep_ms(50);
     
     
     while(!is_captured);    // wait until an image captured
@@ -228,7 +228,6 @@ void spiout_cam() {
     ram_in_use = false;
    // TODO: reconfig CAMERA, when spi transmit finished.
 }
-*/
 
 void free_cam() {
  
