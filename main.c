@@ -65,11 +65,11 @@ int main() {
     
     // data via USB-UART(ASCII)
     // see also 'matlab/readrgb.m'
-
-    // while(true) {
-    //     uartout_cam();          
-    // }
-    
+    /*
+    while(true) {
+        uartout_cam();          
+    }
+    */
 
     // data via USB-UART(binary) 
     // see also 'matlab/comm_uart_bin.m'
@@ -83,12 +83,12 @@ int main() {
     // you can use SPI + RPi + MATLAB
     // and CHECK 'USE_EZSPI_SLAVE' is (true) in 'cam.h'
     // See also 'matlab/comm_raspi_spi.m'
-    
-    // while(true) {
-    //     spiout_cam();
-    //     printf("OK\r\n");
-    // }
-
+    /*
+    while(true) {
+        spiout_cam();
+        printf("OK\r\n");
+    }
+    */
 
     // end
     free_cam();

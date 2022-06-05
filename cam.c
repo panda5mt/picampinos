@@ -43,10 +43,8 @@ void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_n
 void cam_handler();
 void printbuf(uint8_t buf[], size_t len) ;
 
-//#if USE_CAMERA_SYSTEM
 void init_cam(uint8_t DEVICE_IS) {
-
-
+    
     // Initialize CAMERA
     set_pwm_freq_kHz(24000, SYS_CLK_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2640
     sleep_ms(1000);
@@ -77,7 +75,6 @@ void init_cam(uint8_t DEVICE_IS) {
     cam_ptr2 = &cam_ptr[(CAM_BUF_HALF / sizeof(uint32_t))];
     iot_ptr = (uint32_t *)calloc((CAM_BUF_SIZE / sizeof(uint32_t)), sizeof(uint32_t)); // same size of cam_ptr
 }
-//#endif
 
 void config_cam_buffer() {  
     // ------------------ CAMERA READ: withDMA   --------------------------------
