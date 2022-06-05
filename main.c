@@ -81,7 +81,7 @@ int main() {
 
     // you have Raspberry Pi 3/4? and you have MATLAB?
     // you can use SPI + RPi + MATLAB
-    // and check 'USE_EZSPI_SLAVE' is (true) in 'cam.h'
+    // and CHECK 'USE_EZSPI_SLAVE' is (true) in 'cam.h'
     // See also 'matlab/comm_raspi_spi.m'
     
     // while(true) {
