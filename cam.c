@@ -3,7 +3,7 @@
 #include "pico/binary_info.h"
 #include "picocam.pio.h"
 #include "iot_sram.h"
-#include "class/cdc/cdc_device.h"
+#include "class/cdc/cdc_device.h" // for uart(binary output)
 #include "hardware/pwm.h"
 #include "hardware/irq.h"
 #include "hardware/dma.h"
@@ -220,7 +220,6 @@ void spiout_cam() {
    
     //deinit_spi_slave();
     ram_in_use = false;
-   // TODO: reconfig CAMERA, when spi transmit finished.
 }
 #endif
 void free_cam() {
