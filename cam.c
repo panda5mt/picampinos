@@ -44,7 +44,7 @@ void cam_handler();
 void printbuf(uint8_t buf[], size_t len) ;
 
 void init_cam(uint8_t DEVICE_IS) {
-    
+
     // Initialize CAMERA
     set_pwm_freq_kHz(24000, SYS_CLK_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2640
     sleep_ms(1000);
@@ -320,4 +320,3 @@ void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_n
     pwm_set_gpio_level( gpio_num, ( pwm0_slice_config.top * 0.50 ) ); // duty:50%    
 }
 
-//#endif // USE_CAMERA_SYSTEM
