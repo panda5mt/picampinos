@@ -11,6 +11,7 @@ add_executable(picocam
     main.c
     cam.c
     sccb_if.c
+    iot_sram.c
     ezspi_slave.c
 )
 

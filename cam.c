@@ -2,13 +2,16 @@
 #include "pico/stdlib.h"
 #include "pico/binary_info.h"
 #include "picocam.pio.h"
-#include "iot_sram.pio.h"
-//#include "ezspi_slave.h"
+#include "iot_sram.h"
 #include "class/cdc/cdc_device.h"
 #include "hardware/pwm.h"
 #include "hardware/irq.h"
 #include "hardware/dma.h"
 #include "cam.h"
+
+#if USE_EZSPI_SLAVE
+#include "ezspi_slave.h"
+#endif
 
 volatile bool is_captured = false; 
 volatile bool ram_in_use  = false; // priority: sram read > sram write
@@ -19,18 +22,16 @@ volatile bool irq_indicate_reset = true;
 PIO pio_cam = pio0;
 PIO pio_iot = pio1;
 
+#if USE_EZSPI_SLAVE
+PIO pio_spi = pio1; // same PIO with pio_iot
+#endif
+
 // statemachine's pointer
 uint32_t sm_cam;    // CAMERA's state machines
-uint32_t sm_iot;    // IoT SRAM's state machines
-
-uint32_t offset_cam;
-uint32_t offset_iot;
 
 // dma channels
 uint32_t DMA_CAM_RD_CH0 ;
 uint32_t DMA_CAM_RD_CH1 ;
-uint32_t DMA_IOT_RD_CH  ;
-uint32_t DMA_IOT_WR_CH  ;
 
 // private functions and buffers
 uint32_t* cam_ptr;  // pointer of camera buffer
@@ -53,7 +54,7 @@ void init_cam(uint8_t DEVICE_IS) {
     sccb_init(DEVICE_IS, I2C1_SDA, I2C1_SCL); // sda,scl=(gp26,gp27). see 'sccb_if.c' and 'cam.h'
     sleep_ms(3000);
     
-    offset_cam = pio_add_program(pio_cam, &picocam_program);
+    uint32_t offset_cam = pio_add_program(pio_cam, &picocam_program);
     uint32_t sm = pio_claim_unused_sm(pio_cam, true);
     picocam_program_init(pio_cam, sm_cam, offset_cam, CAM_BASE_PIN, 11);// VSYNC,HREF,PCLK,D[2:9] : total 11 pins
     pio_sm_set_enabled(pio_cam, sm_cam, false);
@@ -62,16 +63,11 @@ void init_cam(uint8_t DEVICE_IS) {
     pio_sm_set_enabled(pio_cam, sm_cam, true);
     
     // Initialize IoT SRAM
-    uint32_t offset01 = pio_add_program(pio_iot, &iot_sram_program);
-    uint32_t sm_iot = pio_claim_unused_sm(pio_iot, true);
-    iot_sram_program_init(pio_iot, sm_iot, offset01, IOT_DAT_BASE_PIN, 4, IOT_SIG_BASE_PIN, 2); // : total 6 pins
-    iot_sram_init(pio_iot, sm_iot);
+    iot_sram_init(pio_iot);
 
     // init DMA
     DMA_CAM_RD_CH0 = dma_claim_unused_channel(true);
     DMA_CAM_RD_CH1 = dma_claim_unused_channel(true);
-    DMA_IOT_RD_CH  = dma_claim_unused_channel(true);
-    DMA_IOT_WR_CH  = dma_claim_unused_channel(true);
 
     // buffer of camera data is 640 * 480 * 2 bytes (RGB565 = 16 bits = 2 bytes)
     // but rp2040 has no such a huge ram.
@@ -154,7 +150,7 @@ void uartout_cam() {
     int32_t *b;
     b = iot_ptr;
     for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
-        iot_sram_read(pio_iot, sm_iot,(uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length 
+        iot_sram_read(pio_iot, (uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length 
         for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i++) {
             printf("0x%08X\r\n",b[i]);
         }
@@ -177,7 +173,7 @@ void uartout_bin_cam() {
     int32_t *b;
     b = iot_ptr;
     for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
-        iot_sram_read(pio_iot, sm_iot,(uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length 
+        iot_sram_read(pio_iot,(uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length 
         for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i++) {
             //printf("0x%08X\r\n",b[i]);
             tud_cdc_write(&b[i], sizeof(uint32_t));
@@ -192,43 +188,44 @@ void uartout_bin_cam() {
     ram_in_use = false;
 }
 
-// void spiout_cam() {    
-//     uint8_t BUF_LEN = 10;
-//     uint8_t in_buf[BUF_LEN]; 
-//     uint8_t out_buf[BUF_LEN];
+#if USE_EZSPI_SLAVE
+void spiout_cam() {    
+    uint8_t BUF_LEN = 10;
+    uint8_t in_buf[BUF_LEN]; 
+    uint8_t out_buf[BUF_LEN];
     
-//     is_captured = false;
-//     sleep_ms(80);
+    is_captured = false;
+    sleep_ms(80);
     
     
-//     while(!is_captured);    // wait until an image captured
-//     ram_in_use = true;      // start to read
+    while(!is_captured);    // wait until an image captured
+    ram_in_use = true;      // start to read
     
-//     init_spi_slave();
+    init_spi_slave(pio_spi);
 
-//     int32_t iot_addr = 0;
-//     int32_t *b;
-//     uint32_t resp;
-//     b = iot_ptr;
+    int32_t iot_addr = 0;
+    int32_t *b;
+    uint32_t resp;
+    b = iot_ptr;
 
-//     // send header
-//     write_word_spi_slave(0xDEADBEEF);
-//     for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
-//         iot_sram_read(pio_iot, sm_iot,(uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length         
+    // send header
+    write_word_spi_slave(pio_spi, 0xDEADBEEF);
+    for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
+        iot_sram_read(pio_iot, (uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length         
         
 
-//         for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i += 640*2 /sizeof(uint32_t)) {
-//             write_blocking_spi_slave(&b[i], 640*2);
-//         }
-//         // increment iot sram's address
-//         iot_addr = iot_addr + CAM_BUF_SIZE;
-//     }
+        for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i += 640*2 /sizeof(uint32_t)) {
+            write_blocking_spi_slave(pio_spi, &b[i], 640*2);
+        }
+        // increment iot sram's address
+        iot_addr = iot_addr + CAM_BUF_SIZE;
+    }
    
-//     //deinit_spi_slave();
-//     ram_in_use = false;
-//    // TODO: reconfig CAMERA, when spi transmit finished.
-// }
-
+    //deinit_spi_slave();
+    ram_in_use = false;
+   // TODO: reconfig CAMERA, when spi transmit finished.
+}
+#endif
 void free_cam() {
  
     // Disable IRQ settings
@@ -276,7 +273,7 @@ void cam_handler() {
         dma_chan = DMA_CAM_RD_CH1;
     }
     if(false == ram_in_use) {
-        iot_sram_write(pio_iot, sm_iot, b, iot_addr, CAM_BUF_HALF, DMA_IOT_WR_CH); //pio, sm, buffer, start_address, length
+        iot_sram_write(pio_iot, b, iot_addr, CAM_BUF_HALF, DMA_IOT_WR_CH); //pio, sm, buffer, start_address, length
     }
     // increment iot sram's address
     iot_addr = iot_addr + CAM_BUF_HALF;
@@ -297,127 +294,6 @@ void cam_handler() {
     }
 
     return;        
-}
-
-
-/// IoT SRAM:APS1604M-3SQR (AP Memory)
-void iot_sram_init(PIO pio, uint32_t sm) {
-    // ----------send reset
-    pio_sm_put_blocking(pio, sm, 8-1);      // x=8
-    pio_sm_put_blocking(pio, sm, 0);        // y=0
-    {
-        pio_sm_put_blocking(pio, sm, 0xeffeeffe); 
-    }
-    pio_sm_put_blocking(pio, sm, 8-1);      // x=8
-    pio_sm_put_blocking(pio, sm, 0);        // y=0    
-    {
-        pio_sm_put_blocking(pio, sm, 0xfeeffeef);  
-    }
-    sleep_ms(1);
-    // ----------send qpi enable mode
-    pio_sm_put_blocking(pio, sm, 8-1);      // x=8
-    pio_sm_put_blocking(pio, sm, 0);        // y=0    
-    {
-        pio_sm_put_blocking(pio, sm, 0xeeffefef);  
-    }
-    sleep_ms(1);
-}
-
-void iot_sram_write(PIO pio, uint32_t sm, uint32_t *send_data, uint32_t address, 
-        uint32_t length_in_byte, uint32_t dma_channel) {
-
-    uint32_t *b;
-    uint32_t num_of_tran_byte; // number of trans at once.(upto LINEAR_BURST bytes)
-    b = send_data;
-    dma_channel_config c = dma_channel_get_default_config(dma_channel);    
-    channel_config_set_read_increment(&c, true);
-    channel_config_set_write_increment(&c, false);
-    channel_config_set_dreq(&c, pio_get_dreq(pio, sm, true));
-    pio_sm_set_enabled(pio, sm, true);
-
-    while (true) {
-
-        // IoT SRAM needs refresh between writing LINEAR_BURST bytes
-        if (length_in_byte > LINEAR_BURST) {
-            num_of_tran_byte = LINEAR_BURST;
-            length_in_byte = length_in_byte - LINEAR_BURST;
-        } else {
-            num_of_tran_byte = length_in_byte;
-            length_in_byte = 0;
-        }
-    
-        dma_channel_configure(dma_channel, &c,
-            &pio->txf[sm],          // Destination pointer
-            b,                      // Source pointer
-            num_of_tran_byte/4,     // Number of transfers
-            false                   // Do not Start yet.
-        );
-
-        pio_sm_put_blocking(pio, sm, 8+(num_of_tran_byte*2)-1);         // x=8
-        pio_sm_put_blocking(pio, sm, 0);                                // y=0 
-        pio_sm_put_blocking(pio, sm, 0x38000000 | address);
-    
-        // Start DMA
-        dma_start_channel_mask(1u << dma_channel);
-        dma_channel_wait_for_finish_blocking(dma_channel);
-
-        if (0 == length_in_byte) break;
-        else {
-            b = b + LINEAR_BURST/(sizeof(uint32_t)); // b += LINEAR_BURST / (sizeof(uint32_t))
-            address = address + LINEAR_BURST;
-        }
-    }
-    return;
-}
-
-void *iot_sram_read(PIO pio, uint32_t sm, uint32_t *read_data, uint32_t address, 
-        uint32_t length_in_byte, uint32_t dma_channel) {
-   
-    uint32_t *b;
-    b = read_data;
-    uint32_t num_of_tran_byte = 0; // number of trans at once.(upto LINEAR_BURST bytes)
-    dma_channel_config c = dma_channel_get_default_config(dma_channel);    
-    channel_config_set_read_increment(&c, false);
-    channel_config_set_write_increment(&c, true);
-    channel_config_set_dreq(&c, pio_get_dreq(pio, sm, false));
-    pio_sm_set_enabled(pio, sm, true);
-
-    while (true) {
-
-        // IoT SRAM needs refresh between writing LINEAR_BURST bytes
-        if (length_in_byte > LINEAR_BURST) {
-            num_of_tran_byte = LINEAR_BURST;
-            length_in_byte = length_in_byte - LINEAR_BURST;
-        } else {
-            num_of_tran_byte = length_in_byte;
-            length_in_byte = 0;
-        }
-       
-        dma_channel_configure(dma_channel, &c,
-            b,                      // Destination pointer
-            &pio->rxf[sm],          // Source pointer
-            num_of_tran_byte/4,     // Number of transfers
-            false                   // do not start yet.
-        );
-
-        pio_sm_set_enabled(pio, sm, true);
-        pio_sm_put_blocking(pio, sm, 8-1);                          // x counter: comm + addr
-        pio_sm_put_blocking(pio, sm, (num_of_tran_byte * 2)-1);     // y counter: up to 512byte    
-
-        pio_sm_put_blocking(pio, sm, 0xEB000000 | address);         // send write command + address
-        
-        // start DMA
-        dma_start_channel_mask(1u << dma_channel);
-        dma_channel_wait_for_finish_blocking(dma_channel);
-       
-        if (0 >= length_in_byte) break;
-        else {
-            b = b + LINEAR_BURST/4; // b += LINEAR_BURST / (sizeof(uint32_t))
-            address = address + LINEAR_BURST;
-        }
-    }
-
-    return (void *)read_data;
 }
 
 //// PWM

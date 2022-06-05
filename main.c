@@ -78,11 +78,10 @@ int main() {
         uartout_bin_cam();      
     }                           
 
+
     // you have Raspberry Pi 3/4? and you have MATLAB?
     // you can use SPI + RPi + MATLAB
-    // Do not forget unconnment spiout_cam() function 
-    // on 'cam.c' and 'cam.h'.
-    // and type '#include "ezspi_slave.h"' on 'cam.c'
+    // and check 'USE_EZSPI_SLAVE' is (true) in 'cam.h'
     // See also 'matlab/comm_raspi_spi.m'
     
     // while(true) {

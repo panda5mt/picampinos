@@ -5,6 +5,9 @@
 #include "hardware/pio.h"
 #include "sccb_if.h"
 
+// USE SPI Slave?
+#define USE_EZSPI_SLAVE     (false)
+
 #define SYS_CLK_KHZ         (250000)// 192000 ~ 264000
 #define CAM_BASE_PIN        (1)     // GP1 (camera module needs 11pin)
 #define PIN_PWM0            (0)     // GP0 (camera's xclk(24MHz))
@@ -17,8 +20,6 @@
 #define I2C1_SDA    (26)
 #define I2C1_SCL    (27)
 
-
-
 // camera buffer size
 // 640x480, RGB565 picture needs 640x480x2 bytes of buffers.
 // but RP2040 has no capacity such as huge buffers.
@@ -28,17 +29,12 @@
 #define CAM_BUF_SIZE    (640 * BLOCK * 2)   // in bytes
 #define CAM_BUF_HALF    (CAM_BUF_SIZE / 2)  // in bytes
 
-// low layer APIs
-void iot_sram_init(PIO pio, uint32_t sm);
-void iot_sram_write(PIO pio, uint32_t sm, uint32_t *send_data, uint32_t address, uint32_t length_in_byte, uint32_t dma_channel);
-void *iot_sram_read(PIO pio, uint32_t sm, uint32_t *read_data, uint32_t address, uint32_t length_in_byte, uint32_t dma_channel);
-
 // high layer APIs
 void init_cam(uint8_t DEVICE_IS);
 void config_cam_buffer();
 void start_cam();
 void uartout_cam();
 void uartout_bin_cam();
-//void spiout_cam();
+void spiout_cam();
 void free_cam();
 
