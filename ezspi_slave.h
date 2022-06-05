@@ -3,6 +3,7 @@
 #include "hardware/pio.h"
 
 // SPI Slave
+// you can change base(LSB) pin but pin order:(MSB)TX,SCK,CSn,RX(LSB)
 #define SPI1S_RX    (12)
 #define SPI1S_CSn   (13)
 #define SPI1S_SCK   (14)
