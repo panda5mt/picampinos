@@ -22,50 +22,50 @@ respbuf = 0xDEADBEEF;
 
 
 while (true)
-%% start capture
-tic
-% seek start buffer
-while(true)
-    aaa = writeRead(myspidev,swapbytes(askbuf),'uint32');
-    if (swapbytes(aaa) == respbuf)
-       break;
-    end
-    
-end
-disp("GO!");
-for i = 1:1:480
-    out(i,:) = writeRead(myspidev,indata,'uint32');
-end
-toc
-
-%% decode image
-for HGT = 1:480 
-    for WID = 1:1:320
-        try
-            data = swapbytes(out(HGT,WID)); % convert endian
-            img(HGT, WID*2-1) = data;
-            img(HGT, WID*2) = bitshift(data,-16);
-        catch 
-            fprintf('Got error : %s, but replaced dummy data.\n',data);      % if got error,
-            data = '0xAAAAAAAA';                    % insert dummy data
-            img(HGT, WID) = (data);
-            img(HGT, WID+1) = bitshift((data),-16); 
+    %% start capture
+    tic
+    % seek start buffer
+    while(true)
+        aaa = writeRead(myspidev,swapbytes(askbuf),'uint32');
+        if (swapbytes(aaa) == respbuf)
+        break;
         end
         
     end
-end
+    disp("GO!");
+    for i = 1:1:480
+        out(i,:) = writeRead(myspidev,indata,'uint32');
+    end
+    toc
 
-img = bitshift(swapbytes(bitand(lower16, img)),-16);
-imgR = (255/63) .* bitand(lower5, bitshift(img,-11));    % Red component
-imgG = (255/127).* bitand(lower6, bitshift(img,-5));    % Green component
-imgB = (255/63) .* bitand(lower5, img);	% Blue component
+    %% decode image
+    for HGT = 1:480 
+        for WID = 1:1:320
+            try
+                data = swapbytes(out(HGT,WID)); % convert endian
+                img(HGT, WID*2-1) = data;
+                img(HGT, WID*2) = bitshift(data,-16);
+            catch 
+                fprintf('Got error : %s, but replaced dummy data.\n',data);      % if got error,
+                data = '0xAAAAAAAA';                    % insert dummy data
+                img(HGT, WID) = (data);
+                img(HGT, WID+1) = bitshift((data),-16); 
+            end
+            
+        end
+    end
 
-RGB_img(:,:,1) = imgR;
-RGB_img(:,:,2) = imgG;
-RGB_img(:,:,3) = imgB;
+    img = bitshift(swapbytes(bitand(lower16, img)),-16);
+    imgR = (255/63) .* bitand(lower5, bitshift(img,-11));    % Red component
+    imgG = (255/127).* bitand(lower6, bitshift(img,-5));    % Green component
+    imgB = (255/63) .* bitand(lower5, img);	% Blue component
 
-imshow(uint8(RGB_img));
-imwrite(RGB_img,"untitle.jpg");
+    RGB_img(:,:,1) = imgR;
+    RGB_img(:,:,2) = imgG;
+    RGB_img(:,:,3) = imgB;
+
+    imshow(uint8(RGB_img));
+    imwrite(RGB_img,"untitle.jpg");
 end
 
 
