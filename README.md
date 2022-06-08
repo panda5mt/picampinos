@@ -3,7 +3,7 @@ DVP CAMERA IF(8-bit parallel IF) using RP2040.
 This project is for connecting a DVP camera, such as the OV5642, to Raspberry Pi Pico; the DVP camera is primarily an 8-bit parallel one produced by OmniVision, but it may be applicable to other image sensors with 8-bit parallel interfaces with I2C Control.
 
 pi-cám-pinos is an anagram of 'pi pico camera'.
-The name is also derived from the Spanish word for red-cockaded woodpecker.
+The name is derived from the Spanish word for red-cockaded woodpecker.
 It is also derived from the name of a Raspberry mixed candy popular in the United States and Canada.
 ## Getting Started
 ### For Raspberry Pi 3/4
