@@ -1,4 +1,4 @@
-.program picocam
+.program picapinos
 
 ; pin8=vsync,pin9=href,pin10=pclk,pin0-pin7=D[2:9]
 
@@ -42,9 +42,9 @@ loop3:
 
 
 % c-sdk {
-static inline void picocam_program_init( PIO pio, uint32_t sm, uint32_t offset, uint32_t in_base ,uint32_t in_pin_num )
+static inline void picapinos_program_init( PIO pio, uint32_t sm, uint32_t offset, uint32_t in_base ,uint32_t in_pin_num )
 {
-    pio_sm_config c = picocam_program_get_default_config( offset );
+    pio_sm_config c = picapinos_program_get_default_config( offset );
 
     sm_config_set_set_pins(&c, in_base, in_pin_num);
     sm_config_set_in_pins( &c, in_base );

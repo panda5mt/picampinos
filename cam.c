@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "pico/binary_info.h"
-#include "picocam.pio.h"
+#include "picapinos.pio.h"
 #include "iot_sram.h"
 #include "class/cdc/cdc_device.h" // for uart(binary output)
 #include "hardware/pwm.h"
@@ -52,9 +52,9 @@ void init_cam(uint8_t DEVICE_IS) {
     sccb_init(DEVICE_IS, I2C1_SDA, I2C1_SCL); // sda,scl=(gp26,gp27). see 'sccb_if.c' and 'cam.h'
     sleep_ms(3000);
     
-    uint32_t offset_cam = pio_add_program(pio_cam, &picocam_program);
+    uint32_t offset_cam = pio_add_program(pio_cam, &picapinos_program);
     uint32_t sm = pio_claim_unused_sm(pio_cam, true);
-    picocam_program_init(pio_cam, sm_cam, offset_cam, CAM_BASE_PIN, 11);// VSYNC,HREF,PCLK,D[2:9] : total 11 pins
+    picapinos_program_init(pio_cam, sm_cam, offset_cam, CAM_BASE_PIN, 11);// VSYNC,HREF,PCLK,D[2:9] : total 11 pins
     pio_sm_set_enabled(pio_cam, sm_cam, false);
     pio_sm_clear_fifos(pio_cam, sm_cam);
     pio_sm_restart(pio_cam, sm_cam);        

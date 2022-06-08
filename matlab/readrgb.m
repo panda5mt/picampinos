@@ -1,4 +1,4 @@
-% This program is part of 'PICOCAM' (https://github.com/panda5mt/picocam/)
+% This program is part of 'PICAPINOS' (https://github.com/panda5mt/picapinos/)
 % RP2040 generates RGP565 datas via its USB-UART stdio.
 % Store these datas pipe(on unix/macOS) or Teraterm(on Windows).
 % This program encodes that stored data in an image (640 x 480, 16bit

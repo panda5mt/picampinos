@@ -1,4 +1,4 @@
-// PICOCAM - Camera IF using RP2040
+// PICAPINOS - Camera IF using RP2040
 // this project communicates OV5642(or parallel 8-bit DVP-IF Image sensor with SCCB control) using Raspberry Pi PICO
 // Need: A Raspberry Pi PICO, An IoT SRAM(APS1604M-3SQR or compatible), A DVP Camera(OV5642)
 // Connection:
