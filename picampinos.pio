@@ -49,7 +49,7 @@ static inline void picampinos_program_init( PIO pio, uint32_t sm, uint32_t offse
     sm_config_set_set_pins(&c, in_base, in_pin_num);
     sm_config_set_in_pins( &c, in_base );
  
-    sm_config_set_in_shift( &c, true, true, 32); // auto push
+    sm_config_set_in_shift( &c, false, true, 32); // auto push
     sm_config_set_out_shift( &c, false, true, 32); //auto pull
 
     //sm_config_set_fifo_join( &c, PIO_FIFO_JOIN_RX);

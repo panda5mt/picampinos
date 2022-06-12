@@ -5,14 +5,14 @@
 // ----- with OV Camera -----
 // (PICO <-> OV5642/OV2640)
 // GP0 ---> XCLK(24MHz Clock IN)
-// GP1 <--- D2
-// GP2 <--- D3
-// GP3 <--- D4
-// GP4 <--- D5
-// GP5 <--- D6
-// GP6 <--- D7
-// GP7 <--- D8
-// GP8 <--- D9
+// GP1 <--- D9
+// GP2 <--- D8
+// GP3 <--- D7
+// GP4 <--- D6
+// GP5 <--- D5
+// GP6 <--- D4
+// GP7 <--- D3
+// GP8 <--- D2
 // GP9 <--- VSYNC
 // GP10 <-- HREF(HSYNC)
 // GP11 <-- PCLK(Pixel Clock OUT)
