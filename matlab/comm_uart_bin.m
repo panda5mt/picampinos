@@ -11,6 +11,6 @@ serialObj = serialport(spList(1),921600); % I have no idea choosing correct COMx
 disp('start.');
 flush(serialObj);
 
-%% read frames from mmwave module
+%% read frames from Raspi module
 % trigger "readSpData" if 640*2 byte can be read from UART
 configureCallback(serialObj,"byte",128,@readSpData);

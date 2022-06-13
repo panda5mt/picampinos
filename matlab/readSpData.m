@@ -19,7 +19,8 @@ function readSpData(srcComObj, ~)
         for HGT = 1:480 
             for WID = 1:1:320
                 try
-                    data = (img1(HGT,WID)); % convert endian
+                    data = swapbytes(img1(HGT,WID)); % convert endian
+                    % data = bin2dec(fliplr(dec2bin(data,32))); % bit reverse
                     img(HGT, WID*2-1) = data;
                     img(HGT, WID*2) = bitshift(data,-16);
                 catch 
@@ -31,7 +32,7 @@ function readSpData(srcComObj, ~)
                 
             end
         end
-        
+        %img = bitshift((bitand(lower16, img)),-16);
         img = bitshift(swapbytes(bitand(lower16, img)),-16);
         imgR = (255/63) .* bitand(lower5, bitshift(img,-11));    % Red component
         imgG = (255/127).* bitand(lower6, bitshift(img,-5));    % Green component
