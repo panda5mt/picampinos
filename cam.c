@@ -121,13 +121,9 @@ void start_cam() {
     dma_channel_abort(DMA_CAM_RD_CH0);
     dma_start_channel_mask(1u << DMA_CAM_RD_CH0);
 
-    // // camera transfer settings(for still)
-    // pio_sm_put_blocking(pio_cam, sm_cam, (CAM_FUL_SIZE - 1));   // X: total bytes 
-    // pio_sm_put_blocking(pio_cam, sm_cam, 0);                    // Y: Count Hsync 
-
     // camera transfer settings(for video)
-    pio_sm_put_blocking(pio_cam, sm_cam, 0);                        // X=0 : indicate video mode
-    pio_sm_put_blocking(pio_cam, sm_cam, (CAM_FUL_SIZE - 1));       // Y: total bytes in an image 
+    pio_sm_put_blocking(pio_cam, sm_cam, 0);                                       // X=0 : reserved
+    pio_sm_put_blocking(pio_cam, sm_cam, (CAM_FUL_SIZE/sizeof(uint32_t) - 1));     // Y: total words in an image 
 
     // wait until transfer finish
     //while(false == is_captured);
