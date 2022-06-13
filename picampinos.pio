@@ -32,7 +32,7 @@ loop1:
     wait 1  pin 10      ; wait until PCLK = 1
     in      pins, 8     ; get camera RGB data-> ISR
     wait 0  pin 10
-    mov     isr, ::isr  ; bit reverse
+    mov     isr, ::isr  ; bit reverse (Comment out if you don't need this)
     push                ; RX_FIFO <= ISR    
     jmp     x--, loop1
     
