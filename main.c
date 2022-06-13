@@ -3,9 +3,10 @@
 // Need: A Raspberry Pi PICO, An IoT SRAM(APS1604M-3SQR or compatible), A DVP Camera(OV5642)
 // Connection:
 // ----- with OV Camera -----
+// You can reverse bits (GP1:GP8=D2:D9 -> GP1:GP8=D9:D2). search for keywords 'bit reverse' in 'picampinos.pio'
 // (PICO <-> OV5642/OV2640)
 // GP0 ---> XCLK(24MHz Clock IN)
-// GP1 <--- D2
+// GP1 <--- D2 
 // GP2 <--- D3
 // GP3 <--- D4
 // GP4 <--- D5
