@@ -1,8 +1,8 @@
 #include "hardware/gpio.h"
 #include "hardware/pio.h"
 
-#define IOT_DAT_BASE_PIN    (16)    // IoT SRAM's data-pin(D0~D3)
-#define IOT_SIG_BASE_PIN    (20)    // IoT SRAM's control pin (nCS, SCLK)
+#define IOT_DAT_BASE_PIN    (12)    // IoT SRAM's data-pin {D3,...,D0}
+#define IOT_SIG_BASE_PIN    (16)    // IoT SRAM's control pin {SCLK, nCS}
 #define LINEAR_BURST        (512)   // IoT SRAM's burst length(in bytes)
 
 // DMA Channel

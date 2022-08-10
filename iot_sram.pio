@@ -2,33 +2,32 @@
 
 ;    (MSB)<--- {nCS,SCLK,D3,D2,D1,D0} --->(LSB)
 ;    dat_base : D[3:0]
-;    sig_base : {nCS,SCLK}
+;    sig_base : {SCLK,nCS}
 
 .side_set 2
 
 _start0: 
-    ;pull    block          side 0x02;
-    out     x, 32           side 0x02; x <= osr
-    out     y, 32           side 0x02; y <= osr
-    set     pindirs,0x0f    side 0x02; pindir
+    out     x, 32           side 0x01; x <= osr
+    out     y, 32           side 0x01; y <= osr
+    set     pindirs,0x0f    side 0x01; pindir
 write0:
     out     pins,4          side 0x00; sclk=0
-    jmp     x--  write0     side 0x01; sclk=1
+    jmp     x--  write0     side 0x02; sclk=1
 read0:
-    jmp     !y  end0        side 0x01; if !y goto end
+    jmp     !y  end0        side 0x02; if !y goto end
     set     pindirs,0x0     side 0x00; pindir & sclk=0
-    mov     isr,null        side 0x01;
-    set     x, 7            side 0x01; x=8-1
+    mov     isr,null        side 0x02;
+    set     x, 7            side 0x02; x=8-1
 read1:
     nop                     side 0x00;  dummy 8-clock
-    jmp     x-- read1       side 0x01;
+    jmp     x-- read1       side 0x02;
 read2:
     in      pins,4          side 0x00 ; sclk=1
-    jmp     y-- read2       side 0x01 ; sclk=0
+    jmp     y-- read2       side 0x02 ; sclk=0
     nop                     side 0x03;
 end0:
-    mov     isr, null       side 0x02;
-    jmp     _start0         side 0x02; sclk=0, nCS=1
+    mov     isr, null       side 0x01;
+    jmp     _start0         side 0x01; sclk=0, nCS=1
 
 
 % c-sdk {

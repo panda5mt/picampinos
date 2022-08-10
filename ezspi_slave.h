@@ -3,10 +3,10 @@
 
 // SPI Slave
 // you can change base(LSB) pin but pin order:(MSB)TX,SCK,CSn,RX(LSB)
-#define SPI1S_RX    (12)
-#define SPI1S_CSn   (13)
-#define SPI1S_SCK   (14)
-#define SPI1S_TX    (15)
+#define SPI1S_RX    (18)
+#define SPI1S_CSn   (19)
+#define SPI1S_SCK   (20)
+#define SPI1S_TX    (21)
 
 void init_spi_slave(PIO pio) ;
 void deinit_spi_slave(PIO pio) ;
