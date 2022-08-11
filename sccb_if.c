@@ -691,7 +691,7 @@ void sccb_init(uint8_t device_is, const uint32_t sda_pin, const uint32_t scl_pin
         sccb_dat[0]=0x37 ; sccb_dat[1]=0x0d ; sccb_dat[2]=0x02 ; reg_write(i2c, CAM_ADDR, sccb_dat, 3) ;
         // #319: analog settings register 
         sccb_dat[0]=0x36 ; sccb_dat[1]=0x20 ; sccb_dat[2]=0x52 ; reg_write(i2c, CAM_ADDR, sccb_dat, 3) ;
-        #if 1 // pclk=6MHz
+        #if 0 // pclk=6MHz
         sccb_dat[0]=0x30 ; sccb_dat[1]=0x11 ; sccb_dat[2]=0x08 ; reg_write(i2c, CAM_ADDR, sccb_dat, 3) ;
         sccb_dat[0]=0x30 ; sccb_dat[1]=0x12 ; sccb_dat[2]=0x00 ; reg_write(i2c, CAM_ADDR, sccb_dat, 3) ;
         sccb_dat[0]=0x30 ; sccb_dat[1]=0x10 ; sccb_dat[2]=0x70 ; reg_write(i2c, CAM_ADDR, sccb_dat, 3) ;
