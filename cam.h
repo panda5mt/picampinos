@@ -8,7 +8,7 @@
 // USE SPI Slave?
 #define USE_EZSPI_SLAVE     (true)
 
-#define SYS_CLK_KHZ         (300000)// 192000 ~ 264000
+#define SYS_CLK_KHZ         (270000)// 192000 ~ 264000
 #define CAM_BASE_PIN        (1)     // GP1 (camera module needs 11pin)
 #define PIN_PWM0            (0)     // GP0 (camera's xclk(24MHz))
 // #define IOT_DAT_BASE_PIN    (16)    // IoT SRAM's data-pin(D0~D3)
