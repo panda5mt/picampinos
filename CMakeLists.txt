@@ -27,6 +27,7 @@ pico_add_extra_outputs(picampinos)
 target_link_libraries(picampinos PRIVATE
         pico_malloc 
         pico_stdlib
+        hardware_vreg
         hardware_pio
         hardware_i2c
         hardware_pwm

@@ -36,14 +36,17 @@
 #include <stdlib.h>
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
+#include "hardware/vreg.h"
 #include "cam.h"
 
 #define BOARD_LED           (25)
 
 void setup() {
+    vreg_set_voltage(VREG_VOLTAGE_1_30);
     // system init
-    set_sys_clock_khz(SYS_CLK_KHZ, true);
     stdio_init_all();
+    set_sys_clock_khz(SYS_CLK_KHZ, true);
+    setup_default_uart();
 
     // INIT LED
     gpio_init(BOARD_LED);
@@ -66,18 +69,19 @@ int main() {
     
     // data via USB-UART(ASCII)
     // see also 'matlab/readrgb.m'
+    
     while(true) {
         uartout_cam();          
     }
-
+    
 
     // data via USB-UART(binary) 
     // see also 'matlab/comm_uart_bin.m'
-    
-    // while(true) {
-    //     uartout_bin_cam();      
-    // }                           
-
+    /*    
+    while(true) {
+        uartout_bin_cam();      
+    }                           
+    */
     // you have Raspberry Pi 3/4? and you have MATLAB?
     // you can use SPI + RPi + MATLAB
     // and CHECK 'USE_EZSPI_SLAVE' is (true) in 'cam.h'
