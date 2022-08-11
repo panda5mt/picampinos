@@ -36,3 +36,5 @@ The docker image contains this Project, Pico SDKs, and Pico Examples.
 Get ideas to see <code>[get_sdk.sh](get_sdk.sh)</code>.
 
 ## Hardware settings
+This is <code>[Schematics](hardware/RP2040Board.pdf)</code>.
+For instance, check comment in <code>[main.c](main.c)</code> for connection via RP2040.
