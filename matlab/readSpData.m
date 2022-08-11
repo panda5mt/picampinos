@@ -19,7 +19,7 @@ function readSpData(srcComObj, ~)
         for HGT = 1:480 
             for WID = 1:1:320
                 try
-                    data = swapbytes(img1(HGT,WID)); % convert endian
+                    data = (img1(HGT,WID)); % convert endian
                     % data = bin2dec(fliplr(dec2bin(data,32))); % bit reverse
                     img(HGT, WID*2-1) = data;
                     img(HGT, WID*2) = bitshift(data,-16);

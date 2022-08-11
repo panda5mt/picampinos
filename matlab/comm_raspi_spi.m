@@ -12,7 +12,7 @@ lower16 = 65535 .* ones(480,640,'uint32'); % 0xffff 0xffff ....
 %% setup raspberry pi
 mypi= raspi();
 enableSPI(mypi);
-myspidev = spidev(mypi,'CE1',0,2000000); % nCS = CE1, Mode 0, 2MHz 
+myspidev = spidev(mypi,'CE1',0,8000000); % nCS = CE1, Mode 0, 2MHz 
 
 len = 2*640/4; % one horizontal line
 out = zeros(480,len,'uint32');
