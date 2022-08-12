@@ -6,7 +6,7 @@
 #include "sccb_if.h"
 
 // USE SPI Slave?
-#define USE_EZSPI_SLAVE     (true)
+#define USE_EZSPI_SLAVE     (false)
 
 #define SYS_CLK_KHZ         (270000)// 192000 ~ 264000
 #define CAM_BASE_PIN        (1)     // GP1 (camera module needs 11pin)
