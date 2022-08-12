@@ -51,7 +51,7 @@ void setup() {
     // INIT LED
     gpio_init(BOARD_LED);
     gpio_set_dir(BOARD_LED, GPIO_OUT);
-    for(int i=0 ; i < 5; i++) {
+    for(int i=0 ; i < 5; i++) {     // blink LED
         gpio_put(BOARD_LED, 1);
         busy_wait_ms(100);
         gpio_put(BOARD_LED, 0);
