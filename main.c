@@ -39,7 +39,7 @@
 #include "hardware/vreg.h"
 #include "cam.h"
 
-#define BOARD_LED           (25)
+#define BOARD_LED           (28) // pico => 25, self made RP2040brd => 28. check hardware/RP2040Board.pdf 
 
 void setup() {
     vreg_set_voltage(VREG_VOLTAGE_1_30);
@@ -51,7 +51,13 @@ void setup() {
     // INIT LED
     gpio_init(BOARD_LED);
     gpio_set_dir(BOARD_LED, GPIO_OUT);
-    gpio_put(BOARD_LED, 1);
+    for(int i=0 ; i < 5; i++) {
+        gpio_put(BOARD_LED, 1);
+        busy_wait_ms(100);
+        gpio_put(BOARD_LED, 0);
+        busy_wait_ms(100);
+    }
+    
     //gpio_pull_up(BOARD_LED);
 
 }
