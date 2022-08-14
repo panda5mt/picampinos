@@ -11,7 +11,7 @@
 
 void sccb_init(uint8_t device_is, const uint32_t sda_pin, const uint32_t scl_pin);
 
-int32_t reg_write(i2c_inst_t *i2c, 
+int32_t reg_write(  i2c_inst_t *i2c, 
                 const uint32_t addr, 
                 uint8_t *buf,
                 const uint8_t nbytes);

@@ -1,0 +1,82 @@
+; this code is based on https://github.com/kingyoPiyo/RasPico_SHIBAKI_Board
+; this code has copyright and used under licenses below
+
+; MIT License
+; 
+; Copyright (c) 2022 kingyo
+; 
+; Permission is hereby granted, free of charge, to any person obtaining a copy
+; of this software and associated documentation files (the "Software"), to deal
+; in the Software without restriction, including without limitation the rights
+; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+; copies of the Software, and to permit persons to whom the Software is
+; furnished to do so, subject to the following conditions:
+; 
+; The above copyright notice and this permission notice shall be included in all
+; copies or substantial portions of the Software.
+; 
+; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+; SOFTWARE.
+
+;***************************************************
+; Title     : Serializer for 100BASE-FX
+;             clock 250MHz, 125Mbps, 10bit
+; Date      : 2022/01/09
+; Design    : kingyo
+;***************************************************
+
+.program ser_100base_fx
+    pull                ; pull IDLE pattern
+    mov X, OSR
+.wrap_target
+    pull noblock        ; If TX FIFO is Empty then send X register(IDLE pattern)
+    out pins, 1 [1]
+    out pins, 1 [1]
+    out pins, 1 [1]
+    out pins, 1 [1]
+    out pins, 1 [1]
+    out pins, 1 [1]
+    out pins, 1 [1]
+    out pins, 1 [1]
+    out pins, 1 [1]
+    out pins, 1
+.wrap
+
+
+% c-sdk {
+
+    static inline void ser_100base_fx_program_init(PIO pio, uint sm, uint offset, uint pin_tx)
+    {
+        pio_sm_set_pins_with_mask(pio, sm, 1u << pin_tx, 1u << pin_tx);
+        pio_sm_set_pindirs_with_mask(pio, sm, 1u << pin_tx, 1u << pin_tx);
+        pio_gpio_init(pio, pin_tx);
+
+        gpio_set_drive_strength(pin_tx, GPIO_DRIVE_STRENGTH_12MA);
+        gpio_set_slew_rate(pin_tx, GPIO_SLEW_RATE_FAST);
+
+        pio_sm_config c = ser_100base_fx_program_get_default_config(offset);
+        sm_config_set_out_shift(&c, true, false, 10);   // Shift OSR to Right, Autopull is disabled
+        sm_config_set_out_pins(&c, pin_tx, 1);
+
+        sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
+        sm_config_set_clkdiv(&c, 1);
+
+        pio_sm_init(pio, sm, offset, &c);
+
+        // Set 100BASE-FX IDLE pattern
+        pio_sm_put_blocking(pio, sm, 0b0101010101);
+        
+        pio_sm_set_enabled(pio, sm, true);
+    }
+
+    static inline void ser_100base_fx_tx_10b(PIO pio, uint sm, uint32_t txdata)
+    {
+        pio_sm_put_blocking(pio, sm, txdata);
+    }
+
+%}

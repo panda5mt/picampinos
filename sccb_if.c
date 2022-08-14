@@ -18,8 +18,8 @@ void sccb_init(uint8_t device_is, const uint32_t sda_pin, const uint32_t scl_pin
     // Buffer to store raw reads
     uint8_t data[6];
 
-    //Initialize I2C port at 400 kHz
-    i2c_init(i2c, 400 * 1000);
+    //Initialize I2C port at 100 kHz
+    i2c_init(i2c, 100 * 1000);
 
     // Initialize I2C pins
     gpio_set_function(sda_pin, GPIO_FUNC_I2C);

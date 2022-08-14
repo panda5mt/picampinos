@@ -37,9 +37,39 @@
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "hardware/vreg.h"
+#include "hardware/i2c.h"
 #include "cam.h"
 
 #define BOARD_LED           (28) // pico => 25, self made RP2040brd => 28. check hardware/RP2040Board.pdf 
+
+static void read_i2c_data(i2c_inst_t *i2c)
+{
+    uint8_t read_buf[256] = {0};
+    uint32_t x = 0, y = 0;
+    uint8_t tmp;
+    printf("read sfp start...\r\n");
+
+    i2c_read_blocking(i2c, 0xa0>>1, read_buf, 256, false);
+
+    printf("read sfp end...\r\n");
+    printf(" 0x50 0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef\r\n");
+    for (y = 0; y < 16; y++) {
+        printf(" %02x: ", y << 4);
+        for (x = 0; x < 16; x++) {
+            printf("%02x ", read_buf[(y << 4) + x]);
+        }
+        printf("   ");
+        for (x = 0; x < 16; x++) {
+            tmp = read_buf[(y << 4) + x];
+            if (tmp >= 0x20 && tmp <= 0x7E) {
+                printf("%c", tmp);
+            } else {
+                printf(".");
+            }
+        }
+        printf("\r\n");
+    }
+}
 
 void setup() {
     vreg_set_voltage(VREG_VOLTAGE_1_30);
@@ -47,6 +77,8 @@ void setup() {
     stdio_init_all();
     set_sys_clock_khz(SYS_CLK_KHZ, true);
     setup_default_uart();
+
+    
 
     // INIT LED
     gpio_init(BOARD_LED);
@@ -57,7 +89,7 @@ void setup() {
         gpio_put(BOARD_LED, 0);
         busy_wait_ms(100);
     }
-    
+
     //gpio_pull_up(BOARD_LED);
 
 }
@@ -68,7 +100,10 @@ int main() {
     setup();
 
     init_cam(DEV_OV5642);
-   
+
+    i2c_inst_t *i2c = i2c1;
+    read_i2c_data(i2c);
+    
     config_cam_buffer();    // config buffer
     start_cam();            // start streaming
 
