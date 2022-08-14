@@ -7,17 +7,20 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 pico_sdk_init()
 
-add_executable(picampinos
+add_executable( picampinos
     main.c
     cam.c
     sccb_if.c
     iot_sram.c
     ezspi_slave.c
+    udp.c
+    tbl_8b10b.c
 )
 
 pico_generate_pio_header(picampinos ${CMAKE_CURRENT_LIST_DIR}/picampinos.pio)
 pico_generate_pio_header(picampinos ${CMAKE_CURRENT_LIST_DIR}/iot_sram.pio)
 pico_generate_pio_header(picampinos ${CMAKE_CURRENT_LIST_DIR}/ezspi_slave.pio)
+pico_generate_pio_header(picampinos ${CMAKE_CURRENT_LIST_DIR}/ser_100base_fx.pio)
 
 pico_enable_stdio_usb(picampinos 1)
 #pico_enable_stdio_uart(picampinos 1)

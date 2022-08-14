@@ -1,0 +1,263 @@
+// PICAMPINOS - Camera IF using RP2040
+// this project communicates OV5642(or parallel 8-bit DVP-IF Image sensor with SCCB control) using Raspberry Pi PICO
+// Need: A Raspberry Pi PICO, An IoT SRAM(APS1604M-3SQR or compatible), A DVP Camera(OV5642)
+// Connection:
+// ----- with OV Camera -----
+// You can reverse bits (GP1:GP8=D2:D9 -> GP1:GP8=D9:D2). search for keywords 'bit reverse' in 'picampinos.pio'
+// (PICO <-> OV5642/OV2640)
+// GP0 ---> XCLK(24MHz Clock IN)
+// GP1 <--- D2 
+// GP2 <--- D3
+// GP3 <--- D4
+// GP4 <--- D5
+// GP5 <--- D6
+// GP6 <--- D7
+// GP7 <--- D8
+// GP8 <--- D9
+// GP9 <--- VSYNC
+// GP10 <-- HREF(HSYNC)
+// GP11 <-- PCLK(Pixel Clock OUT)
+
+// GP12~GP15 : reserved for SPI. (SPI: See also ezspi_slave.c if you want to use.)
+
+// GP26 --> SDA(SCCB DATA/I2C)
+// GP27 --> SCL(SCCB CLK/I2C)
+
+// ----- with IoT SRAM -----
+// (PICO <-> APS1604M)
+// GP16 <-> D0
+// GP17 <-> D1
+// GP18 <-> D2
+// GP19 <-> D3
+// GP20 --> xCS
+// GP21 --> SCLK
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "pico/stdlib.h"
+#include "hardware/gpio.h"
+#include "hardware/vreg.h"
+#include "hardware/i2c.h"
+#include "hardware/dma.h"
+#include "cam.h"
+
+
+#include "ser_100base_fx.pio.h"
+#include "tbl_8b10b.h"
+#include "udp.h"    
+
+#define BOARD_LED           (28) // pico's led => 25, self made RP2040brd's led => 28. check hardware/RP2040Board.pdf 
+#define HW_PINNUM_SFP0_TXD  (22)
+
+static PIO pio_ser_wr = pio1;
+static uint sm0 = 0;
+static uint sm1 = 1;
+
+// 8b10b TX Interrupt (1us period)
+static void __time_critical_func(ser_10b_irq)(void)
+{
+    static uint8_t cnt_10b = 0;     // tx Byte counter
+    uint32_t tx_buf_8b10b;          // tx 10bit data
+    uint8_t tx_8b;                  // tx 8bit data
+
+    //gpio_put(HW_PINNUM_SMAOUT1, true);
+    //tx_8b = gpio_get(HW_PINNUM_SW1) ? 0x00 : 0x01;
+    tx_8b = 0x00;
+    //gpio_put(HW_PINNUM_LED2, tx_8b & 0x01);
+    if (++cnt_10b == 255) {
+        // K28.5
+        tx_buf_8b10b = tbl_8b10b_enc(0x00, true);
+    } else {
+        tx_buf_8b10b = tbl_8b10b_enc(tx_8b, false);
+    }
+    //ser_10b_tx(pio_ser_wr, sm1, tx_buf_8b10b << 22);
+
+    //gpio_put(HW_PINNUM_SMAOUT1, false);
+}
+
+
+static void read_i2c_data(i2c_inst_t *i2c)
+{
+    uint8_t read_buf[256] = {0};
+    uint32_t x = 0, y = 0;
+    uint8_t tmp;
+    printf("read sfp start...\r\n");
+
+    // sfp's addr = 0xA0
+    i2c_read_blocking(i2c, (0xA0 >> 1), read_buf, 256, false);
+
+    printf("read sfp end...\r\n");
+    printf(" 0x50 0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef\r\n");
+    for (y = 0; y < 16; y++) {
+        printf(" %02x: ", y << 4);
+        for (x = 0; x < 16; x++) {
+            printf("%02x ", read_buf[(y << 4) + x]);
+        }
+        printf("   ");
+        for (x = 0; x < 16; x++) {
+            tmp = read_buf[(y << 4) + x];
+            if (tmp >= 0x20 && tmp <= 0x7E) {
+                printf("%c", tmp);
+            } else {
+                printf(".");
+            }
+        }
+        printf("\r\n");
+    }
+}
+
+void setup() {
+    vreg_set_voltage(VREG_VOLTAGE_1_30);
+    // system init
+    stdio_init_all();
+    set_sys_clock_khz(SYS_CLK_KHZ, true);
+    setup_default_uart();
+
+    
+
+    // INIT LED
+    gpio_init(BOARD_LED);
+    gpio_set_dir(BOARD_LED, GPIO_OUT);
+    for(int i=0 ; i < 5; i++) {     // blink LED
+        gpio_put(BOARD_LED, 1);
+        busy_wait_ms(100);
+        gpio_put(BOARD_LED, 0);
+        busy_wait_ms(100);
+    }
+
+    //gpio_pull_up(BOARD_LED);
+
+}
+
+
+int main() {
+
+    setup();
+
+    init_cam(DEV_OV5642);
+
+    // call 'read_i2c_data()' after 'init_cam()' because i2c hardware is not initialized before 'init_cam()'
+    i2c_inst_t *i2c = i2c1;
+    read_i2c_data(i2c);
+
+    // for test
+    /////
+    uint32_t DMA_SER_WR0;
+    uint32_t tx_buf_udp[DEF_UDP_BUF_SIZE+1] = {0};
+    uint8_t udp_payload[DEF_UDP_PAYLOAD_SIZE] = {0};
+    uint32_t lp_cnt = 0;
+    uint offset = 0;
+
+    //stdio_init_all();
+    //hw_init();
+    gpio_init(HW_PINNUM_SFP0_TXD);
+    gpio_set_dir(HW_PINNUM_SFP0_TXD, GPIO_OUT);
+    //hw_test();
+
+    
+    // PIO (Serializer) init
+    offset = pio_add_program(pio_ser_wr, &ser_100base_fx_program);
+    ser_100base_fx_program_init(pio_ser_wr, sm0, offset, HW_PINNUM_SFP0_TXD);       // for 100BASE-FX 100Mbps
+    // offset = pio_add_program(pio_ser_wr, &ser_10b_program);
+    // ser_10b_program_init(pio_ser_wr, sm1, offset, HW_PINNUM_SFP1_TXD, 10000000);    // for 8b10b 10Mbps
+
+    // 8b10b FIFO Empty IRQ, IRQ No = 7(PIO0_IRQ_0)
+    pio_set_irq0_source_enabled(pio_ser_wr, PIO_INTR_SM1_TXNFULL_LSB, true);
+    //irq_set_exclusive_handler(PIO0_IRQ_0, &ser_10b_irq);
+    //irq_add_shared_handler(PIO0_IRQ_0, &ser_10b_irq, 255);
+    //irq_set_enabled(PIO0_IRQ_0, true);
+
+    // RX Task
+    //  MADA UGOKANE YO ~~~~~~~~~
+    //multicore_launch_core1(rx_main);
+
+    // UDP
+    udp_init();
+    sprintf(udp_payload, "Hello RasPico SHIBAKI Board !!");
+    udp_packet_gen(tx_buf_udp, udp_payload);
+
+    // DMA channel setting(SFP0)
+    DMA_SER_WR0 = dma_claim_unused_channel(true);
+    dma_channel_config c0 = dma_channel_get_default_config(DMA_SER_WR0);
+    channel_config_set_dreq(&c0, pio_get_dreq(pio_ser_wr, sm0, true));
+    channel_config_set_transfer_data_size(&c0, DMA_SIZE_32);
+    channel_config_set_read_increment(&c0, true);
+    channel_config_set_write_increment(&c0, false);
+    dma_channel_configure (
+        DMA_SER_WR0,            // Channel to be configured
+        &c0,                    // The configuration we just created
+        &pio_ser_wr->txf[0],    // Destination address
+        tx_buf_udp,             // Source address
+        (DEF_UDP_BUF_SIZE+1),   // Number of transfers
+        false                   // Don't start yet
+    );
+
+
+    while (true)
+    {
+        // Send data only while button is pressed.
+        // if (!gpio_get(HW_PINNUM_SW0)) {
+            //gpio_put(HW_PINNUM_SMAOUT0, true);
+
+            gpio_put(BOARD_LED, true);
+
+            // UDP Packet update
+            lp_cnt++;
+            sprintf(udp_payload, "Hello RP2040 Crazy Eval Board!!!! lp_cnt:%d", lp_cnt);
+            udp_packet_gen(tx_buf_udp, udp_payload);
+
+            // DMA Start
+            dma_channel_set_read_addr(DMA_SER_WR0, tx_buf_udp, true);
+
+            // Wait for DMA
+            dma_channel_wait_for_finish_blocking(DMA_SER_WR0);
+
+           // gpio_put(HW_PINNUM_SMAOUT0, false);
+           gpio_put(BOARD_LED, false);
+        // } else {
+        //     gpio_put(HW_PINNUM_LED1, false);
+        // }
+
+        // Loop wait
+        //sleep_us(1000);
+    }
+    /////
+
+    while(1);
+    config_cam_buffer();    // config buffer
+    start_cam();            // start streaming
+
+    
+    // data via USB-UART(ASCII)
+    // see also 'matlab/readrgb.m'
+    
+    while(true) {
+        uartout_cam();          
+    }
+    
+
+    // data via USB-UART(binary) 
+    // see also 'matlab/comm_uart_bin.m'
+    /*    
+    while(true) {
+        uartout_bin_cam();      
+    }                           
+    */
+    // you have Raspberry Pi 3/4? and you have MATLAB?
+    // you can use SPI + RPi + MATLAB
+    // and CHECK 'USE_EZSPI_SLAVE' is (true) in 'cam.h'
+    // See also 'matlab/comm_raspi_spi.m'
+    /*
+    while(true) {
+        spiout_cam();
+        printf("OK\r\n");
+    }
+    */
+
+    // end
+    free_cam();
+
+    while (true);
+}
+
+
