@@ -193,6 +193,8 @@ int main() {
     );
 
 
+    sprintf(udp_payload, "Hello RP2040 Crazzzzy Eval Boards!!!!");
+    udp_packet_gen(tx_buf_udp, udp_payload);
     while (true)
     {
         // Send data only while button is pressed.
@@ -203,9 +205,9 @@ int main() {
 
             // UDP Packet update
             lp_cnt++;
-            sprintf(udp_payload, "Hello RP2040 Crazy Eval Board!!!! lp_cnt:%d", lp_cnt);
-            udp_packet_gen(tx_buf_udp, udp_payload);
 
+            sprintf(udp_payload, "Hello RP2040 Crazzzzy Eval Boards!!!!");
+            udp_packet_gen(tx_buf_udp, udp_payload);
             // DMA Start
             dma_channel_set_read_addr(DMA_SER_WR0, tx_buf_udp, true);
 
@@ -219,7 +221,7 @@ int main() {
         // }
 
         // Loop wait
-        //sleep_us(1000);
+        sleep_us(10);
     }
     /////
 
