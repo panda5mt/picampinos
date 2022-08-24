@@ -218,6 +218,45 @@ void spiout_cam() {
     ram_in_use = false;
 }
 #endif
+
+#if USE_100BASE_FX
+void sfp_cam() {    
+    uint8_t BUF_LEN = 10;
+    uint8_t in_buf[BUF_LEN]; 
+    uint8_t out_buf[BUF_LEN];
+    aaa();
+    is_captured = false;
+    sleep_ms(80);
+    
+    
+    while(!is_captured);    // wait until an image captured
+    ram_in_use = true;      // start to read
+    
+    //init_spi_slave(pio_spi);
+
+    int32_t iot_addr = 0;
+    int32_t *b;
+    uint32_t resp;
+    b = iot_ptr;
+
+    // send header
+    write_word_spi_slave(pio_spi, 0xDEADBEEF);
+    for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
+        iot_sram_read(pio_iot, (uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length         
+        
+
+        for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i += 640*2 /sizeof(uint32_t)) {
+            write_blocking_spi_slave(pio_spi, &b[i], 640*2);
+        }
+        // increment iot sram's address
+        iot_addr = iot_addr + CAM_BUF_SIZE;
+    }
+   
+    //deinit_spi_slave();
+    ram_in_use = false;
+}
+#endif
+
 void free_cam() {
  
     // Disable IRQ settings

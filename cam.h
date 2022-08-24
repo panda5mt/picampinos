@@ -7,6 +7,7 @@
 
 // USE SPI Slave?
 #define USE_EZSPI_SLAVE     (false)
+#define USE_100BASE_FX      (false && !USE_EZSPI_SLAVE)
 
 #define SYS_CLK_KHZ         (250000)// 192000 ~ 264000
 #define CAM_BASE_PIN        (1)     // GP1 (camera module needs 11pin)
