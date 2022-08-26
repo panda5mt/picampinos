@@ -24,6 +24,7 @@ target_sources(${target_name} PRIVATE
         ezspi_slave.c
         udp.c
         tbl_8b10b.c
+        sfp_hw.c
         )
 
 target_link_libraries(${target_name} PRIVATE

@@ -38,16 +38,9 @@
 #include "hardware/gpio.h"
 #include "hardware/vreg.h"
 #include "hardware/i2c.h"
-#include "hardware/dma.h"
 #include "cam.h"
 
-
-
-#define BOARD_LED           (28) // pico's led => 25, self made RP2040brd's led => 28. check hardware/RP2040Board.pdf 
-
-
-static PIO pio_ser_wr = pio1;
-static uint sm0;
+#define BOARD_LED           (28) // pico => 25, self made RP2040brd => 28. check hardware/RP2040Board.pdf 
 
 static void read_i2c_data(i2c_inst_t *i2c)
 {
@@ -56,8 +49,7 @@ static void read_i2c_data(i2c_inst_t *i2c)
     uint8_t tmp;
     printf("read sfp start...\r\n");
 
-    // sfp's addr = 0xA0
-    i2c_read_blocking(i2c, (0xA0 >> 1), read_buf, 256, false);
+    i2c_read_blocking(i2c, 0xa0>>1, read_buf, 256, false);
 
     printf("read sfp end...\r\n");
     printf(" 0x50 0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef\r\n");
@@ -108,17 +100,17 @@ int main() {
     setup();
 
     init_cam(DEV_OV5642);
+
+    i2c_inst_t *i2c = i2c1;
+    read_i2c_data(i2c);
+    
     config_cam_buffer();    // config buffer
     start_cam();            // start streaming
 
-    // call 'read_i2c_data()' after 'init_cam()' because i2c hardware is not initialized before 'init_cam()'
-    i2c_inst_t *i2c = i2c1;
-    read_i2c_data(i2c);
-
-
     
     // data via USB-UART(ASCII)
-    // see also 'matlab/readrgb.m'    
+    // see also 'matlab/readrgb.m'
+    
     while(true) {
         uartout_cam();          
     }
@@ -141,18 +133,10 @@ int main() {
         printf("OK\r\n");
     }
     */
-    
-    // using SFP module
-    // see also 'matlab/receive_udp.m'
-    /*
-    while(true) {
-        sfp_cam();
-    }
-    */
+
     // end
     free_cam();
 
     while (true);
 }
-
 

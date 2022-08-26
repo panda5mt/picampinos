@@ -32,10 +32,10 @@
 #include "pico/stdlib.h"
 
 // Buffer size config
-#define DEF_UDP_PAYLOAD_SIZE    (508)
+#define DEF_UDP_PAYLOAD_SIZE    (1280)
 
 // Ethernet
-#define DEF_ETH_DST_MAC         (0xFFFFFFFFFFFF)    // L2 Broadcast
+#define DEF_ETH_DST_MAC         (0x4C364EB2CC1F)//(0xFFFFFFFFFFFF)    // L2 Broadcast
 #define DEF_ETH_SRC_MAC         (0x123456789ABC)    // Dummy
 
 // IP Header

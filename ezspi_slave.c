@@ -26,7 +26,7 @@ void init_spi_slave(PIO pio) {
         spi_initialized = true;
     }
     offset_spi = pio_add_program(pio, &ezspi_slave_program);
-    sm_spi = pio_claim_unused_sm(pio, true);
+    sm_spi = 0;//pio_claim_unused_sm(pio, true);
     ezspi_slave_program_init(pio, sm_spi, offset_spi, SPI1S_RX, 3, SPI1S_TX, 1); // in:MSB-> {CLK, nCS, RX} <-LSB, out: TX
     
     return;

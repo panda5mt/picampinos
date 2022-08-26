@@ -12,6 +12,9 @@
 #if USE_EZSPI_SLAVE
 #include "ezspi_slave.h"
 #endif
+#if USE_100BASE_FX
+#include "sfp_hw.h"
+#endif
 
 volatile bool is_captured = false; 
 volatile bool ram_in_use  = false; // priority: sram read > sram write
@@ -25,7 +28,9 @@ PIO pio_iot = pio1;
 #if USE_EZSPI_SLAVE
 PIO pio_spi = pio1; // same PIO with pio_iot
 #endif
-
+#if USE_100BASE_FX
+PIO pio_sfp = pio1; // same PIO with pio_iot
+#endif
 // statemachine's pointer
 uint32_t sm_cam;    // CAMERA's state machines
 
@@ -224,29 +229,34 @@ void sfp_cam() {
     uint8_t BUF_LEN = 10;
     uint8_t in_buf[BUF_LEN]; 
     uint8_t out_buf[BUF_LEN];
-    aaa();
+    
     is_captured = false;
-    sleep_ms(80);
-    
-    
     while(!is_captured);    // wait until an image captured
+    is_captured = false;
+    while(!is_captured);    // wait until an image captured
+
     ram_in_use = true;      // start to read
     
-    //init_spi_slave(pio_spi);
+    sfp_hw_init(pio_sfp);
 
     int32_t iot_addr = 0;
     int32_t *b;
+    int32_t *c;
     uint32_t resp;
     b = iot_ptr;
 
     // send header
-    write_word_spi_slave(pio_spi, 0xDEADBEEF);
+    uint32_t a = 0xdeadbeef;
+    sfp_send(&a, 4);
+    //sleep_us(100);
     for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
         iot_sram_read(pio_iot, (uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length         
         
-
-        for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i += 640*2 /sizeof(uint32_t)) {
-            write_blocking_spi_slave(pio_spi, &b[i], 640*2);
+        for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i+=320) {
+            //printf("0x%08X\r\n",b[i]);
+            
+            sfp_send(&b[i], sizeof(uint32_t)*320);
+            //sleep_us(150);
         }
         // increment iot sram's address
         iot_addr = iot_addr + CAM_BUF_SIZE;

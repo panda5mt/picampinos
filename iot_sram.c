@@ -11,7 +11,8 @@ uint32_t offset_iot;
 void iot_sram_init(PIO pio) {
     // Initialize IoT SRAM
     offset_iot = pio_add_program(pio, &iot_sram_program);
-    sm_iot = pio_claim_unused_sm(pio, true);
+    sm_iot = 2;//pio_claim_unused_sm(pio, true);
+    printf("iot sm = %d",pio_claim_unused_sm(pio, true));
     iot_sram_program_init(pio, sm_iot, offset_iot, IOT_DAT_BASE_PIN, 4, IOT_SIG_BASE_PIN, 2); // : total 6 pins
     iot_sram_set_qpi_mode(pio);
     

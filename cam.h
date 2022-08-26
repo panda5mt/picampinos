@@ -7,7 +7,7 @@
 
 // USE SPI Slave?
 #define USE_EZSPI_SLAVE     (false)
-#define USE_100BASE_FX      (false && !USE_EZSPI_SLAVE)
+#define USE_100BASE_FX      (true && !USE_EZSPI_SLAVE)
 
 #define SYS_CLK_KHZ         (250000)// 192000 ~ 264000
 #define CAM_BASE_PIN        (1)     // GP1 (camera module needs 11pin)
@@ -35,5 +35,6 @@ void start_cam();
 void uartout_cam();
 void uartout_bin_cam();
 void spiout_cam();
+void sfp_cam();
 void free_cam();
 
