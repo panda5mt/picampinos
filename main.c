@@ -144,6 +144,8 @@ int main() {
     
     // using SFP module
     // see also 'matlab/receive_udp.m'
+    // To Use SFP, CHECK 'USE_EZSPI_SLAVE' is (false) 
+    // AND 'USE_100BASE_FX' is (true) in 'cam.h'
     /*
     while(true) {
         sfp_cam();
