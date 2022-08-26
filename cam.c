@@ -255,6 +255,7 @@ void sfp_cam() {
     // send header
     uint32_t a = 0xdeadbeef;
     sfp_send(&a, 4);
+    //printf("!srt\r\n");
     //sleep_us(100);
     for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
         iot_sram_read(pio_iot, (uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length         
@@ -263,7 +264,10 @@ void sfp_cam() {
             //printf("0x%08X\r\n",b[i]);
             
             sfp_send(&b[i], sizeof(uint32_t)*320);
-            //sleep_us(150);
+
+            // for(uint32_t j = 0; j < 320;j++){
+            //      printf("0x%08X\r\n",b[i+j]);
+            // }
         }
         // increment iot sram's address
         iot_addr = iot_addr + CAM_BUF_SIZE;
