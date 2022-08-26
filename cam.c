@@ -230,8 +230,8 @@ void sfp_cam() {
     uint8_t in_buf[BUF_LEN]; 
     uint8_t out_buf[BUF_LEN];
     
-    is_captured = false;
-    while(!is_captured);    // wait until an image captured
+    //is_captured = false;
+    //while(!is_captured);    // wait until an image captured
     is_captured = false;
     while(!is_captured);    // wait until an image captured
 
