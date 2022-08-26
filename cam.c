@@ -17,7 +17,10 @@
 #endif
 
 volatile bool is_captured = false; 
-volatile bool ram_in_use  = false; // priority: sram read > sram write
+
+// priority: sram read > sram write
+volatile bool ram_ind_read  = false;    // indicate Read
+volatile bool ram_in_write  = false;    // now writing image 
 
 volatile bool irq_indicate_reset = true;
 
@@ -142,7 +145,9 @@ void uartout_cam() {
     
     is_captured = false;
     while(!is_captured);    // wait until an image captured
-    ram_in_use = true;      // start to read
+
+    while(ram_in_write);    // wait until writing ram finished
+    ram_ind_read = true;      // start to read
     
     int32_t iot_addr = 0;
     int32_t *b;
@@ -156,7 +161,7 @@ void uartout_cam() {
         iot_addr = iot_addr + CAM_BUF_SIZE;
 
     }
-    ram_in_use = false;
+    ram_ind_read = false;
 }
 
 
@@ -165,7 +170,9 @@ void uartout_bin_cam() {
     sleep_ms(30);
     is_captured = false;
     while(!is_captured);    // wait until an image captured
-    ram_in_use = true;      // start to read
+    
+    while(ram_in_write);    // wait until writing ram finished
+    ram_ind_read = true;    // indicate to read
     
     int32_t iot_addr = 0;
     int32_t *b;
@@ -183,7 +190,7 @@ void uartout_bin_cam() {
 
     }
     sleep_ms(300);
-    ram_in_use = false;
+    ram_ind_read = false;
 }
 
 #if USE_EZSPI_SLAVE
@@ -197,7 +204,8 @@ void spiout_cam() {
     
     
     while(!is_captured);    // wait until an image captured
-    ram_in_use = true;      // start to read
+    while(ram_in_write);    // wait until writing ram finished
+    ram_ind_read = true;      // start to read
     
     init_spi_slave(pio_spi);
 
@@ -220,7 +228,7 @@ void spiout_cam() {
     }
    
     //deinit_spi_slave();
-    ram_in_use = false;
+    ram_ind_read = false;
 }
 #endif
 
@@ -231,11 +239,10 @@ void sfp_cam() {
     uint8_t out_buf[BUF_LEN];
     
     //is_captured = false;
-    //while(!is_captured);    // wait until an image captured
-    is_captured = false;
     while(!is_captured);    // wait until an image captured
-
-    ram_in_use = true;      // start to read
+    ram_ind_read = true;    // start to read
+    while(ram_in_write);    // wait until writing ram finished
+    
     
     sfp_hw_init(pio_sfp);
 
@@ -263,7 +270,8 @@ void sfp_cam() {
     }
    
     //deinit_spi_slave();
-    ram_in_use = false;
+    ram_ind_read = false;
+    is_captured = false;
 }
 #endif
 
@@ -313,8 +321,10 @@ void cam_handler() {
         b = cam_ptr2;
         dma_chan = DMA_CAM_RD_CH1;
     }
-    if(false == ram_in_use) {
+    if(false == ram_ind_read) {
+        ram_in_write = true;
         iot_sram_write(pio_iot, b, iot_addr, CAM_BUF_HALF, DMA_IOT_WR_CH); //pio, sm, buffer, start_address, length
+        ram_in_write = false;
     }
     // increment iot sram's address
     iot_addr = iot_addr + CAM_BUF_HALF;
