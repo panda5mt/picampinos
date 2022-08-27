@@ -240,6 +240,9 @@ void sfp_cam() {
     
     //is_captured = false;
     while(!is_captured);    // wait until an image captured
+    is_captured = false;
+    while(!is_captured);    // wait until an image captured
+    
     ram_ind_read = true;    // start to read
     while(ram_in_write);    // wait until writing ram finished
     
@@ -248,22 +251,22 @@ void sfp_cam() {
 
     int32_t iot_addr = 0;
     int32_t *b;
-    int32_t *c;
     uint32_t resp;
     b = iot_ptr;
-
+    
     // send header
-    uint32_t a = 0xdeadbeef;
-    sfp_send(&a, 4);
-    //printf("!srt\r\n");
-    //sleep_us(100);
+    // frame start: 
+    // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + columb_sizein_words(total blocks per frame)
+    uint32_t a[4] = { 0xdeadbeef, 480,640*2/sizeof(uint32_t), 480 };
+    sfp_send(&a, sizeof(uint32_t)*4);
+    
     for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
         iot_sram_read(pio_iot, (uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length         
         
         for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i+=320) {
             //printf("0x%08X\r\n",b[i]);
             
-            sfp_send(&b[i], sizeof(uint32_t)*320);
+            sfp_send_with_header(0xbeefbeef,(h+i/320)+1,1,320, &b[i], sizeof(uint32_t)*320);
 
             // for(uint32_t j = 0; j < 320;j++){
             //      printf("0x%08X\r\n",b[i+j]);
@@ -272,7 +275,11 @@ void sfp_cam() {
         // increment iot sram's address
         iot_addr = iot_addr + CAM_BUF_SIZE;
     }
-   
+    // send dummy data
+    for(uint32_t i = 0 ; i < 10 ; i++) {
+        a[0] = 0xdeaddead ;
+        sfp_send(&a, sizeof(uint32_t)*1);
+    }
     //deinit_spi_slave();
     ram_ind_read = false;
     is_captured = false;

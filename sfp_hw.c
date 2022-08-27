@@ -4,7 +4,6 @@
 #include "pico/binary_info.h"
 #include "hardware/dma.h"
 #include "sfp_hw.h"
-
 /////
 uint32_t DMA_SER_WR0;
 uint32_t tx_buf_udp[DEF_UDP_BUF_SIZE+1] = {0};
@@ -75,4 +74,42 @@ void sfp_send(void* str, uint16_t len) {
     // DMA Start
     dma_channel_set_read_addr(DMA_SER_WR0, tx_buf_udp, true);
 
+}
+
+void sfp_send_with_header(uint32_t header1, uint32_t header2, uint32_t header3, uint32_t header4, void* str, uint16_t len) {
+
+    uint32_t c[DEF_UDP_PAYLOAD_SIZE/sizeof(uint32_t)];
+
+    c[0] = header1;
+    c[1] = header2;
+    c[2] = header3;
+    c[3] = header4;
+    
+    memcpy((uint32_t *) &c[4],(uint32_t *) str,len);
+
+    memcpy(udp_payload, c, len + sizeof(uint32_t)*4);// length of str + length of header
+    udp_packet_gen(tx_buf_udp, udp_payload);
+    
+    // Wait for DMA
+    dma_channel_wait_for_finish_blocking(DMA_SER_WR0);
+
+    // DMA Start
+    dma_channel_set_read_addr(DMA_SER_WR0, tx_buf_udp, true);
+
+}
+
+void sfp_test() {
+
+    lp_cnt = 0;
+    while( true ) {
+        
+        sprintf(udp_payload, "Hello RP2040 count = %d",lp_cnt);
+        udp_packet_gen(tx_buf_udp, udp_payload);
+    
+        // Wait for DMA
+        dma_channel_wait_for_finish_blocking(DMA_SER_WR0);
+        // DMA Start
+        dma_channel_set_read_addr(DMA_SER_WR0, tx_buf_udp, true);
+        lp_cnt = lp_cnt + 1;
+    }
 }
