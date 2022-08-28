@@ -35,7 +35,7 @@
 #define DEF_UDP_PAYLOAD_SIZE    (1300)
 
 // Ethernet
-#define DEF_ETH_DST_MAC         (0x1C995755AB31)//(0xFFFFFFFFFFFF)    // L2 Broadcast
+#define DEF_ETH_DST_MAC         (0xFFFFFFFFFFFF)    // L2 Broadcast
 #define DEF_ETH_SRC_MAC         (0x123456789ABC)    // Dummy
 
 // IP Header
