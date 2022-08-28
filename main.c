@@ -119,9 +119,9 @@ int main() {
     
     // data via USB-UART(ASCII)
     // see also 'matlab/readrgb.m'    
-    // while(true) {
-    //     uartout_cam();          
-    // }
+    while(true) {
+        uartout_cam();          
+    }
 
     // data via USB-UART(binary) 
     // see also 'matlab/comm_uart_bin.m'
@@ -146,10 +146,9 @@ int main() {
     // see also 'matlab/receive_udp.m'
     // To Use SFP, CHECK 'USE_EZSPI_SLAVE' is (false) 
     // AND 'USE_100BASE_FX' is (true) in 'cam.h'
-    
-    while(true) {
-        sfp_cam();
-    }
+    // while(true) {
+    //     sfp_cam();
+    // }
     
     // end
     free_cam();
