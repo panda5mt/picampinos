@@ -276,7 +276,7 @@ void sfp_cam() {
         iot_addr = iot_addr + CAM_BUF_SIZE;
     }
     // send dummy data
-    for(uint32_t i = 0 ; i < 10 ; i++) {
+    for(uint32_t i = 0 ; i < 20 ; i++) {
         a[0] = 0xdeaddead ;
         sfp_send(&a, sizeof(uint32_t)*1);
     }
