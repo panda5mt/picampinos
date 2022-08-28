@@ -25,7 +25,7 @@ row_size = 0;
 col_size = 0;
 blk_size = 0;
 frame_start_packet = 0xdeadbeef;
-header_of_udp = 0xbeefbeef;
+header_pixel_data = 0xbeefbeef;
 frame_end_packet = 0xdeaddead;
 
 % image processing setup
@@ -60,7 +60,7 @@ while (true)
     for i=1:blk_size
         while true
             dataReceived = udpr();
-            if false == isempty(dataReceived) && header_of_udp == dataReceived(1)  
+            if false == isempty(dataReceived) && header_pixel_data == dataReceived(1)  
                 r = dataReceived(2); % row number
                 c = dataReceived(3); % columb number
                 sz = dataReceived(4); % data size
