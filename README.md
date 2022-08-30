@@ -1,5 +1,5 @@
 # pi-cám-pinos
-DVP CAMERA IF(8-bit parallel IF) using RP2040.
+DVP CAMERA IF(8-bit parallel IF) using RP2040 with SFP Transceiver.
 This project is for connecting a DVP camera, such as the OV5642, to Raspberry Pi Pico; the DVP camera is primarily an 8-bit parallel one produced by OmniVision, but it may be applicable to other image sensors with 8-bit parallel interfaces with I2C Control.
 
 pi-cám-pinos is an anagram of 'pi pico camera'.
