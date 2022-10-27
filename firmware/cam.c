@@ -2,6 +2,7 @@
 #include "pico/stdlib.h"
 #include "pico/binary_info.h"
 #include "picampinos.pio.h"
+#include "iot_sram.h"
 #include "class/cdc/cdc_device.h" // for uart(binary output)
 #include "hardware/pwm.h"
 #include "hardware/irq.h"
