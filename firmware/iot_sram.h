@@ -1,5 +1,8 @@
 #include "hardware/gpio.h"
 #include "hardware/pio.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define IOT_DAT_BASE_PIN    (12)    // IoT SRAM's data-pin {D3,...,D0}
 #define IOT_SIG_BASE_PIN    (16)    // IoT SRAM's control pin {SCLK, nCS}
@@ -16,3 +19,7 @@ void iot_sram_write(PIO pio, uint32_t *send_data, uint32_t address,
         uint32_t length_in_byte, uint32_t dma_channel) ;
 void *iot_sram_read(PIO pio, uint32_t *read_data, uint32_t address, 
         uint32_t length_in_byte, uint32_t dma_channel) ;
+
+#ifdef __cplusplus
+}
+#endif

@@ -14,10 +14,10 @@ cd ..
 git clone -b master https://github.com/raspberrypi/pico-examples.git
 
 git clone https://github.com/panda5mt/picampinos.git
-
-cd picapinos/firmware/
+cd picampinos
+cd firmware/
 cp ../../pico-sdk/external/pico_sdk_import.cmake .
-echo -e '#!/bin/bash\nmkdir -p build\ncd build\nexport PICO_SDK_PATH=../../pico-sdk\ncmake ..\nmake' > pico_build.sh 
+echo -e '#!/bin/bash\nmkdir -p build\ncd build\nexport PICO_SDK_PATH=../../../pico-sdk\ncmake ..\nmake' > pico_build.sh 
 chmod +x pico_build.sh
 cd ..
 echo -e '#!/bin/bash\necho -e "\e[35m---------------- building firmware in firmware/ ---------------- \e[m"\ncd firmware\n./pico_build.sh' > pico_build.sh 
