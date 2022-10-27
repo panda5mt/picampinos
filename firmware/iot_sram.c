@@ -8,6 +8,10 @@
 uint32_t sm_iot;
 uint32_t offset_iot;
 
+// DMA Channel
+extern uint32_t DMA_IOT_RD_CH  ;
+extern uint32_t DMA_IOT_WR_CH  ;
+
 void iot_sram_init(PIO pio) {
     // Initialize IoT SRAM
     offset_iot = pio_add_program(pio, &iot_sram_program);
