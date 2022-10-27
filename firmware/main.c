@@ -101,10 +101,76 @@ void setup() {
 
 }
 
+/*#define		CPX		/* Complex mode */
+
+#ifndef CPX
+void print(double *ar, double *ai, int n);
+void print2(double *ar, double *ai, int n, int nmax);
+#else
+void printx(Complex *a, int n);
+void print2x(Complex *a, int n, int nmax);
+#endif
+
+#ifndef CPX
+void print(double *ar, double *ai, int n)
+{
+	int i;
+	double *p, *q;
+
+	printf("    ar              ai\n");
+	for(i = 0, p = ar, q = ai; i < n; i++)	printf("%14.7e %14.7e\n", *p++, *q++);
+}
+#else
+void printx(Complex *a, int n)
+{
+	int i;
+	Complex *p;
+
+	printf("    ar              ai\n");
+	for(i = 0, p = a; i < n; i++, p++)	printf("%14.7e %14.7e\n", p->r, p->i);
+}
+#endif
+
 
 int main() {
 
     setup();
+    /////////////////////////
+    static double ar[8] = { 0., 0., 0., 1., 1., 0., 0., 0.};
+    static double ai[8] = { 0., 0., 0., 0., 0., 0., 0., 0.};
+    static double ar2[16] = { 0., 0., 0., 0., 0., 1., 1., 0.,
+                                0., 1., 1., 0., 0., 0., 0., 0.};
+    static double ai2[16] = { 0., 0., 0., 0., 0., 0., 0., 0.,
+                                0., 0., 0., 0., 0., 0., 0., 0.};
+    Complex a[8], a2[16];
+    int flag, i, iter, j, k, n, nmax;
+
+    iter = 0;
+    n = 8;
+    #ifndef CPX
+    for(i = 0; i < n; i++)	a[i] = tocomplex(ar[i], ai[i]);
+    print(ar, ai, n);
+    #else
+    printx(a, n);
+    #endif
+
+    /* forward FFT */
+    flag = 0;
+    #ifndef CPX
+    fft1(ar, ai, n, iter, flag);
+    print(ar, ai, n);
+    #else
+    fft1x(a, n, iter, flag);
+    printx(a, n);
+    #endif
+
+
+
+
+
+
+    while(1);
+    /////////////////////////
 
     init_cam(DEV_OV5642);
     config_cam_buffer();    // config buffer
