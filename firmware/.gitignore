@@ -1,0 +1,6 @@
+*.cmake
+.vscode-server
+.vscode
+/build/
+add_git.sh
+pico_build.sh
