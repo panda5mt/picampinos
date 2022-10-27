@@ -20,7 +20,7 @@ cp ../../pico-sdk/external/pico_sdk_import.cmake .
 echo -e '#!/bin/bash\nmkdir -p build\ncd build\nexport PICO_SDK_PATH=../../../pico-sdk\ncmake ..\nmake' > pico_build.sh 
 chmod +x pico_build.sh
 cd ..
-echo -e '#!/bin/bash\necho -e "\e[35m---------------- building firmware in firmware/ ---------------- \e[m"\ncd firmware\n./pico_build.sh' > pico_build.sh 
+echo -e '#!/bin/bash\necho -e "\e[35m---------------- building firmware in firmware/ ---------------- \e[m"\ncd firmware\nif ./pico_build.sh; then \necho -e "\e[35m---------------- build bin and uf2 files in firmware/build ---------------- \e[m"\nelse\necho -e "\e[31mError. None firmware is built.\e[m"\nfi' > pico_build.sh 
 chmod +x pico_build.sh
 echo -e '#!/bin/bash\nNOW=`date "+%Y%m%d_%H%M%S"`\ngit add .\n# git commit -m "automatically uploaded at "$NOW\ngit commit -m "Automatically uploaded"\ngit push origin HEAD' > add_git.sh
 chmod +x add_git.sh
