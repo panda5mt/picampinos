@@ -18,7 +18,7 @@ chmod +x get_sdk.sh
 To compile this project, just run
 ```
 cd ~/
-cd picampinos/
+cd picampinos/firmware/
 ./pico_build.sh
 ```
 
@@ -26,7 +26,7 @@ cd picampinos/
 Use <code>[Dockerfile](Dockerfile)</code>.
 When you'd built an image, run and attach the image, type on terminal,
 ```
-cd /root/picampinos/
+cd /root/picampinos/firmware/
 ./pico_build.sh
 ```
 The docker image contains this Project, Pico SDKs, and Pico Examples.
@@ -37,4 +37,4 @@ Get ideas to see <code>[get_sdk.sh](get_sdk.sh)</code>.
 
 ## Hardware settings
 This is <code>[Schematics](hardware/RP2040Board.pdf)</code>.
-For instance, check comment in <code>[main.c](main.c)</code> for connection via RP2040.
+For instance, check comment in <code>[firmware/main.c](firmware/main.c)</code> for connection via RP2040.
