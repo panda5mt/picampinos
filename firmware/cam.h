@@ -4,6 +4,7 @@
 #include "hardware/gpio.h"
 #include "hardware/pio.h"
 #include "sccb_if.h"
+#include "iot_sram.h"
 
 // USE SPI Slave?
 #define USE_EZSPI_SLAVE     (false)
