@@ -1,3 +1,0 @@
-/root/picampinos/firmware/build/pioasm/CMakeFiles/rebuild_cache.dir
-/root/picampinos/firmware/build/pioasm/CMakeFiles/pioasm.dir
-/root/picampinos/firmware/build/pioasm/CMakeFiles/edit_cache.dir
