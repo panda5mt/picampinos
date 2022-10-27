@@ -16,7 +16,7 @@ RUN git clone -b master https://github.com/raspberrypi/pico-examples.git
 WORKDIR /root
 RUN git clone https://github.com/panda5mt/picampinos.git
 WORKDIR /root/picampinos
-RUN echo -e '#!/bin/bash\necho -e "\e[35m---------------- building firmware in firmware/ ---------------- \e[m"\ncd firmware\nif ./pico_build.sh; then\necho -e "\e[35m---------------- build bin and uf2 files in firmware/build ---------------- \e[m"\nelse\necho -e "\e[31mError. None firmware is built.\e[m"\nfi' > pico_build.sh 
+RUN echo -e '#!/bin/bash\necho -e "\e[35m---------------- building firmware in firmware/ ---------------- \e[m"\ncd firmware\nif ./pico_build.sh; then \necho -e "\e[35m---------------- build bin and uf2 files in firmware/build ---------------- \e[m"\nelse\necho -e "\e[31mError. None firmware is built.\e[m"\nfi' > pico_build.sh 
 RUN chmod +x pico_build.sh
 RUN echo -e '#!/bin/bash\nNOW=`date "+%Y%m%d_%H%M%S"`\ngit add .\n# git commit -m "automatically uploaded at "$NOW\ngit commit -m "Automatically uploaded"\ngit push origin HEAD' > add_git.sh
 RUN chmod +x add_git.sh
