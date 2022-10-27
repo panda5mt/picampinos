@@ -41,6 +41,9 @@ uint32_t sm_cam;    // CAMERA's state machines
 // dma channels
 uint32_t DMA_CAM_RD_CH0 ;
 uint32_t DMA_CAM_RD_CH1 ;
+// DMA Channel
+extern uint32_t DMA_IOT_RD_CH  ;
+extern uint32_t DMA_IOT_WR_CH  ;
 
 // private functions and buffers
 uint32_t* cam_ptr;  // pointer of camera buffer
