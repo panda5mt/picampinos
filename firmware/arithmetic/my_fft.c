@@ -3,13 +3,13 @@
 
 const float_t __mpi = 3.141592;
 
-int32_t my_fft(int32_t n, int32_t flg, float_t* ar, float_t* ai)
+int32_t my_fft(int32_t n, int32_t is_inverse, float_t* ar, float_t* ai)
 {
     long m, mh, i, j, k, irev;
     float_t wr, wi, xr, xi;
     float_t theta;
 
-    theta = flg * 2 * __mpi / n;
+    theta = is_inverse * 2 * __mpi / n;
 
     i = 0;
     for (j = 1; j < n - 1; j++) {
@@ -41,11 +41,62 @@ int32_t my_fft(int32_t n, int32_t flg, float_t* ar, float_t* ai)
         }
     }
 
-    if( flg == -1 ){
+    if( is_inverse == -1 ){
         for(i=0; i<n; i++){
             ar[i] /= n;
             ai[i] /= n;
         }
     }
     return 0;
+}
+
+int32_t my_fft2(int32_t n, int32_t nmax, int32_t is_inverse, float_t* ar, float_t* ai, float_t* wr, float_t* wi)
+{
+	int i, pp, iter, j, k;
+	
+
+	if(n < 2)
+	{
+		//fprintf(stderr, "Error : Illegal parameter in fft2()\n");
+		return -1;
+	}
+
+	for(j = 0; j < n; j++, k += nmax)
+	{
+		for(i=0, pp=j ; i<n ;i++, pp += nmax)
+		{
+            wr[i] = ar[pp];
+            wi[i] = ai[pp];
+
+		}
+		my_fft(n, is_inverse,wr, wi);
+        
+        for(int i = 0, pp = j ; i < n ; i++, pp += nmax)
+        {
+		    ar[pp] = wr[i];
+            ai[pp] = wi[i]; 
+        }
+        
+	}
+
+	for(i = k = 0; i < n; i++, k += nmax)
+	{
+		for(j = 0, pp = k ; j < n ; j++, pp++)
+        {
+            wr[j] = ar[pp];
+            wi[j] = ai[pp];
+        }
+		
+        my_fft(n, is_inverse, wr, wi);
+	
+		for(j = 0, pp = k; j < n ; j++, pp++)
+        {
+            ar[pp] = wr[j];
+            ai[pp] = wi[j];
+		}
+	}
+
+	// free((char *)wr);
+	// free((char *)wi);
+	return 0;
 }
