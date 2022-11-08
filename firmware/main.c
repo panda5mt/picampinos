@@ -40,9 +40,9 @@
 #include "hardware/i2c.h"
 #include "hardware/dma.h"
 #include "cam.h"
-#include "arithmetic/int_fft.h"
+#include "arithmetic/my_fft.h"
 
-#define BOARD_LED           (28) // pico's led => 25, self made RP2040brd's led => 28. check hardware/RP2040Board.pdf 
+#define BOARD_LED           (25) // pico's led => 25, self made RP2040brd's led => 28. check hardware/RP2040Board.pdf 
 
 
 static PIO pio_ser_wr = pio1;
@@ -78,13 +78,13 @@ static void read_i2c_data(i2c_inst_t *i2c)
     }
 }
 
-void setup() {
+bool setup() {
+    bool OC_INIT = false;
     vreg_set_voltage(VREG_VOLTAGE_1_30);
     // system init
     stdio_init_all();
-    set_sys_clock_khz(SYS_CLK_KHZ, true);
+    OC_INIT = set_sys_clock_khz(SYS_CLK_KHZ, true);
     setup_default_uart();
-
     
 
     // INIT LED
@@ -97,14 +97,169 @@ void setup() {
         busy_wait_ms(100);
     }
 
+    return OC_INIT;
     //gpio_pull_up(BOARD_LED);
 
 }
 
+//#define		CPX		/* Complex mode */
+
+#ifndef CPX
+void print(double *ar, double *ai, int n);
+void print2(double *ar, double *ai, int n, int nmax);
+#else
+void printx(Complex *a, int n);
+void print2x(Complex *a, int n, int nmax);
+#endif
+
+#ifndef CPX
+void print(double *ar, double *ai, int n)
+{
+	int i;
+	double *p, *q;
+
+	printf("    ar              ai\n");
+	for(i = 0, p = ar, q = ai; i < n; i++)	printf("%14.7e %14.7e\n", *p++, *q++);
+}
+#else
+void printx(Complex *a, int n)
+{
+	int i;
+	Complex *p;
+
+	printf("    ar              ai\n");
+	for(i = 0, p = a; i < n; i++, p++)	printf("%14.7e %14.7e\n", p->r, p->i);
+}
+#endif
+#ifndef CPX
+void print2(double *ar, double *ai, int n, int nmax)
+{
+	int i, j, k, l;
+	double *p;
+
+	printf("< ar >\n");
+	for(i = k = 0, p = ar; i < n; i++)
+	{
+		for(j = 0; j < nmax; j++, k++)	printf("%14.7e ", *p++);
+		putchar('\n');
+	}
+	printf("< ai >\n");
+	for(i = k = 0, p = ai; i < n; i++)
+	{
+		for(j = 0; j < nmax; j++, k++)	printf("%14.7e ", *p++);
+		putchar('\n');
+	}
+}
+#else
+void print2x(Complex *a, int n, int nmax)
+{
+	int i, j, k, l;
+	Complex *p;
+
+	printf("< Real part >\n");
+	for(i = k = 0, p = a; i < n; i++)
+	{
+		for(j = 0; j < nmax; j++, k++, p++)	printf("%14.7e ", p->r);
+		putchar('\n');
+	}
+	printf("< Imaginary part >\n");
+	for(i = k = 0, p = a; i < n; i++)
+	{
+		for(j = 0; j < nmax; j++, k++, p++)	printf("%14.7e ", p->i);
+		putchar('\n');
+	}
+}
+#endif
+
 
 int main() {
 
-    setup();
+    bool OC_OK = false;
+    OC_OK = setup();
+    if(OC_OK) {      
+        printf("clock init okay.\r\n");
+        sleep_ms(5000);
+    }else{
+        printf("clock init failed.\r\n");
+        sleep_ms(5000);
+    }
+    /// 
+
+    uint32_t nowtime ;
+   
+    static double ar[8] = { 0., 0., 0., 1., 1., 0., 0., 0.};
+	static double ai[8] = { 0., 0., 0., 0., 0., 0., 0., 0.};
+	static double ar2[16] = { 0., 0., 0., 0., 0., 1., 1., 0.,
+							  0., 1., 1., 0., 0., 0., 0., 0.};
+	static double ai2[16] = { 0., 0., 0., 0., 0., 0., 0., 0.,
+							  0., 0., 0., 0., 0., 0., 0., 0.};
+	Complex a[8], a2[16];
+	int flag, i, iter, j, k, n, nmax;
+
+	iter = 0;
+	n = 8;
+    for(int zzz=0; zzz<5; zzz++ ){
+        nowtime = time_us_32();
+        #ifndef CPX
+        for(i = 0; i < n; i++)	a[i] = tocomplex(ar[i], ai[i]);
+        //print(ar, ai, n);
+        #else
+        printx(a, n);
+        #endif
+
+        /* forward FFT */
+        flag = 0;
+        #ifndef CPX
+        fft1(ar, ai, n, iter, flag);
+        //print(ar, ai, n);
+        #else
+        fft1x(a, n, iter, flag);
+        printx(a, n);
+        #endif
+        //nowtime = time_us_32() - nowtime;
+        //printf("elapsed time = %ld\r\n",nowtime);
+
+        //nowtime = time_us_32();
+        /* reverse FFT */
+            flag = 1;
+        #ifndef CPX
+            fft1(ar, ai, n, iter, flag);
+            //print(ar, ai, n);
+        #else
+            fft1x(a, n, iter, flag);
+            printx(a, n);
+        #endif
+
+            n = nmax = 4;
+        for(i = k = 0; i < n; i++)	for(j = 0; j < n; j++, k++)	a2[k] = tocomplex(ar2[k], ai2[k]);
+
+    #ifndef CPX
+        //print2(ar2, ai2, n, nmax);
+    #else
+        print2x(a2, n, nmax);
+    #endif
+        flag = 0;
+    #ifndef CPX
+        fft2(ar2, ai2, n, nmax, flag);
+        //print2(ar2, ai2, n, nmax);
+    #else
+        fft2x(a2, n, nmax, flag);
+        print2x(a2, n, nmax);
+    #endif
+        flag = 1;
+    #ifndef CPX
+        fft2(ar2, ai2, n, nmax, flag);
+        //print2(ar2, ai2, n, nmax);
+    #else
+        fft2x(a2, n, nmax, flag);
+        print2x(a2, n, nmax);
+    #endif
+
+        nowtime = time_us_32() - nowtime;
+        printf("elapsed time = %ld\r\n",nowtime);
+    }
+    while(1);
+    /// 
 
     init_cam(DEV_OV5642);
     config_cam_buffer();    // config buffer

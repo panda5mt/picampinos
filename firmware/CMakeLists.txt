@@ -17,8 +17,7 @@ pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/ezspi_slave.pi
 pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/ser_100base_fx.pio)
 
 target_sources(${target_name} PRIVATE
-        arithmetic/int_fft.c
-        
+        arithmetic/my_fft.c
         main.c
         cam.c
         sccb_if.c
