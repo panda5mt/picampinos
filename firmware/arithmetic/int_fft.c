@@ -11,10 +11,13 @@ Complex int_lift(Complex *x, Complex w) {
     if (( -1.0e-10 < s ) && ( s < 1.0e-10 )) {
         // do nothing
     }else if(c>= 0.0) {
-        a_unit =  cmul1(a[0] ,(c - 1)/s);
-
+        a[0] = cadd(a[0], cmul1(a[0] ,(c - 1)/s));
+        a[1] = cadd(a[1], cmul1(a[0], s));
+        a[0] = cadd(a[0], cmul1(a[0] ,(c - 1)/s));
     }else{
-
+        a[0] = cadd(a[0], cmul1(a[0] ,(c + 1)/s));
+        a[1] = cadd(a[1], cmul1(a[0], -s));
+        a[0] = cadd(a[0], cmul1(a[0] ,(c + 1)/s));
     }
 }
 
