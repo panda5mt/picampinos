@@ -183,83 +183,6 @@ int main() {
         printf("clock init failed.\r\n");
         sleep_ms(5000);
     }
-    /// 
-
-    uint32_t nowtime ;
-   
-    static double ar[8] = { 0., 0., 0., 1., 1., 0., 0., 0.};
-	static double ai[8] = { 0., 0., 0., 0., 0., 0., 0., 0.};
-	static double ar2[16] = { 0., 0., 0., 0., 0., 1., 1., 0.,
-							  0., 1., 1., 0., 0., 0., 0., 0.};
-	static double ai2[16] = { 0., 0., 0., 0., 0., 0., 0., 0.,
-							  0., 0., 0., 0., 0., 0., 0., 0.};
-	Complex a[8], a2[16];
-	int flag, i, iter, j, k, n, nmax;
-
-	iter = 0;
-	n = 8;
-    for(int zzz=0; zzz<5; zzz++ ){
-        nowtime = time_us_32();
-        #ifndef CPX
-        for(i = 0; i < n; i++)	a[i] = tocomplex(ar[i], ai[i]);
-        //print(ar, ai, n);
-        #else
-        printx(a, n);
-        #endif
-
-        /* forward FFT */
-        flag = 0;
-        #ifndef CPX
-        fft1(ar, ai, n, iter, flag);
-        //print(ar, ai, n);
-        #else
-        fft1x(a, n, iter, flag);
-        printx(a, n);
-        #endif
-        //nowtime = time_us_32() - nowtime;
-        //printf("elapsed time = %ld\r\n",nowtime);
-
-        //nowtime = time_us_32();
-        /* reverse FFT */
-            flag = 1;
-        #ifndef CPX
-            fft1(ar, ai, n, iter, flag);
-            //print(ar, ai, n);
-        #else
-            fft1x(a, n, iter, flag);
-            printx(a, n);
-        #endif
-
-            n = nmax = 4;
-        for(i = k = 0; i < n; i++)	for(j = 0; j < n; j++, k++)	a2[k] = tocomplex(ar2[k], ai2[k]);
-
-    #ifndef CPX
-        //print2(ar2, ai2, n, nmax);
-    #else
-        print2x(a2, n, nmax);
-    #endif
-        flag = 0;
-    #ifndef CPX
-        fft2(ar2, ai2, n, nmax, flag);
-        //print2(ar2, ai2, n, nmax);
-    #else
-        fft2x(a2, n, nmax, flag);
-        print2x(a2, n, nmax);
-    #endif
-        flag = 1;
-    #ifndef CPX
-        fft2(ar2, ai2, n, nmax, flag);
-        //print2(ar2, ai2, n, nmax);
-    #else
-        fft2x(a2, n, nmax, flag);
-        print2x(a2, n, nmax);
-    #endif
-
-        nowtime = time_us_32() - nowtime;
-        printf("elapsed time = %ld\r\n",nowtime);
-    }
-    while(1);
-    /// 
 
     init_cam(DEV_OV5642);
     config_cam_buffer();    // config buffer
@@ -269,8 +192,6 @@ int main() {
     i2c_inst_t *i2c = i2c1;
     read_i2c_data(i2c);
 
-
-    
     // data via USB-UART(ASCII)
     // see also 'matlab/readrgb.m'    
     // while(true) {
