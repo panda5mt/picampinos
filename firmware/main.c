@@ -40,7 +40,7 @@
 #include "hardware/i2c.h"
 #include "hardware/dma.h"
 #include "cam.h"
-#include "arithmetic/sslib.h"
+#include "arithmetic/int_fft.h"
 
 #define BOARD_LED           (28) // pico's led => 25, self made RP2040brd's led => 28. check hardware/RP2040Board.pdf 
 
