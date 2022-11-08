@@ -1,24 +1,26 @@
 #include "int_fft.h"
 
-Complex int_lift(Complex *x, Complex w) {
+Complex int_lift(Complex x, Complex w) {
 
-    float_t     c, s; 
+    int32_t c, s; 
     c = w.r; s = w.i; // both c,s are real number
-    Complex     *a ; 
-    a->r = x->r; a->i = x->i;
-    Complex  a_unit;
+    int32_t ar,ai; 
+    ar = x.r; ai = x.i;
 
     if (( -1.0e-10 < s ) && ( s < 1.0e-10 )) {
         // do nothing
     }else if(c>= 0.0) {
-        a[0] = cadd(a[0], cmul1(a[0] ,(c - 1)/s));
-        a[1] = cadd(a[1], cmul1(a[0], s));
-        a[0] = cadd(a[0], cmul1(a[0] ,(c - 1)/s));
+        ar = ar + ai * (c - 1)/s;
+        ai = ai + ar * s;
+        ar = ar + ar * (c - 1)/s;
     }else{
-        a[0] = cadd(a[0], cmul1(a[0] ,(c + 1)/s));
-        a[1] = cadd(a[1], cmul1(a[0], -s));
-        a[0] = cadd(a[0], cmul1(a[0] ,(c + 1)/s));
+        ar = ar + ai * (c + 1)/s;
+        ai = ai + ar * (-s);
+        ar = ar + ai * (c + 1)/s;
+        ar = -ar ;
+        ai = -ai ;        
     }
+    return tocomplex(ar, ai);
 }
 
 Complex int_fft(Complex *aa) {
@@ -26,7 +28,7 @@ Complex int_fft(Complex *aa) {
 
 }
 // misc
-Complex tocomplex(float_t x, float_t y)
+Complex tocomplex(int32_t x, int32_t y)
 {
 	Complex a;
 
@@ -50,14 +52,14 @@ Complex cmul(Complex a, Complex b)
 	return tocomplex(a.r * b.r - a.i * b.i, a.r * b.i + a.i * b.r);
 }
 
-Complex cmul1(Complex a, float_t k)
+Complex cmul1(Complex a, int32_t k)
 {
 	return tocomplex(a.r * k, a.i * k);
 }
 
 Complex cdiv(Complex a, Complex b)
 {
-	float_t w;
+	int32_t w;
 
 	if(ceq(a, b))	return tocomplex(1., 0.);
 	w = b.r * b.r + b.i * b.i;
@@ -69,7 +71,7 @@ Complex cdiv(Complex a, Complex b)
 	return tocomplex((a.r * b.r + a.i * b.i) / w, (a.i * b.r - a.r * b.i) / w);
 }
 
-Complex cdiv1(Complex a, float_t k)
+Complex cdiv1(Complex a, int32_t k)
 {
 	if(k == 0.)
 	{
@@ -91,18 +93,18 @@ Complex c_log10(Complex a)
 
 Complex c_exp(Complex a)
 {
-	float_t x;
+	int32_t x;
 
 	x = exp(a.r);
 	return tocomplex(x * cos(a.i), x * sin(a.i));
 }
 
-float_t c_abs_sqrt(Complex a)
+int32_t c_abs_sqrt(Complex a)
 {
 	return sqrt(a.r * a.r + a.i * a.i);
 }
 
-float_t c_arg(Complex a)
+int32_t c_arg(Complex a)
 {
 	if(c_abs_sqrt(a) == 0.)	return 0.;
 	return atan2(a.i, a.r);
