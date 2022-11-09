@@ -115,6 +115,8 @@ int main() {
         sleep_ms(1000);
     }
 
+    //fft_test();
+
     init_cam(DEV_OV5642);
     config_cam_buffer();    // config buffer
     start_cam();            // start streaming

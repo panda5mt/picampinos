@@ -27,3 +27,6 @@ void pico_fft2(int32_t n, int32_t nmax, float_t* ar, float_t* ai, float_t* wr, f
 /// @param wr    working resistor of real (must be declared with length n. ex:wr[n])
 /// @param wi    working register of imag (must be declared with length n. ex:wi[n])
 void pico_ifft2(int32_t n, int32_t nmax, float_t* ar, float_t* ai, float_t* wr, float_t* wi) ;
+
+//
+void fft_test(void);

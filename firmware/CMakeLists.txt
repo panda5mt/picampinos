@@ -18,6 +18,7 @@ pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/ser_100base_fx
 
 target_sources(${target_name} PRIVATE
         arithmetic/pico_fft.c
+        arithmetic/test_code.c
         main.c
         cam.c
         sccb_if.c
