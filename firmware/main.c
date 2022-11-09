@@ -107,6 +107,7 @@ int main() {
 
     bool OC_OK = false;
     OC_OK = setup();
+
     if(OC_OK) {      
         printf("clock init okay.\r\n");
         sleep_ms(1000);
@@ -115,6 +116,7 @@ int main() {
         sleep_ms(1000);
     }
 
+    // this is FFT test. remove below code if you feel no good.
     // fft_test();
     // while(1);
 
