@@ -4,7 +4,7 @@
 // 1D and 2D FFT / IFFT
 // Reference from ...
 // https://www.kurims.kyoto-u.ac.jp/~ooura/fftman/ftmn1_24.html
-// http://www.kurims.kyoto-u.ac.jp/~ooura/fftman/ftmn1_24.html#sec1_2_4 
+// https://www.kurims.kyoto-u.ac.jp/~ooura/fftman/ftmn1_24.html#sec1_2_4 
 
 typedef struct 
 {
