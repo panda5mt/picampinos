@@ -116,7 +116,6 @@ void pico_ifft(int32_t n, float_t* ar, float_t* ai) {
 }
 
 void pico_fft2(int32_t n, int32_t nmax, float_t* ar, float_t* ai, float_t* wr, float_t* wi) {
-    
     int32_t is_inverse = -1; // forward FFT
     _fft2(n, nmax, is_inverse, ar, ai, wr, wi);
 }
