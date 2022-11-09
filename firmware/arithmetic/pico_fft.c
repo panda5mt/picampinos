@@ -39,14 +39,15 @@ int32_t _fft(int32_t n, int32_t is_inverse, float_t* ar, float_t* ai)
                 ai[k] = wr * xi + wi * xr;
             }
         }
-    }
-
-    if( is_inverse == -1 ){
+    }    
+    
+    if( is_inverse == 1 ){
         for(i=0; i<n; i++){
             ar[i] /= n;
             ai[i] /= n;
         }
     }
+    
     return 0;
 }
 
@@ -61,7 +62,7 @@ int32_t _fft2(int32_t n, int32_t nmax, int32_t is_inverse, float_t* ar, float_t*
 		return -1;
 	}
 
-	for(j = 0; j < n; j++, k += nmax)
+	for(j = 0; j < n; j++)
 	{
 		for(i = 0, pp = j ; i < n ; i++, pp += nmax)
 		{
