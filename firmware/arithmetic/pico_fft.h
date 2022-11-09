@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <math.h>
 
-int32_t _fft(int32_t n, int32_t is_inverse, float_t* ar, float_t* ai);
-int32_t _fft2(int32_t n, int32_t nmax, int32_t is_inverse, float_t* ar, float_t* ai, float_t* wr, float_t* wi);
+// internal APIs
+// int32_t _fft(int32_t n, int32_t is_inverse, float_t* ar, float_t* ai);
+// int32_t _fft2(int32_t n, int32_t nmax, int32_t is_inverse, float_t* ar, float_t* ai, float_t* wr, float_t* wi);
 
 // wrapper
 void pico_fft(int32_t n, float_t* ar, float_t* ai) ;
