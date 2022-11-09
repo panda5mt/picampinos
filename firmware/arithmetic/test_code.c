@@ -14,16 +14,16 @@ void fft_test(void){
     n = nmax = 8;
     int32_t nowtime = time_us_32();
     pico_fft2(n,nmax,ar2,ai2,wr2,wi2);
-    //pico_ifft2(n,nmax,ar2,ai2,wr2,wi2);
+    pico_ifft2(n,nmax,ar2,ai2,wr2,wi2);
     nowtime = time_us_32() - nowtime;
     
     // real
-    for(int i=0; i < 16; i++){
+    for(int i=0; i < (n * nmax); i++){
         printf("ar2[%d]=%lf\r\n",i,ar2[i]);
     }
 
     // imag
-    for(int i=0; i < 16; i++){
+    for(int i=0; i < (n * nmax); i++){
         printf("ai2[%d]=%lf\r\n",i,ai2[i]);
     }
 
