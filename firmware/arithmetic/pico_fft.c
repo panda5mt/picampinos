@@ -63,7 +63,7 @@ int32_t _fft2(int32_t n, int32_t nmax, int32_t is_inverse, float_t* ar, float_t*
 
 	for(j = 0; j < n; j++, k += nmax)
 	{
-		for(i=0, pp=j ; i<n ;i++, pp += nmax)
+		for(i = 0, pp = j ; i < n ; i++, pp += nmax)
 		{
             wr[i] = ar[pp];
             wi[i] = ai[pp];
@@ -71,7 +71,7 @@ int32_t _fft2(int32_t n, int32_t nmax, int32_t is_inverse, float_t* ar, float_t*
 		}
 		_fft(n, is_inverse,wr, wi);
         
-        for(int i = 0, pp = j ; i < n ; i++, pp += nmax)
+        for(i = 0, pp = j ; i < n ; i++, pp += nmax)
         {
 		    ar[pp] = wr[i];
             ai[pp] = wi[i]; 
@@ -113,4 +113,15 @@ void pico_ifft(int32_t n, float_t* ar, float_t* ai) {
     int32_t is_inverse = 1; // inverse FFT
     _fft(n, is_inverse, ar, ai);
 
+}
+
+void pico_fft2(int32_t n, int32_t nmax, float_t* ar, float_t* ai, float_t* wr, float_t* wi) {
+    
+    int32_t is_inverse = -1; // forward FFT
+    _fft2(n, nmax, is_inverse, ar, ai, wr, wi);
+}
+
+void pico_ifft2(int32_t n, int32_t nmax, float_t* ar, float_t* ai, float_t* wr, float_t* wi) {
+    int32_t is_inverse = 1; // inverse FFT
+    _fft2(n, nmax, is_inverse, ar, ai, wr, wi);
 }
