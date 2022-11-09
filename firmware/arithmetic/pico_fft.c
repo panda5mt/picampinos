@@ -95,9 +95,6 @@ int32_t _fft2(int32_t n, int32_t nmax, int32_t is_inverse, float_t* ar, float_t*
             ai[pp] = wi[j];
 		}
 	}
-
-	// free((char *)wr);
-	// free((char *)wi);
 	return 0;
 }
 
