@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+// 1D and 2D FFT / IFFT
+// Reference from ...
+// https://www.kurims.kyoto-u.ac.jp/~ooura/fftman/ftmn1_24.html 
 
 // internal APIs
 // int32_t _fft(int32_t n, int32_t is_inverse, float_t* ar, float_t* ai);
