@@ -69,7 +69,7 @@ int32_t _fft2(int32_t n, int32_t nmax, int32_t is_inverse, float_t* ar, float_t*
             wi[i] = ai[pp];
 
 		}
-		my_fft(n, is_inverse,wr, wi);
+		_fft(n, is_inverse,wr, wi);
         
         for(int i = 0, pp = j ; i < n ; i++, pp += nmax)
         {
@@ -87,7 +87,7 @@ int32_t _fft2(int32_t n, int32_t nmax, int32_t is_inverse, float_t* ar, float_t*
             wi[j] = ai[pp];
         }
 		
-        my_fft(n, is_inverse, wr, wi);
+        _fft(n, is_inverse, wr, wi);
 	
 		for(j = 0, pp = k; j < n ; j++, pp++)
         {
