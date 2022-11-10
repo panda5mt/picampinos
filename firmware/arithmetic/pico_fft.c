@@ -1,7 +1,7 @@
 #include "pico/stdlib.h"
 #include "pico_fft.h"
 
-const float_t __mpi = 3.141592;
+const float_t __mpi = M_PI;
 // lifting functions
 Lifting _lift(int32_t xr, int32_t xi, float_t c, float_t s) {
     Lifting x;

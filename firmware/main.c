@@ -42,7 +42,7 @@
 #include "cam.h"
 #include "arithmetic/pico_fft.h"
 
-#define BOARD_LED           (25) // pico's led => 25, self made RP2040brd's led => 28. check hardware/RP2040Board.pdf 
+#define BOARD_LED           (28) // pico's led => 25, self made RP2040brd's led => 28. check hardware/RP2040Board.pdf 
 
 
 static PIO pio_ser_wr = pio1;
@@ -109,7 +109,7 @@ int main() {
     OC_OK = setup();
 
     if(OC_OK) {      
-        printf("clock init okay.\r\n");
+        printf("clock init ok.\r\n");
         sleep_ms(1000);
     }else{
         printf("clock init failed.\r\n");

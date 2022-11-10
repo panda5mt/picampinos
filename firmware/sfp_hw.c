@@ -34,7 +34,7 @@ void sfp_hw_init(PIO pio) {
     // PIO (Serializer) init
     offset = pio_add_program(pio, &ser_100base_fx_program);
     sm_sfp = 0;//pio_claim_unused_sm(pio, true);
-    printf("sfp sm = %d",pio_claim_unused_sm(pio, true));
+    //printf("sfp sm = %d",pio_claim_unused_sm(pio, true));
     ser_100base_fx_program_init(pio, sm_sfp, offset, HW_PINNUM_SFP0_TXD);       // for 100BASE-FX 100Mbps
 
     // UDP
