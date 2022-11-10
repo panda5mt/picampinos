@@ -11,23 +11,47 @@ void fft_test(void){
     int32_t n, nmax;
     int32_t wr2[8];
     int32_t wi2[8];
+     
     n = nmax = 8;
+    float_t ar3[64] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 1, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 1, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0};
+    float_t ai3[64] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    float_t wr3[8];
+    float_t wi3[8];
+    
 
     int32_t nowtime = time_us_32();
-    pico_int_fft2(n,nmax,ar2,ai2,wr2,wi2);
-    pico_int_ifft2(n,nmax,ar2,ai2,wr2,wi2);
-
+    printf("float FFT2\r\n");
+    pico_fft2(n,nmax,ar3,ai3,wr3,wi3);
+    pico_ifft2(n,nmax,ar3,ai3,wr3,wi3);
     nowtime = time_us_32() - nowtime;
     
-    // real
-    for(int i=0; i < (n * nmax); i++){
-        printf("ar2[%d]=%d\r\n",i,ar2[i]);
-    }
+    // // real
+    // for(int i=0; i < (n * nmax); i++){
+    //     printf("ar2[%d]=%d\r\n",i,ar2[i]);
+    // }
 
-    // imag
-    for(int i=0; i < (n * nmax); i++){
-        printf("ai2[%d]=%d\r\n",i,ai2[i]);
-    }
+    // // imag
+    // for(int i=0; i < (n * nmax); i++){
+    //     printf("ai2[%d]=%d\r\n",i,ai2[i]);
+    // }
+
+    printf("elapsed time = %d[usec]\r\n",nowtime);
+
+    printf("Integer FFT2\r\n");
+    nowtime = time_us_32();
+    pico_int_fft2(n,nmax,ar2,ai2,wr2,wi2);
+    pico_int_ifft2(n,nmax,ar2,ai2,wr2,wi2);
+    nowtime = time_us_32() - nowtime;
+    
+    // // real
+    // for(int i=0; i < (n * nmax); i++){
+    //     printf("ar2[%d]=%d\r\n",i,ar2[i]);
+    // }
+
+    // // imag
+    // for(int i=0; i < (n * nmax); i++){
+    //     printf("ai2[%d]=%d\r\n",i,ai2[i]);
+    // }
 
     printf("elapsed time = %d[usec]\r\n",nowtime);
     
