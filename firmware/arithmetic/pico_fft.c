@@ -362,9 +362,8 @@ int32_t _fft2(int32_t n, int32_t nmax, int32_t is_inverse, float_t* ar, float_t*
 }
 
 int32_t _int_fft2(int32_t n, int32_t nmax, bool is_inverse, int32_t* ar, int32_t* ai, int32_t* wr, int32_t* wi) {
-	int32_t i, pp, iter, j, k;
-	
 
+	int32_t i, pp, iter, j, k;
 	if(n < 2)
 	{
 		//fprintf(stderr, "Error : Illegal parameter in fft2()\n");
@@ -416,17 +415,13 @@ int32_t _int_fft2(int32_t n, int32_t nmax, bool is_inverse, int32_t* ar, int32_t
 }
 
 void pico_fft(int32_t n, float_t* ar, float_t* ai) {
-    
     int32_t is_inverse = -1; // forward FFT
     _fft(n, is_inverse, ar, ai);
-
 }
 
 void pico_ifft(int32_t n, float_t* ar, float_t* ai) {
-    
     int32_t is_inverse = 1; // inverse FFT
     _fft(n, is_inverse, ar, ai);
-
 }
 
 void pico_fft2(int32_t n, int32_t nmax, float_t* ar, float_t* ai, float_t* wr, float_t* wi) {
