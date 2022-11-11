@@ -7,30 +7,39 @@ const float_t _FPI = M_PI;
 const float_t _FPI2 = (M_PI * M_PI);
 const float_t _2FPI = (2 * M_PI);
 
-float_t _check_angle(float_t x) {
-    while(-_FPI > x)    {x += _2FPI ;}
-    while( _FPI < x)    {x -= _2FPI ;}
-    return x;
+
+float_t _sine(float_t x, uint32_t nMAX) {
+    x -= (int32_t)(x / _2FPI) * _2FPI; 
+ 
+    float_t sum = x;
+    float_t t = x;
+ 
+    for(uint32_t n = 1 ; n <= nMAX ; n++) {
+        t *= - (x * x) / ((2 * n + 1) * (2 * n));
+        sum += t;
+    }
+ 
+    return sum;
+
 }
 
-float_t _fastsin(float_t x)
-{
-    const float_t B = 4/_FPI;
-    const float_t C = -4/_FPI2;
-    //x = _check_angle(x) ;
-    float_t y = B * x + C * x * abs(x);
-
-    return y;
-}
-
-float_t _fastcos(float_t x) {
+// nMAX = 1 to 3?
+float_t _cosine(float_t x, uint32_t nMAX) {
     //x = _check_angle(x) ;  
     x += _FPI/2;
     if(x > _FPI)
     {
         x -= _2FPI;  
     } 
-    return _fastsin(x);
+    return _sine(x, nMAX);
+}
+
+float_t _fastsin(float_t x) {
+   return  _sine(x, 1);
+}
+
+float_t _fastcos(float_t x) {
+   return  _cosine(x, 1);
 }
 
 // lifting functions
@@ -282,8 +291,8 @@ int32_t _fft(int32_t n, int32_t is_inverse, float_t* ar, float_t* ai)
     for (mh = 1; (m = mh << 1) <= n; mh = m) {
         irev = 0;
         for (i = 0; i < n; i += m) {
-            wr = cos(theta * irev);
-            wi = sin(theta * irev);
+            wr = _cosine(theta * irev, 4);
+            wi = _sine(theta * irev, 4);
             for (k = n >> 2; k > (irev ^= k); k >>= 1);
             for (j = i; j < mh + i; j++) {
                 k = j + mh;
