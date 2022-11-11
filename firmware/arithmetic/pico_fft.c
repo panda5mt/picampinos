@@ -1,7 +1,38 @@
 #include "pico/stdlib.h"
+#include "pico/divider.h"
 #include "pico_fft.h"
 
-const float_t __mpi = M_PI;
+
+const float_t _FPI = M_PI;
+const float_t _FPI2 = (M_PI * M_PI);
+const float_t _2FPI = (2 * M_PI);
+
+float_t _check_angle(float_t x) {
+    while(-_FPI > x)    {x += _2FPI ;}
+    while( _FPI < x)    {x -= _2FPI ;}
+    return x;
+}
+
+float_t _fastsin(float_t x)
+{
+    const float_t B = 4/_FPI;
+    const float_t C = -4/_FPI2;
+    //x = _check_angle(x) ;
+    float_t y = B * x + C * x * abs(x);
+
+    return y;
+}
+
+float_t _fastcos(float_t x) {
+    //x = _check_angle(x) ;  
+    x += _FPI/2;
+    if(x > _FPI)
+    {
+        x -= _2FPI;  
+    } 
+    return _fastsin(x);
+}
+
 // lifting functions
 Lifting _lift(int32_t xr, int32_t xi, float_t c, float_t s) {
     Lifting x;
@@ -97,13 +128,13 @@ void _int_fft(int32_t n, int32_t* ar, int32_t* ai)
     int32_t mq, j1, j2, j3, x0r, x0i, x1r, x1i, x3r, x3i;
     // L shaped butterflies
     for (int32_t m = n; m > 2; m >>= 1) {
-        theta = -2 * __mpi / m;
+        theta = -2 * _FPI / m;
         mq = m >> 2;
         for (int32_t i = 0; i < mq; i++) {
-            s1 = sin(theta * i);
-            c1 = cos(theta * i);
-            s3 = sin(theta * 3 * i);
-            c3 = cos(theta * 3 * i);
+            s1 = _fastsin(theta * i);
+            c1 = _fastcos(theta * i);
+            s3 = _fastsin(theta * 3 * i);
+            c3 = _fastcos(theta * 3 * i);
             for (int32_t k = m; k <= n; k <<= 2) {
                 for (int32_t j0 = k - m + i; j0 < n; j0 += 2 * k) {
                     j1 = j0 + mq;
@@ -186,13 +217,13 @@ void _int_ifft(int32_t n, int32_t* ar, int32_t* ai) {
 
     // L shaped butterflies
     for (int32_t m = 4; m <= n; m <<= 1) {
-        theta =  - 2 *__mpi / m;
+        theta =  - 2 *_FPI / m;
         mq = m >> 2;
         for (int32_t i = 0; i < mq; i++) {
-            s1 = sin(theta * i);
-            c1 = cos(theta * i);
-            s3 = sin(theta * 3 * i);
-            c3 = cos(theta * 3 * i);
+            s1 = _fastsin(theta * i);
+            c1 = _fastcos(theta * i);
+            s3 = _fastsin(theta * 3 * i);
+            c3 = _fastcos(theta * 3 * i);
             for (int32_t k = m; k <= n; k <<= 2) {
                 for (j0 = k - m + i; j0 < n; j0 += 2 * k) {
                     j1 = j0 + mq;
@@ -234,7 +265,7 @@ int32_t _fft(int32_t n, int32_t is_inverse, float_t* ar, float_t* ai)
     float_t wr, wi, xr, xi;
     float_t theta;
 
-    theta = is_inverse * 2 * __mpi / n;
+    theta = is_inverse * 2 * _FPI / n;
 
     i = 0;
     for (j = 1; j < n - 1; j++) {
@@ -295,8 +326,7 @@ int32_t _fft2(int32_t n, int32_t nmax, int32_t is_inverse, float_t* ar, float_t*
             wi[i] = ai[pp];
 
 		}
-		_fft(n, is_inverse,wr, wi);
-        
+		_fft(n, is_inverse,wr, wi);        
         for(i = 0, pp = j ; i < n ; i++, pp += nmax)
         {
 		    ar[pp] = wr[i];
@@ -311,10 +341,8 @@ int32_t _fft2(int32_t n, int32_t nmax, int32_t is_inverse, float_t* ar, float_t*
         {
             wr[j] = ar[pp];
             wi[j] = ai[pp];
-        }
-		
+        }		
         _fft(n, is_inverse, wr, wi);
-	
 		for(j = 0, pp = k; j < n ; j++, pp++)
         {
             ar[pp] = wr[j];

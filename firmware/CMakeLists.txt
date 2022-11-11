@@ -30,7 +30,8 @@ target_sources(${target_name} PRIVATE
         )
 
 target_link_libraries(${target_name} PRIVATE
-        pico_malloc 
+        pico_malloc
+        pico_divider 
         pico_stdlib
         hardware_vreg
         hardware_pio
