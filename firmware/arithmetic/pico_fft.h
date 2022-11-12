@@ -5,8 +5,7 @@
 // Reference from ...
 // https://www.kurims.kyoto-u.ac.jp/~ooura/fftman/ftmn1_24.html
 
-typedef struct 
-{
+typedef struct {
     int32_t r; // real
     int32_t i; // imag 
 } Lifting;

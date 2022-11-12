@@ -266,8 +266,6 @@ void _int_ifft(int32_t n, int32_t* ar, int32_t* ai) {
     }
 }
 
-
-
 int32_t _fft(int32_t n, int32_t is_inverse, float_t* ar, float_t* ai)
 {
     long m, mh, i, j, k, irev;
