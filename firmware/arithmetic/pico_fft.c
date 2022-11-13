@@ -42,6 +42,15 @@ float_t _fastcos(float_t x) {
    return  _cosine(x, 1);
 }
 
+float_t _fastsqrt(float_t x) {
+    float_t xHalf   = 0.5f * x;
+    int32_t tmp     = 0x5F3759DF - ( (int32_t)x >> 1 ); //initial guess
+    float_t xRes    = (float_t)tmp;
+
+    xRes *= ( 1.5f - ( xHalf * xRes * xRes ) );
+    //xRes *= ( 1.5f - ( xHalf * xRes * xRes ) );//コメントアウトを外すと精度が上がる
+    return xRes * x;
+}
 // lifting functions
 Lifting _lift(int32_t xr, int32_t xi, float_t c, float_t s) {
     Lifting x;

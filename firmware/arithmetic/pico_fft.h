@@ -10,6 +10,7 @@ typedef struct {
     int32_t i; // imag 
 } Lifting;
 
+float_t _fastsqrt(float_t x) ;
 // internal APIs
 // int32_t _fft(int32_t n, int32_t is_inverse, float_t* ar, float_t* ai) ;
 // int32_t _fft2(int32_t n, int32_t nmax, int32_t is_inverse, float_t* ar, float_t* ai, float_t* wr, float_t* wi) ;
