@@ -27,10 +27,10 @@ float_t _sine(float_t x, uint32_t nMAX) {
 float_t _cosine(float_t x, uint32_t nMAX) {
     //x = _check_angle(x) ;  
     x += _FPI/2;
-    if(x > _FPI)
-    {
-        x -= _2FPI;  
-    } 
+    // if(x > _FPI)
+    // {
+    //     x -= _2FPI;  
+    // } 
     return _sine(x, nMAX);
 }
 
@@ -289,8 +289,8 @@ int32_t _fft(int32_t n, int32_t is_inverse, float_t* ar, float_t* ai)
     for (mh = 1; (m = mh << 1) <= n; mh = m) {
         irev = 0;
         for (i = 0; i < n; i += m) {
-            wr = _cosine(theta * irev, 4);
-            wi = _sine(theta * irev, 4);
+            wr = _cosine(theta * irev, 5);
+            wi = _sine(theta * irev, 5);
             for (k = n >> 2; k > (irev ^= k); k >>= 1);
             for (j = i; j < mh + i; j++) {
                 k = j + mh;
