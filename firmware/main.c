@@ -116,10 +116,6 @@ int main() {
         sleep_ms(1000);
     }
 
-    // // this is FFT test. remove below code if you feel no good.
-    // fft_test();
-    // while(1);
-
     init_cam(DEV_OV5642);
     config_cam_buffer();    // config buffer
     start_cam();            // start streaming

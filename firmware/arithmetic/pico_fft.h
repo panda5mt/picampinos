@@ -55,4 +55,3 @@ void pico_int_fft2(int32_t n, int32_t nmax, int32_t* ar, int32_t* ai, int32_t* w
 /// @param wi    working register of imag (must be declared with length n. ex:wi[n])
 void pico_int_ifft2(int32_t n, int32_t nmax, int32_t* ar, int32_t* ai, int32_t* wr, int32_t* wi) ;
 
-void fft_test(void);
