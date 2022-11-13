@@ -44,11 +44,11 @@ float_t _fastcos(float_t x) {
 
 float_t _fastsqrt(float_t x) {
     float_t xHalf   = 0.5f * x;
-    int32_t tmp     = 0x5F3759DF - ( (int32_t)x >> 1 ); //initial guess
+    int32_t tmp     = 0x5F3759DF - ( (int32_t)x >> 1 );
     float_t xRes    = (float_t)tmp;
 
     xRes *= ( 1.5f - ( xHalf * xRes * xRes ) );
-    //xRes *= ( 1.5f - ( xHalf * xRes * xRes ) );//コメントアウトを外すと精度が上がる
+    //xRes *= ( 1.5f - ( xHalf * xRes * xRes ) );
     return xRes * x;
 }
 // lifting functions
