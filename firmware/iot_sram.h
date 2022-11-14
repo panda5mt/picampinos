@@ -6,8 +6,8 @@
 #define LINEAR_BURST        (512)   // IoT SRAM's burst length(in bytes)
 
 // DMA Channel
-uint32_t DMA_IOT_RD_CH  ;
-uint32_t DMA_IOT_WR_CH  ;
+static uint32_t DMA_IOT_RD_CH  ;
+static uint32_t DMA_IOT_WR_CH  ;
 
 // APIs
 void iot_sram_init(PIO pio) ;
