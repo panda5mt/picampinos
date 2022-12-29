@@ -239,7 +239,7 @@ void spiout_cam() {
 #endif
 
 #if USE_100BASE_FX
-void  __time_critical_func(sfp_cam)() {    
+void sfp_cam() {    
     uint8_t BUF_LEN = 10;
     uint8_t in_buf[BUF_LEN]; 
     uint8_t out_buf[BUF_LEN];
@@ -324,7 +324,8 @@ void cam_handler() {
     }
 
      // write iot sram
-    if(0 == num_of_call_this % 2) {
+    //if(0 == num_of_call_this % 2) {
+    if(0 == (num_of_call_this & 0x01)) {
         // even
         b = cam_ptr;
         dma_chan = DMA_CAM_RD_CH0; 
