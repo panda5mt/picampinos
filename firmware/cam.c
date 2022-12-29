@@ -338,7 +338,7 @@ void cam_handler() {
     sem_acquire_blocking(&psram_sem);
     iot_sram_write(pio_iot, b, iot_addr, CAM_BUF_HALF, DMA_IOT_WR_CH); //pio, sm, buffer, start_address, length
     sem_release(&psram_sem);
-    ram_in_write = false;
+    //ram_in_write = false;
 
     // increment iot sram's address
     iot_addr = iot_addr + CAM_BUF_HALF;
@@ -355,7 +355,7 @@ void cam_handler() {
     else {
         num_of_call_this = 0;
         iot_addr = 0;
-        is_captured = true;
+        //is_captured = true;
     }
 
     return;        
