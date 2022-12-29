@@ -7,6 +7,8 @@
 #include "hardware/pwm.h"
 #include "hardware/irq.h"
 #include "hardware/dma.h"
+#include "pico/multicore.h"
+
 #include "cam.h"
 
 #if USE_EZSPI_SLAVE
@@ -46,6 +48,8 @@ uint32_t DMA_CAM_RD_CH1 ;
 uint32_t* cam_ptr;  // pointer of camera buffer
 uint32_t* cam_ptr2; // back half pointer of cam_ptr.
 uint32_t* iot_ptr;  // pointer of IoT RAM's read buffer.
+
+
 
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
 void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_num);
@@ -120,6 +124,7 @@ void config_cam_buffer() {
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH0, true);
     irq_set_exclusive_handler(DMA_IRQ_0, cam_handler);
     //irq_indicate_reset = true;
+    sem_init(&psram_sem, 1, 1); // init semaphore
     // enable IRQ    
     irq_set_enabled(DMA_IRQ_0, true);
 }
@@ -234,56 +239,51 @@ void spiout_cam() {
 #endif
 
 #if USE_100BASE_FX
-void sfp_cam() {    
+void  __time_critical_func(sfp_cam)() {    
     uint8_t BUF_LEN = 10;
     uint8_t in_buf[BUF_LEN]; 
     uint8_t out_buf[BUF_LEN];
-    
-    //is_captured = false;
-    while(!is_captured);    // wait until an image captured
-    is_captured = false;
-    while(!is_captured);    // wait until an image captured
-    
-    ram_ind_read = true;    // start to read
-    while(ram_in_write);    // wait until writing ram finished
-    
-    
+
     sfp_hw_init(pio_sfp);
 
-    int32_t iot_addr = 0;
-    int32_t *b;
-    uint32_t resp;
-    b = iot_ptr;
-    
-    // send header
-    // frame start: 
-    // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + columb_sizein_words(total blocks per frame)
-    uint32_t a[4] = { 0xdeadbeef, 480,640*2/sizeof(uint32_t), 480 };
-    sfp_send(&a, sizeof(uint32_t)*4);
-    
-    for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
-        iot_sram_read(pio_iot, (uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length         
-        
-        for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i+=320) {
-            //printf("0x%08X\r\n",b[i]);
-            
-            sfp_send_with_header(0xbeefbeef,(h+i/320)+1,1,320, &b[i], sizeof(uint32_t)*320);
+    while(1) {
 
-            // for(uint32_t j = 0; j < 320;j++){
-            //      printf("0x%08X\r\n",b[i+j]);
-            // }
+        int32_t iot_addr = 0;
+        int32_t *b;
+        uint32_t resp;
+        b = iot_ptr;
+        
+        // send header
+        // frame start: 
+        // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + columb_sizein_words(total blocks per frame)
+        uint32_t a[4] = { 0xdeadbeef, 480,640*2/sizeof(uint32_t), 480 };
+        sfp_send(&a, sizeof(uint32_t)*4);
+        
+        for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
+            
+            sem_acquire_blocking(&psram_sem);
+            iot_sram_read(pio_iot, (uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length         
+            sem_release(&psram_sem);
+
+            for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i+=320) {
+                //printf("0x%08X\r\n",b[i]);
+                
+                sfp_send_with_header(0xbeefbeef,(h+i/320)+1,1,320, &b[i], sizeof(uint32_t)*320);
+
+                // for(uint32_t j = 0; j < 320;j++){
+                //      printf("0x%08X\r\n",b[i+j]);
+                // }
+            }
+
+            // increment iot sram's address
+            iot_addr = iot_addr + CAM_BUF_SIZE;
         }
-        // increment iot sram's address
-        iot_addr = iot_addr + CAM_BUF_SIZE;
+        // send dummy data
+        for(uint32_t i = 0 ; i < 10 ; i++) {
+            a[0] = 0xdeaddead ;
+            sfp_send(&a, sizeof(uint32_t)*1);
+        }
     }
-    // send dummy data
-    for(uint32_t i = 0 ; i < 20 ; i++) {
-        a[0] = 0xdeaddead ;
-        sfp_send(&a, sizeof(uint32_t)*1);
-    }
-    //deinit_spi_slave();
-    ram_ind_read = false;
-    is_captured = false;
 }
 #endif
 
@@ -333,11 +333,13 @@ void cam_handler() {
         b = cam_ptr2;
         dma_chan = DMA_CAM_RD_CH1;
     }
-    if(false == ram_ind_read) {
-        ram_in_write = true;
-        iot_sram_write(pio_iot, b, iot_addr, CAM_BUF_HALF, DMA_IOT_WR_CH); //pio, sm, buffer, start_address, length
-        ram_in_write = false;
-    }
+
+    //ram_in_write = true;
+    sem_acquire_blocking(&psram_sem);
+    iot_sram_write(pio_iot, b, iot_addr, CAM_BUF_HALF, DMA_IOT_WR_CH); //pio, sm, buffer, start_address, length
+    sem_release(&psram_sem);
+    ram_in_write = false;
+
     // increment iot sram's address
     iot_addr = iot_addr + CAM_BUF_HALF;
 

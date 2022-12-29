@@ -28,6 +28,8 @@
 #define CAM_BUF_SIZE    (640 * BLOCK * 2)   // in bytes
 #define CAM_BUF_HALF    (CAM_BUF_SIZE / 2)  // in bytes
 
+
+
 // high layer APIs
 void init_cam(uint8_t DEVICE_IS);
 void config_cam_buffer();

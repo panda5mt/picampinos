@@ -32,6 +32,7 @@ target_link_libraries(${target_name} PRIVATE
         pico_malloc
         pico_divider 
         pico_stdlib
+        pico_multicore
         hardware_vreg
         hardware_pio
         hardware_i2c

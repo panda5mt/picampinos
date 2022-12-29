@@ -1,5 +1,6 @@
 #include "hardware/gpio.h"
 #include "hardware/pio.h"
+#include "pico/multicore.h"
 
 #define IOT_DAT_BASE_PIN    (12)    // IoT SRAM's data-pin {D3,...,D0}
 #define IOT_SIG_BASE_PIN    (16)    // IoT SRAM's control pin {SCLK, nCS}
@@ -8,7 +9,8 @@
 // DMA Channel
 static uint32_t DMA_IOT_RD_CH  ;
 static uint32_t DMA_IOT_WR_CH  ;
-
+// Semaphore for PSRAM handle
+static semaphore_t psram_sem; 
 // APIs
 void iot_sram_init(PIO pio) ;
 void iot_sram_set_qpi_mode(PIO pio) ;

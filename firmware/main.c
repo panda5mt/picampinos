@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "pico/stdlib.h"
+#include "pico/multicore.h"
 #include "hardware/gpio.h"
 #include "hardware/vreg.h"
 #include "hardware/i2c.h"
@@ -117,12 +118,14 @@ int main() {
     }
 
     init_cam(DEV_OV5642);
-    config_cam_buffer();    // config buffer
-    start_cam();            // start streaming
-
+    // check SFP.
     // call 'read_i2c_data()' after 'init_cam()' because i2c hardware is not initialized before 'init_cam()'
     i2c_inst_t *i2c = i2c1;
     read_i2c_data(i2c);
+    config_cam_buffer();    // config buffer
+    start_cam();            // start streaming
+
+
 
     // data via USB-UART(ASCII)
     // see also 'matlab/readrgb.m'    
@@ -153,9 +156,8 @@ int main() {
     // see also 'matlab/receive_udp.m'
     // To Use SFP, CHECK 'USE_EZSPI_SLAVE' is (false) 
     // AND 'USE_100BASE_FX' is (true) in 'cam.h'
-    while(true) {
-        sfp_cam();
-    }
+    multicore_launch_core1(sfp_cam);
+    while(true) {};
     
     // end
     free_cam();
