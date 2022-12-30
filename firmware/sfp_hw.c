@@ -64,9 +64,6 @@ void sfp_hw_init(PIO pio) {
 
 void __time_critical_func(sfp_send)(void* str, uint16_t len) {
 
-    //sprintf(udp_payload, "Hello RP2040 Crazzzzy Eval Boards!!!!");
-    //memcpy(udp_payload, str, len);
-    //udp_packet_gen(tx_buf_udp, udp_payload);
     udp_packet_gen(tx_buf_udp, (uint8_t *)str);
     // Wait for DMA
     dma_channel_wait_for_finish_blocking(DMA_SER_WR0);
