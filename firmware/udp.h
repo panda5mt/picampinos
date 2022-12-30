@@ -39,15 +39,15 @@
 #define DEF_ETH_SRC_MAC         (0x123456789ABC)    // Dummy
 
 // IP Header
-#define DEF_IP_ADR_SRC1         (169)
-#define DEF_IP_ADR_SRC2         (254)
-#define DEF_IP_ADR_SRC3         (201)
-#define DEF_IP_ADR_SRC4         (210)
+#define DEF_IP_ADR_SRC1         (192)
+#define DEF_IP_ADR_SRC2         (168)
+#define DEF_IP_ADR_SRC3         (10)
+#define DEF_IP_ADR_SRC4         (114)
 
-#define DEF_IP_DST_DST1         (169)
-#define DEF_IP_DST_DST2         (254)
-#define DEF_IP_DST_DST3         (201)
-#define DEF_IP_DST_DST4         (216)
+#define DEF_IP_DST_DST1         (192)
+#define DEF_IP_DST_DST2         (168)
+#define DEF_IP_DST_DST3         (10)
+#define DEF_IP_DST_DST4         (112)
 
 // UDP Header
 #define DEF_UDP_SRC_PORTNUM     (1024)

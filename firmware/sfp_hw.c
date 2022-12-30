@@ -70,7 +70,7 @@ void __time_critical_func(sfp_send)(void* str, uint16_t len) {
     udp_packet_gen(tx_buf_udp, (uint8_t *)str);
     // Wait for DMA
     dma_channel_wait_for_finish_blocking(DMA_SER_WR0);
-    sleep_us(1);
+
     // DMA Start
     dma_channel_set_read_addr(DMA_SER_WR0, tx_buf_udp, true);
 
@@ -92,7 +92,7 @@ void __time_critical_func(sfp_send_with_header)(uint32_t header1, uint32_t heade
     
     // Wait for DMA
     dma_channel_wait_for_finish_blocking(DMA_SER_WR0);
-    sleep_us(1);
+
     // DMA Start
     dma_channel_set_read_addr(DMA_SER_WR0, tx_buf_udp, true);
 
@@ -108,7 +108,7 @@ void __time_critical_func(sfp_test)() {
     
         // Wait for DMA
         dma_channel_wait_for_finish_blocking(DMA_SER_WR0);
-        sleep_us(1);
+
         // DMA Start
         dma_channel_set_read_addr(DMA_SER_WR0, tx_buf_udp, true);
         lp_cnt = lp_cnt + 1;
