@@ -18,14 +18,14 @@ pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/ser_100base_fx
 
 target_sources(${target_name} PRIVATE
         arithmetic/pico_fft.c
+        udp.c
+        tbl_8b10b.c
+        sfp_hw.c
         main.c
         cam.c
         sccb_if.c
         iot_sram.c
         ezspi_slave.c
-        udp.c
-        tbl_8b10b.c
-        sfp_hw.c
         )
 
 target_link_libraries(${target_name} PRIVATE

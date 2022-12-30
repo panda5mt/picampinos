@@ -13,7 +13,7 @@ uint32_t offset = 0;
 uint32_t sm_sfp;
 
 volatile bool sfp_initialized = false;
-
+uint32_t c[DEF_UDP_PAYLOAD_SIZE/sizeof(uint32_t)];
 
 
 void sfp_hw_init(PIO pio) {
@@ -52,7 +52,7 @@ void sfp_hw_init(PIO pio) {
     dma_channel_configure (
         DMA_SER_WR0,            // Channel to be configured
         &c0,                    // The configuration we just created
-        &pio->txf[0],    // Destination address
+        &pio->txf[0],           // Destination address
         tx_buf_udp,             // Source address
         (DEF_UDP_BUF_SIZE+1),   // Number of transfers
         false                   // Don't start yet
@@ -62,43 +62,43 @@ void sfp_hw_init(PIO pio) {
 
 }
 
-void sfp_send(void* str, uint16_t len) {
+void __time_critical_func(sfp_send)(void* str, uint16_t len) {
 
     //sprintf(udp_payload, "Hello RP2040 Crazzzzy Eval Boards!!!!");
-    memcpy(udp_payload, str, len);
-    udp_packet_gen(tx_buf_udp, udp_payload);
-    
+    //memcpy(udp_payload, str, len);
+    //udp_packet_gen(tx_buf_udp, udp_payload);
+    udp_packet_gen(tx_buf_udp, (uint8_t *)str);
     // Wait for DMA
     dma_channel_wait_for_finish_blocking(DMA_SER_WR0);
-
+    sleep_us(1);
     // DMA Start
     dma_channel_set_read_addr(DMA_SER_WR0, tx_buf_udp, true);
 
 }
 
-void sfp_send_with_header(uint32_t header1, uint32_t header2, uint32_t header3, uint32_t header4, void* str, uint16_t len) {
+void __time_critical_func(sfp_send_with_header)(uint32_t header1, uint32_t header2, uint32_t header3, uint32_t header4, void* str, uint16_t len) {
 
-    uint32_t c[DEF_UDP_PAYLOAD_SIZE/sizeof(uint32_t)];
 
-    c[0] = header1;
-    c[1] = header2;
-    c[2] = header3;
-    c[3] = header4;
+    int32_t *b = (uint32_t*)str;
+    b[0] = header1;
+    b[1] = header2;
+    b[2] = header3;
+    b[3] = header4;
     
-    memcpy((uint32_t *) &c[4],(uint32_t *) str,len);
-
-    memcpy(udp_payload, c, len + sizeof(uint32_t)*4);// length of str + length of header
-    udp_packet_gen(tx_buf_udp, udp_payload);
+    //memcpy((uint32_t *) &c[4],(uint32_t *) str,len);
+    //memcpy(udp_payload, c, len + sizeof(uint32_t)*4);// length of str + length of header
+    //udp_packet_gen(tx_buf_udp, udp_payload);
+    udp_packet_gen(tx_buf_udp,(uint8_t *) b);
     
     // Wait for DMA
     dma_channel_wait_for_finish_blocking(DMA_SER_WR0);
-
+    sleep_us(1);
     // DMA Start
     dma_channel_set_read_addr(DMA_SER_WR0, tx_buf_udp, true);
 
 }
 
-void sfp_test() {
+void __time_critical_func(sfp_test)() {
 
     lp_cnt = 0;
     while( true ) {
@@ -108,6 +108,7 @@ void sfp_test() {
     
         // Wait for DMA
         dma_channel_wait_for_finish_blocking(DMA_SER_WR0);
+        sleep_us(1);
         // DMA Start
         dma_channel_set_read_addr(DMA_SER_WR0, tx_buf_udp, true);
         lp_cnt = lp_cnt + 1;

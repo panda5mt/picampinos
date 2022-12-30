@@ -87,7 +87,7 @@ void init_cam(uint8_t DEVICE_IS) {
     // camera buffer
     cam_ptr = (uint32_t *)calloc((CAM_BUF_SIZE / sizeof(uint32_t)), sizeof(uint32_t));
     cam_ptr2 = &cam_ptr[(CAM_BUF_HALF / sizeof(uint32_t))];
-    iot_ptr = (uint32_t *)calloc((CAM_BUF_SIZE / sizeof(uint32_t)), sizeof(uint32_t)); // same size of cam_ptr
+    iot_ptr = (uint32_t *)calloc((CAM_BUF_SIZE / sizeof(uint32_t)) + SFP_HEADER_WORDS, sizeof(uint32_t)); // same size of cam_ptr
 }
 
 void config_cam_buffer() {  
@@ -141,8 +141,7 @@ void start_cam() {
     pio_sm_put_blocking(pio_cam, sm_cam, (CAM_FUL_SIZE/sizeof(uint32_t) - 1));     // Y: total words in an image 
 
     // wait until transfer finish
-    //while(false == is_captured);
-    
+    // while(false == is_captured);    
 }
 
 void uartout_cam() {
@@ -241,9 +240,9 @@ void spiout_cam() {
 
 #if USE_100BASE_FX
 void sfp_cam() {    
-    uint8_t BUF_LEN = 10;
-    uint8_t in_buf[BUF_LEN]; 
-    uint8_t out_buf[BUF_LEN];
+    // uint8_t BUF_LEN = 10;
+    // uint8_t in_buf[BUF_LEN]; 
+    // uint8_t out_buf[BUF_LEN];
 
     sfp_hw_init(pio_sfp);
 
@@ -252,8 +251,7 @@ void sfp_cam() {
         int32_t iot_addr = 0;
         int32_t *b;
         uint32_t resp;
-        b = iot_ptr;
-        
+        b = iot_ptr + SFP_HEADER_WORDS; // Header offset
         // send header
         // frame start: 
         // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + columb_sizein_words(total blocks per frame)
@@ -262,6 +260,8 @@ void sfp_cam() {
         
         for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
             
+            while(psram_access < 7); // 12access = 1frame
+            psram_access = psram_access - 2; // write buffer x 2 = read buffer
             sem_acquire_blocking(&psram_sem);
             iot_sram_read(pio_iot, (uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length         
             sem_release(&psram_sem);
@@ -269,7 +269,7 @@ void sfp_cam() {
             for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i+=320) {
                 //printf("0x%08X\r\n",b[i]);
                 
-                sfp_send_with_header(0xbeefbeef,(h+i/320)+1,1,320, &b[i], sizeof(uint32_t)*320);
+                sfp_send_with_header(0xbeefbeef,(h+i/320)+1,1,320, &(b[i]) - SFP_HEADER_WORDS, sizeof(uint32_t)*320);
 
                 // for(uint32_t j = 0; j < 320;j++){
                 //      printf("0x%08X\r\n",b[i+j]);
@@ -280,7 +280,7 @@ void sfp_cam() {
             iot_addr = iot_addr + CAM_BUF_SIZE;
         }
         // send dummy data
-        for(uint32_t i = 0 ; i < 5 ; i++) {
+        for(uint32_t i = 0 ; i < 10 ; i++) {
             a[0] = 0xdeaddead ;
             sfp_send(&a, sizeof(uint32_t)*1);
         }
@@ -335,7 +335,7 @@ void cam_handler() {
         dma_chan = DMA_CAM_RD_CH1;
     }
 
-    
+
     psram_access = psram_access + 1;
     sem_acquire_blocking(&psram_sem);
     iot_sram_write(pio_iot, b, iot_addr, CAM_BUF_HALF, DMA_IOT_WR_CH); //pio, sm, buffer, start_address, length

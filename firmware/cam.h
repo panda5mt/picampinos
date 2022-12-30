@@ -13,6 +13,7 @@
 #define CAM_BASE_PIN        (1)     // GP1 (camera module needs 11pin)
 #define PIN_PWM0            (0)     // GP0 (camera's xclk(24MHz))
 #define LINEAR_BURST        (512)   // IoT SRAM's burst length(in bytes)
+#define SFP_HEADER_WORDS    (4)     // header length(in words, = sizeof(uint32))
 
 // interfaces
 // SCCB IF
