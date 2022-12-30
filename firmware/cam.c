@@ -27,6 +27,7 @@ volatile bool ram_in_write  = false;    // now writing image
 
 volatile bool irq_indicate_reset = true;
 
+volatile int32_t psram_access = 0; // write buffer:+=1, read buffer:-=1
 // init PIO
 PIO pio_cam = pio0;
 PIO pio_iot = pio1;
@@ -279,7 +280,7 @@ void sfp_cam() {
             iot_addr = iot_addr + CAM_BUF_SIZE;
         }
         // send dummy data
-        for(uint32_t i = 0 ; i < 10 ; i++) {
+        for(uint32_t i = 0 ; i < 5 ; i++) {
             a[0] = 0xdeaddead ;
             sfp_send(&a, sizeof(uint32_t)*1);
         }
@@ -324,7 +325,6 @@ void cam_handler() {
     }
 
      // write iot sram
-    //if(0 == num_of_call_this % 2) {
     if(0 == (num_of_call_this & 0x01)) {
         // even
         b = cam_ptr;
@@ -335,11 +335,11 @@ void cam_handler() {
         dma_chan = DMA_CAM_RD_CH1;
     }
 
-    //ram_in_write = true;
+    
+    psram_access = psram_access + 1;
     sem_acquire_blocking(&psram_sem);
     iot_sram_write(pio_iot, b, iot_addr, CAM_BUF_HALF, DMA_IOT_WR_CH); //pio, sm, buffer, start_address, length
     sem_release(&psram_sem);
-    //ram_in_write = false;
 
     // increment iot sram's address
     iot_addr = iot_addr + CAM_BUF_HALF;
