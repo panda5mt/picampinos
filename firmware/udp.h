@@ -54,6 +54,7 @@
 #define DEF_UDP_DST_PORTNUM     (1024)
 #define DEF_UDP_LEN             (DEF_UDP_PAYLOAD_SIZE + 8)
 
+#define IFG_DUMMY_BYTES         (12)
 // -------------------
 // Preamble     7
 // SFD          1
@@ -64,7 +65,7 @@
 // FCS          4
 // -------------------
 //              x + 54
-#define DEF_UDP_BUF_SIZE        (DEF_UDP_PAYLOAD_SIZE + 54)
+#define DEF_UDP_BUF_SIZE        (DEF_UDP_PAYLOAD_SIZE + IFG_DUMMY_BYTES + 54)
 
 
 void udp_init(void);
