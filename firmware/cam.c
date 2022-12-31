@@ -257,7 +257,9 @@ void sfp_cam() {
         // frame start: 
         // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + columb_sizein_words(total blocks per frame)
         uint32_t a[4] = { 0xdeadbeef, 480,640*2/sizeof(uint32_t), 480 };
-        sfp_send(&a, sizeof(uint32_t)*4);
+        
+        while(1)
+            sfp_send(&a, sizeof(uint32_t)*4);
         
         for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
             

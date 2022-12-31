@@ -118,13 +118,13 @@ int main() {
     }
     
     init_cam(DEV_OV5642);
-    
+
     // check SFP.
     // call 'read_i2c_data()' after 'init_cam()' because i2c hardware is not initialized before 'init_cam()'
     i2c_inst_t *i2c = i2c1;
     read_i2c_data(i2c);
-    config_cam_buffer();    // config buffer
-    start_cam();            // start streaming
+    //config_cam_buffer();    // config buffer
+    //start_cam();            // start streaming
 
 
 
