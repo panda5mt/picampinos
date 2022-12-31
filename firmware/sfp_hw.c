@@ -30,11 +30,10 @@ void sfp_hw_init(PIO pio) {
     gpio_set_dir(HW_PINNUM_SFP0_TXD, GPIO_OUT);
     //hw_test();
 
-    
     // PIO (Serializer) init
-    sm_sfp = 0;//pio_claim_unused_sm(pio, true);
     offset_sfp = pio_add_program(pio, &ser_100base_fx_program);
-    printf("sfp:pio=%d sm = %d, offset=%d\r\n",(uint32_t)pio, pio_claim_unused_sm(pio, true), offset_sfp);
+    sm_sfp = 0;//pio_claim_unused_sm(pio, true);
+    //printf("sfp:pio=%d, sm = %d, offset=%d\r\n",(uint32_t)pio, sm_sfp, offset_sfp);
 
     ser_100base_fx_program_init(pio, sm_sfp, offset_sfp, HW_PINNUM_SFP0_TXD);       // for 100BASE-FX 100Mbps
 

@@ -68,6 +68,7 @@ void init_cam(uint8_t DEVICE_IS) {
     
     uint32_t offset_cam = pio_add_program(pio_cam, &picampinos_program);
     uint32_t sm = pio_claim_unused_sm(pio_cam, true);
+    //printf("camera:pio=%d, sm = %d, offset=%d\r\n",(uint32_t)pio_cam, sm, offset_cam);
     picampinos_program_init(pio_cam, sm_cam, offset_cam, CAM_BASE_PIN, 11);// VSYNC,HREF,PCLK,D[2:9] : total 11 pins
     pio_sm_set_enabled(pio_cam, sm_cam, false);
     pio_sm_clear_fifos(pio_cam, sm_cam);

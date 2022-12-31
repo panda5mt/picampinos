@@ -26,7 +26,7 @@ read2:
     jmp     y-- read2       side 0x02 ; sclk=0
     nop                     side 0x03;
 end0:
-    mov     isr, null       side 0x01;
+    ;mov     isr, null       side 0x01;
     jmp     _start0         side 0x01; sclk=0, nCS=1
 
 

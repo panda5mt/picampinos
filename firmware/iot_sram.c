@@ -17,10 +17,11 @@ void iot_sram_init(PIO pio) {
     else {
         psram_initialized = true;
     }
+
     // Initialize IoT SRAM
+    offset_iot = pio_add_program(pio, &iot_sram_program);
     sm_iot = 2;//pio_claim_unused_sm(pio, true);
-    offset_iot = pio_add_program(pio, &iot_sram_program); 
-    printf("psram:pio = %d, sm = %d, offset=%d\r\n",(uint32_t)pio, pio_claim_unused_sm(pio, true), offset_iot);
+    //printf("psram:pio = %d, sm = %d, offset=%d\r\n",(uint32_t)pio, sm_iot, offset_iot);
 
     iot_sram_program_init(pio, sm_iot, offset_iot, IOT_DAT_BASE_PIN, 4, IOT_SIG_BASE_PIN, 2); // : total 6 pins
     iot_sram_set_qpi_mode(pio);
