@@ -269,6 +269,7 @@ void sfp_cam() {
             for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i+=320) {
                 //printf("0x%08X\r\n",b[i]);
                 
+                while(1)
                 sfp_send_with_header(0xbeefbeef,(h+i/320)+1,1,320, &(b[i]) - SFP_HEADER_WORDS, sizeof(uint32_t)*320);
 
                 // for(uint32_t j = 0; j < 320;j++){
