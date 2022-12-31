@@ -61,7 +61,8 @@
 
         pio_sm_config c = ser_100base_fx_program_get_default_config(offset);
         sm_config_set_out_shift(&c, true, false, 10);   // Shift OSR to Right, Autopull is disabled
-        sm_config_set_out_pins(&c, pin_tx, 1);
+        sm_config_set_in_shift( &c, false, false, 10); // auto push : false
+        sm_config_set_out_pins( &c, pin_tx, 1);
 
         sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
         sm_config_set_clkdiv(&c, 1);
