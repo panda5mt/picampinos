@@ -9,7 +9,7 @@ uint32_t DMA_SER_WR0;
 uint32_t tx_buf_udp[DEF_UDP_BUF_SIZE+1] = {0};
 uint8_t  udp_payload[DEF_UDP_PAYLOAD_SIZE] = {0};
 uint32_t lp_cnt = 0;
-uint32_t offset = 0;
+uint32_t offset_sfp = 0;
 uint32_t sm_sfp;
 
 volatile bool sfp_initialized = false;
@@ -32,10 +32,11 @@ void sfp_hw_init(PIO pio) {
 
     
     // PIO (Serializer) init
-    offset = pio_add_program(pio, &ser_100base_fx_program);
     sm_sfp = 0;//pio_claim_unused_sm(pio, true);
-    //printf("sfp sm = %d",pio_claim_unused_sm(pio, true));
-    ser_100base_fx_program_init(pio, sm_sfp, offset, HW_PINNUM_SFP0_TXD);       // for 100BASE-FX 100Mbps
+    offset_sfp = pio_add_program(pio, &ser_100base_fx_program);
+    printf("sfp:pio=%d sm = %d, offset=%d\r\n",(uint32_t)pio, pio_claim_unused_sm(pio, true), offset_sfp);
+
+    ser_100base_fx_program_init(pio, sm_sfp, offset_sfp, HW_PINNUM_SFP0_TXD);       // for 100BASE-FX 100Mbps
 
     // UDP
     udp_init();

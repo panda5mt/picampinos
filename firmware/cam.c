@@ -29,14 +29,14 @@ volatile bool irq_indicate_reset = true;
 
 volatile int32_t psram_access = 0; // write buffer:+=1, read buffer:-=1
 // init PIO
-PIO pio_cam = pio0;
-PIO pio_iot = pio1;
+PIO pio_cam = pio1;
+PIO pio_iot = pio0;
 
 #if USE_EZSPI_SLAVE
 PIO pio_spi = pio1; // same PIO with pio_iot
 #endif
 #if USE_100BASE_FX
-PIO pio_sfp = pio1; // same PIO with pio_iot
+PIO pio_sfp = pio0; // same PIO with pio_iot
 #endif
 // statemachine's pointer
 uint32_t sm_cam;    // CAMERA's state machines
@@ -268,7 +268,7 @@ void sfp_cam() {
 
             for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i+=320) {
                 //printf("0x%08X\r\n",b[i]);
-                
+
                 sfp_send_with_header(0xbeefbeef,(h+i/320)+1,1,320, &(b[i]) - SFP_HEADER_WORDS, sizeof(uint32_t)*320);
 
                 // for(uint32_t j = 0; j < 320;j++){
