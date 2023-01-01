@@ -13,19 +13,18 @@ add_executable(${target_name})
 
 pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/picampinos.pio)
 pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/iot_sram.pio)
-pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/ezspi_slave.pio)
+# pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/ezspi_slave.pio)
 pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/ser_100base_fx.pio)
 
 target_sources(${target_name} PRIVATE
-        arithmetic/pico_fft.c
-        udp.c
         tbl_8b10b.c
+        udp.c
         sfp_hw.c
         main.c
         cam.c
         sccb_if.c
         iot_sram.c
-        ezspi_slave.c
+#        ezspi_slave.c
         )
 
 target_link_libraries(${target_name} PRIVATE

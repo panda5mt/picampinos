@@ -3,7 +3,7 @@
 #include "pico/binary_info.h"
 #include "picampinos.pio.h"
 #include "iot_sram.h"
-#include "class/cdc/cdc_device.h" // for uart(binary output)
+//#include "class/cdc/cdc_device.h" // for uart(binary output)
 #include "hardware/pwm.h"
 #include "hardware/irq.h"
 #include "hardware/dma.h"
@@ -171,7 +171,7 @@ void uartout_cam() {
     ram_ind_read = false;
 }
 
-
+/*
 void uartout_bin_cam() {
     // read Image
     sleep_ms(30);
@@ -199,6 +199,7 @@ void uartout_bin_cam() {
     sleep_ms(300);
     ram_ind_read = false;
 }
+*/
 
 #if USE_EZSPI_SLAVE
 void spiout_cam() {    
@@ -262,7 +263,7 @@ void sfp_cam() {
         
         for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
             
-            while(psram_access < NUM_COMP_FRM>>1); // 50% of 1frame
+            while(psram_access < NUM_COMP_FRM/2); // 50% of 1frame
             psram_access = psram_access - 2; // write buffer x 2 = read buffer
             sem_acquire_blocking(&psram_sem);
             iot_sram_read(pio_iot, (uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length         
