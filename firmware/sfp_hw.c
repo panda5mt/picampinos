@@ -100,11 +100,12 @@ void __time_critical_func(sfp_send_with_header)(uint32_t header1, uint32_t heade
     //udp_packet_gen(tx_buf_udp, udp_payload);
     udp_packet_gen(tx_buf_udp,(uint8_t *) b);
     
+
+    // DMA Start
+    dma_channel_set_read_addr(DMA_SER_WR0, tx_buf_udp, true);
     // Wait for DMA
     dma_channel_wait_for_finish_blocking(DMA_SER_WR0);
     sleep_us(1);
-    // DMA Start
-    dma_channel_set_read_addr(DMA_SER_WR0, tx_buf_udp, true);
 
 }
 
