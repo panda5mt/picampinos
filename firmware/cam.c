@@ -262,7 +262,7 @@ void sfp_cam() {
         
         for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
             
-            while(psram_access < 7); // 12access = 1frame
+            while(psram_access < NUM_COMP_FRM>>1); // 50% of 1frame
             psram_access = psram_access - 2; // write buffer x 2 = read buffer
             sem_acquire_blocking(&psram_sem);
             iot_sram_read(pio_iot, (uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length         
@@ -352,7 +352,7 @@ void cam_handler() {
     // reset write address pointer
     dma_channel_set_write_addr(dma_chan, b, false);  
     
-    if(num_of_call_this < 23) {
+    if(num_of_call_this < NUM_COMP_FRM - 1) {
         num_of_call_this++;
     }
     else {
