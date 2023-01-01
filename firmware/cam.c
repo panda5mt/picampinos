@@ -352,7 +352,7 @@ void cam_handler() {
     // reset write address pointer
     dma_channel_set_write_addr(dma_chan, b, false);  
     
-    if(num_of_call_this < 11) {
+    if(num_of_call_this < 23) {
         num_of_call_this++;
     }
     else {
