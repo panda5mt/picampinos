@@ -81,7 +81,7 @@ static void read_i2c_data(i2c_inst_t *i2c)
 
 bool setup() {
     bool OC_INIT = false;
-    vreg_set_voltage(VREG_VOLTAGE_1_30);
+    vreg_set_voltage(VREG_VOLTAGE_1_25);
     // system init
     stdio_init_all();
     OC_INIT = set_sys_clock_khz(SYS_CLK_KHZ, true);

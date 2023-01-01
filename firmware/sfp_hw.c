@@ -26,9 +26,22 @@ void sfp_hw_init(PIO pio) {
     }
 
 
+    gpio_init(HW_PINNUM_SFP0_RXD);
+    gpio_set_dir(HW_PINNUM_SFP0_RXD, GPIO_IN);
     gpio_init(HW_PINNUM_SFP0_TXD);
     gpio_set_dir(HW_PINNUM_SFP0_TXD, GPIO_OUT);
-    //hw_test();
+    //i2c_init(i2c0, 100000);
+    //gpio_set_function(HW_PINNUM_SFP0_SDA, GPIO_FUNC_I2C);
+    //gpio_set_function(HW_PINNUM_SFP0_SCL, GPIO_FUNC_I2C);
+    //gpio_pull_up(HW_PINNUM_SFP0_SDA);
+    //gpio_pull_up(HW_PINNUM_SFP0_SCL);
+    gpio_init(HW_PINNUM_SFP0_TXFLT);
+    gpio_set_dir(HW_PINNUM_SFP0_TXFLT, GPIO_IN);
+    gpio_pull_up(HW_PINNUM_SFP0_TXFLT);
+    gpio_init(HW_PINNUM_SFP0_RXLOS);
+    gpio_set_dir(HW_PINNUM_SFP0_RXLOS, GPIO_IN);
+    gpio_pull_up(HW_PINNUM_SFP0_RXLOS);
+    
 
     // PIO (Serializer) init
     offset_sfp = pio_add_program(pio, &ser_100base_fx_program);
