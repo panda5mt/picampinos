@@ -1,8 +1,12 @@
 #include "udp.h"
 #include "pico/stdlib.h"
+#include "hardware/dma.h"
+
+#define DMA_LOVE    // Using DMA for payload copy and CRC32 Calc.
 
 // 4B5B convert table
 const static uint16_t __not_in_flash("tbl_4b5b") tbl_4b5b[256] = {
+//const uint16_t __scratch_x ("tbl_4b5b") tbl_4b5b[256] = {
     0b1111011110, 0b1111001001, 0b1111010100, 0b1111010101, 0b1111001010, 0b1111001011, 0b1111001110, 0b1111001111, 0b1111010010, 0b1111010011, 0b1111010110, 0b1111010111, 0b1111011010, 0b1111011011, 0b1111011100, 0b1111011101,
     0b0100111110, 0b0100101001, 0b0100110100, 0b0100110101, 0b0100101010, 0b0100101011, 0b0100101110, 0b0100101111, 0b0100110010, 0b0100110011, 0b0100110110, 0b0100110111, 0b0100111010, 0b0100111011, 0b0100111100, 0b0100111101,
     0b1010011110, 0b1010001001, 0b1010010100, 0b1010010101, 0b1010001010, 0b1010001011, 0b1010001110, 0b1010001111, 0b1010010010, 0b1010010011, 0b1010010110, 0b1010010111, 0b1010011010, 0b1010011011, 0b1010011100, 0b1010011101,
@@ -23,6 +27,7 @@ const static uint16_t __not_in_flash("tbl_4b5b") tbl_4b5b[256] = {
 
 // NRZI convert table
 const static uint16_t __not_in_flash("tbl_nrzi") tbl_nrzi[2048] = {
+//const uint16_t __scratch_y ("tbl_nrzi") tbl_nrzi[2048] = {
     0x000, 0x3f0, 0x3f8, 0x008, 0x3fc, 0x00c, 0x004, 0x3f4, 0x3fe, 0x00e, 0x006, 0x3f6, 0x002, 0x3f2, 0x3fa, 0x00a, 0x3ff, 0x00f, 0x007, 0x3f7, 0x003, 0x3f3, 0x3fb, 0x00b, 0x001, 0x3f1, 0x3f9, 0x009, 0x3fd, 0x00d, 0x005, 0x3f5, 
     0x200, 0x1f0, 0x1f8, 0x208, 0x1fc, 0x20c, 0x204, 0x1f4, 0x1fe, 0x20e, 0x206, 0x1f6, 0x202, 0x1f2, 0x1fa, 0x20a, 0x1ff, 0x20f, 0x207, 0x1f7, 0x203, 0x1f3, 0x1fb, 0x20b, 0x201, 0x1f1, 0x1f9, 0x209, 0x1fd, 0x20d, 0x205, 0x1f5, 
     0x300, 0x0f0, 0x0f8, 0x308, 0x0fc, 0x30c, 0x304, 0x0f4, 0x0fe, 0x30e, 0x306, 0x0f6, 0x302, 0x0f2, 0x0fa, 0x30a, 0x0ff, 0x30f, 0x307, 0x0f7, 0x303, 0x0f3, 0x0fb, 0x30b, 0x301, 0x0f1, 0x0f9, 0x309, 0x0fd, 0x30d, 0x305, 0x0f5, 
@@ -90,7 +95,8 @@ const static uint16_t __not_in_flash("tbl_nrzi") tbl_nrzi[2048] = {
 };
 
 static uint32_t crc_table[256];
-static uint8_t  data_8b[DEF_UDP_BUF_SIZE];
+//static uint8_t  data_8b[DEF_UDP_BUF_SIZE];
+static uint8_t __scratch_x ("data_8b") data_8b[DEF_UDP_BUF_SIZE];
 static uint16_t data_10b[DEF_UDP_BUF_SIZE+1];
 static uint16_t ip_identifier = 0;
 static uint32_t ip_chk_sum1, ip_chk_sum2, ip_chk_sum3;
@@ -103,6 +109,9 @@ static const uint8_t   ip_version          = 4;      // IP v4
 static const uint8_t   ip_head_len         = 5;
 static const uint8_t   ip_type_of_service  = 0;
 static const uint16_t  ip_total_len        = 20 + DEF_UDP_LEN;
+
+static uint32_t DMA_UDP;
+static dma_channel_config c0;
 
 
 static void _make_crc_table(void) {
@@ -117,7 +126,16 @@ static void _make_crc_table(void) {
 
 
 void udp_init(void) {
+
+#ifdef DMA_LOVE
+    DMA_UDP = dma_claim_unused_channel(true);
+    c0 = dma_channel_get_default_config(DMA_UDP);
+    channel_config_set_transfer_data_size(&c0, DMA_SIZE_8);
+    channel_config_set_read_increment(&c0, true);
+    channel_config_set_write_increment(&c0, true);
+#else
     _make_crc_table();
+#endif
 }
 
 
@@ -190,24 +208,71 @@ void __time_critical_func(udp_packet_gen)(uint32_t *buf, uint8_t *udp_payload) {
     data_8b[idx++] = (DEF_UDP_LEN >>  0) & 0xFF;
     data_8b[idx++] = (udp_chksum >>  8) & 0xFF;
     data_8b[idx++] = (udp_chksum >>  0) & 0xFF;
+
     // UDP payload
+#ifdef DMA_LOVE
+    // DMA使用
+    channel_config_set_read_increment(&c0, true);
+    channel_config_set_write_increment(&c0, true);
+    dma_channel_configure (
+        DMA_UDP,                // Channel to be configured
+        &c0,                    // The configuration we just created
+        &data_8b[idx],          // Destination address
+        udp_payload,            // Source address
+        DEF_UDP_PAYLOAD_SIZE,   // Number of transfers
+        true                    // Start yet
+    );
+    dma_channel_wait_for_finish_blocking(DMA_UDP);  // 転送完了待機
+    idx+=DEF_UDP_PAYLOAD_SIZE;
+#else
+    // forループコピー
     for (i = 0; i < DEF_UDP_PAYLOAD_SIZE; i++) {
         data_8b[idx++] = udp_payload[i];
     }
+#endif
+
 
     //==========================================================================
     // FCS Calc
     //==========================================================================
+#ifdef DMA_LOVE
+    // DMA転送によるCRC演算
+    channel_config_set_read_increment(&c0, true);
+    channel_config_set_write_increment(&c0, false); // 転送先はNULLのためインクリ不要
+    dma_channel_configure (
+        DMA_UDP,                // Channel to be configured
+        &c0,                    // The configuration we just created
+        NULL,                   // Destination address
+        &data_8b[8],            // Source address
+        (idx-8),                // Number of transfers
+        false                   // Don't start yet
+    );
+    dma_sniffer_enable(DMA_UDP, 1, true);                   // CRC Mode = Calculate a CRC-32 (IEEE802.3 polynomial) with bit reversed data
+    //dma_sniffer_set_byte_swap_enabled(true);              // 1Byte単位の転送なのでSwapはなくてもOK
+    hw_set_bits(&dma_hw->sniff_ctrl,                        // おまじない
+               (DMA_SNIFF_CTRL_OUT_INV_BITS | DMA_SNIFF_CTRL_OUT_REV_BITS));
+    dma_hw->sniff_data = 0xffffffff;                        // CRCシード初期化
+    dma_channel_set_read_addr(DMA_UDP, &data_8b[8], true);  // 転送開始
+    dma_channel_wait_for_finish_blocking(DMA_UDP);          // 転送完了待機
+    uint32_t crc = dma_hw->sniff_data;                      // CRC演算結果取得
+
+    // CRC結果格納（FCS）
+    data_8b[idx++] = (crc >>  0) & 0xFF;
+    data_8b[idx++] = (crc >>  8) & 0xFF;
+    data_8b[idx++] = (crc >> 16) & 0xFF;
+    data_8b[idx++] = (crc >> 24) & 0xFF;
+#else
+    // テーブル演算によるCRC計算
     uint32_t crc = 0xffffffff;
     for (i = 8; i < idx; i++) {
         crc = (crc >> 8) ^ crc_table[(crc ^ data_8b[i]) & 0xFF];
     }
     crc ^= 0xffffffff;
-
     data_8b[idx++] = (crc >>  0) & 0xFF;
     data_8b[idx++] = (crc >>  8) & 0xFF;
     data_8b[idx++] = (crc >> 16) & 0xFF;
     data_8b[idx++] = (crc >> 24) & 0xFF;
+#endif
 
     //==========================================================================
     // Encording 4b5b
