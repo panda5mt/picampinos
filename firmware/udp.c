@@ -97,7 +97,6 @@ const static uint16_t __not_in_flash("tbl_nrzi") tbl_nrzi[2048] = {
 static uint32_t crc_table[256];
 //static uint8_t  data_8b[DEF_UDP_BUF_SIZE];
 static uint8_t __scratch_x ("data_8b") data_8b[DEF_UDP_BUF_SIZE];
-static uint16_t data_10b[DEF_UDP_BUF_SIZE+1];
 static uint16_t ip_identifier = 0;
 static uint32_t ip_chk_sum1, ip_chk_sum2, ip_chk_sum3;
 
@@ -141,7 +140,7 @@ void udp_init(void) {
 
 void __time_critical_func(udp_packet_gen)(uint32_t *buf, uint8_t *udp_payload) {
     uint16_t udp_chksum = 0;
-    uint32_t i, j, idx = 0, ans;
+    uint32_t i, j, idx = 0;
 
     // Calculate the ip check sum
     ip_chk_sum1 = 0x0000C512 + ip_identifier + ip_total_len + (DEF_IP_ADR_SRC1 << 8) + DEF_IP_ADR_SRC2 + (DEF_IP_ADR_SRC3 << 8) + DEF_IP_ADR_SRC4 +
@@ -223,7 +222,7 @@ void __time_critical_func(udp_packet_gen)(uint32_t *buf, uint8_t *udp_payload) {
         true                    // Start yet
     );
     dma_channel_wait_for_finish_blocking(DMA_UDP);  // 転送完了待機
-    idx+=DEF_UDP_PAYLOAD_SIZE;
+    idx += DEF_UDP_PAYLOAD_SIZE;
 #else
     // forループコピー
     for (i = 0; i < DEF_UDP_PAYLOAD_SIZE; i++) {
@@ -275,22 +274,21 @@ void __time_critical_func(udp_packet_gen)(uint32_t *buf, uint8_t *udp_payload) {
 #endif
 
     //==========================================================================
-    // Encording 4b5b
+    // Encording 4b5b & NRZI Encoder
     //  高速化のため8bit単位で処理
     //==========================================================================
-    data_10b[0] = 0b1000111000;     // [9:5]=K, [4:0]=J
-    for (i = 1; i < DEF_UDP_BUF_SIZE; i++) {
-        data_10b[i] = tbl_4b5b[data_8b[i]];
-    }
-    data_10b[i] = 0b0011101101;     // [9:5]=R, [4:0]=T
-
-    //==========================================================================
-    // NRZI Encoder
-    //==========================================================================
     uint16_t ob = 0;
-    for (i = 0; i < (DEF_UDP_BUF_SIZE+1); i++) {
-        ans = tbl_nrzi[ob + data_10b[i]];
+    uint32_t ans;
+
+    ans = tbl_nrzi[0b1000111000];           // [9:5]=K, [4:0]=J
+    buf[0] = ans;
+    ob = (ans << 1) & 0x400;
+    
+    for (i = 1; i < DEF_UDP_BUF_SIZE; i++) {
+        ans = tbl_nrzi[ob + tbl_4b5b[data_8b[i]]];
         ob = (ans << 1) & 0x400;
         buf[i] = ans;
     }
+
+    buf[DEF_UDP_BUF_SIZE] = tbl_nrzi[ob + 0b0011101101];      // [9:5]=R, [4:0]=T
 }
