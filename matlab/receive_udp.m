@@ -14,7 +14,7 @@ clear;
 close all;
 frame_initialized = false;
 udpr = dsp.UDPReceiver( ...
-    'RemoteIPAddress','192.168.10.130', ...
+    'RemoteIPAddress','169.254.201.209', ...
     'LocalIPPort',1024, ...
     'MessageDataType', 'uint32', ...
     'MaximumMessageLength',640);
@@ -85,8 +85,8 @@ while (true)
             try
                 data = (out(HGT,WID));
                 %data = bin2dec(fliplr(dec2bin(data,32))); % bit reverse
-                img(HGT, WID*2) = data;
-                img(HGT, WID*2-1) = bitshift(data,-16);
+                img(HGT, WID*2-1) = data;
+                img(HGT, WID*2) = bitshift(data,-16);
             catch 
                 fprintf('Got error : %s, but replaced dummy data.\n',data);      % if got error,
                 data = '0xAAAAAAAA';                    % insert dummy data
@@ -106,7 +106,7 @@ while (true)
     RGB_img(:,:,2) = imgG;
     RGB_img(:,:,3) = imgB;
 
-    imshow(uint8(RGB_img));
+    imshow(imresize(uint8(RGB_img),2));
     drawnow
 end
     imwrite(RGB_img,"untitle.jpg");
