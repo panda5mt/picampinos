@@ -50,8 +50,6 @@ uint32_t* cam_ptr;  // pointer of camera buffer
 uint32_t* cam_ptr2; // back half pointer of cam_ptr.
 uint32_t* iot_ptr;  // pointer of IoT RAM's read buffer.
 
-
-
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
 void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_num);
 void cam_handler();
