@@ -5,7 +5,8 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "../pico-sdk/**",
-                "/usr/lib/gcc/arm-none-eabi/**"
+                "/usr/lib/gcc/arm-none-eabi/**",
+                "/usr/bin/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/arm-none-eabi-gcc",
