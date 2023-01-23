@@ -29,7 +29,7 @@
 #define CAM_BUF_SIZE    (640 * BLOCK * 2)   // in bytes
 #define CAM_BUF_HALF    (CAM_BUF_SIZE / 2)  // in bytes
 #define NUM_COMP_FRM    (CAM_FUL_SIZE/CAM_BUF_SIZE * 2) * 3// (number of call by interrupt to complete Frame) * 3
-
+#define CAM_TOTAL_LEN   (CAM_FUL_SIZE * 3)
 // high layer APIs
 void init_cam(uint8_t DEVICE_IS);
 void config_cam_buffer();

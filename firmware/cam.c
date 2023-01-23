@@ -243,12 +243,12 @@ void sfp_cam() {
     // uint8_t BUF_LEN = 10;
     // uint8_t in_buf[BUF_LEN]; 
     // uint8_t out_buf[BUF_LEN];
-
+    static int32_t iot_addr = 0;
     sfp_hw_init(pio_sfp);
 
     while(1) {
 
-        int32_t iot_addr = 0;
+        
         int32_t *b;
         uint32_t resp;
         b = iot_ptr + SFP_HEADER_WORDS; // Header offset
@@ -260,15 +260,15 @@ void sfp_cam() {
         
         sfp_send(&a, sizeof(uint32_t)*4);
         
-        for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
+        for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK/2) {
             
-            while(psram_access < NUM_COMP_FRM / 2); // 50% of 1frame
-            psram_access = psram_access - 2;        // write buffer x 2 = read buffer
+            while(psram_access < NUM_COMP_FRM / 2); // 50% of all data
+            psram_access = psram_access - 1;        // 
             sem_acquire_blocking(&psram_sem);
-            iot_sram_read(pio_iot, (uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length         
+            iot_sram_read(pio_iot, (uint32_t *)b, iot_addr, CAM_BUF_HALF, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length         
             sem_release(&psram_sem);
 
-            for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i+=320) {
+            for (uint32_t i = 0 ; i < CAM_BUF_HALF/sizeof(uint32_t) ; i+=320) {
                 //printf("0x%08X\r\n",b[i]);
 
                 sfp_send_with_header(0xbeefbeef,(h+i/320)+1,1,320, &(b[i]) - SFP_HEADER_WORDS, sizeof(uint32_t)*320);
@@ -276,12 +276,17 @@ void sfp_cam() {
                 // for(uint32_t j = 0; j < 320;j++){
                 //      printf("0x%08X\r\n",b[i+j]);
                 // }
+
             }
 
             // increment iot sram's address
-            iot_addr = iot_addr + CAM_BUF_SIZE;
+            iot_addr = iot_addr + CAM_BUF_HALF;
+        
         }
-    
+
+        if(iot_addr > CAM_TOTAL_LEN - 1) {
+            iot_addr = 0;
+        }
         // send dummy data
         
         for(uint32_t i = 0 ; i < 5 ; i++) {

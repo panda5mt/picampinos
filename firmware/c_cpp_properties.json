@@ -3,7 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**",
+                "${workspaceFolder}/**",            
                 "../pico-sdk/**",
                 "/usr/lib/gcc/arm-none-eabi/**",
                 "/usr/bin/**"
