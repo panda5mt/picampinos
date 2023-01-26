@@ -241,7 +241,6 @@ void spiout_cam() {
 #if USE_100BASE_FX
 void sfp_cam() {    
 
-    static int32_t psram_ac_old = 0;
     static int32_t iot_addr = 0;
     sfp_hw_init(pio_sfp);
 
@@ -261,10 +260,8 @@ void sfp_cam() {
         
         for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK/2) {
             
-            while(psram_access < NUM_COMP_FRM / 3){}; // 33% of all data
-            while(psram_ac_old == psram_access){};
-            psram_access = psram_access - 1;        // 
-            psram_ac_old = psram_access;
+            while(psram_access < NUM_COMP_FRM / 3){};   // 33% of all data
+            psram_access = psram_access - 1;            // 
             sem_acquire_blocking(&psram_sem);
             iot_sram_read(pio_iot, (uint32_t *)b, iot_addr, CAM_BUF_HALF, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length         
             sem_release(&psram_sem);
