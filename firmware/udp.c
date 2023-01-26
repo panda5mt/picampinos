@@ -3,7 +3,7 @@
 #include "hardware/dma.h"
 
 #define DMA_LOVE    // Using DMA for payload copy and CRC32 Calc.
-
+volatile static bool is_first_call = true;
 // 4B5B convert table
 const static uint16_t __not_in_flash("tbl_4b5b") tbl_4b5b[256] = {
 //const uint16_t __scratch_x ("tbl_4b5b") tbl_4b5b[256] = {
@@ -141,7 +141,8 @@ void udp_init(void) {
 void __time_critical_func(udp_packet_gen)(uint32_t *buf, uint8_t *udp_payload) {
     uint16_t udp_chksum = 0;
     uint32_t i, j, idx = 0;
-
+    if(true == is_first_call) {
+        is_first_call = false;
     // Calculate the ip check sum
     ip_chk_sum1 = 0x0000C512 + ip_identifier + ip_total_len + (DEF_IP_ADR_SRC1 << 8) + DEF_IP_ADR_SRC2 + (DEF_IP_ADR_SRC3 << 8) + DEF_IP_ADR_SRC4 +
                   (DEF_IP_DST_DST1 << 8) + DEF_IP_DST_DST2 + (DEF_IP_DST_DST3 << 8) + DEF_IP_DST_DST4;
@@ -207,7 +208,10 @@ void __time_critical_func(udp_packet_gen)(uint32_t *buf, uint8_t *udp_payload) {
     data_8b[idx++] = (DEF_UDP_LEN >>  0) & 0xFF;
     data_8b[idx++] = (udp_chksum >>  8) & 0xFF;
     data_8b[idx++] = (udp_chksum >>  0) & 0xFF;
-
+    } else { 
+        idx = 50;
+    }
+    
     // UDP payload
 #ifdef DMA_LOVE
     // DMA使用
