@@ -37,4 +37,10 @@ Get ideas to see <code>[get_sdk.sh](get_sdk.sh)</code>.
 
 ## Hardware settings
 This is <code>[Schematics](hardware/RP2040Board.pdf)</code>.
-For instance, check comment in <code>[firmware/main.c](firmware/main.c)</code> for connection via RP2040.
+For instance, check comment in <code>[firmware/main.c](firmware/main.c)</code> for connection via RP2040 and DVP Camera.
+
+This module has three options, each of which is exclusive; only one option may be used at a time.
+### Using SFP module (Default)
+With the SFP module, pi-cám-pinos sends image data from the DVP camera to the optical fiber at up to 100 Mbps.
+### Using SPI Slave module(not tested)
+### Using UART module (easiest)
