@@ -260,7 +260,7 @@ void sfp_cam() {
         
         for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK/2) {
             
-            while(psram_access < NUM_COMP_FRM / 3){};   // 33% of all data
+            while(psram_access < NUM_COMP_FRM / 2){};   // 50% of all data
             psram_access = psram_access - 1;            // 
             sem_acquire_blocking(&psram_sem);
             iot_sram_read(pio_iot, (uint32_t *)b, iot_addr, CAM_BUF_HALF, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length         
