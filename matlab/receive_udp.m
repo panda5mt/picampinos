@@ -14,7 +14,7 @@ clear;
 close all;
 frame_initialized = false;
 udpr = dsp.UDPReceiver( ...
-    'RemoteIPAddress','192.168.10.130', ...
+    'RemoteIPAddress','169.254.201.82', ...
     'LocalIPPort',1024, ...
     'MessageDataType', 'uint32', ...
     'MaximumMessageLength',640);
@@ -27,7 +27,7 @@ blk_size = 0;
 frame_start_packet = 0xdeadbeef;
 header_pixel_data = 0xbeefbeef;
 frame_end_packet = 0xdeaddead;
-
+frame_counter = 0;
 % image processing setup
 RGB_img = zeros(480,640,3,'uint8');
 img = zeros(480,640,'uint32');
@@ -35,14 +35,15 @@ lower5 = hex2dec('1f') .* ones(480,640,'uint32'); % 0x1f 0x1f ....
 lower6 = hex2dec('3f') .* ones(480,640,'uint32'); % 0x3f 0x3f ....
 lower8 = hex2dec('ff') .* ones(480,640,'uint32'); % 0xff 0xff ....
 lower16 = 65535 .* ones(480,640,'uint32'); % 0xffff 0xffff ....
-
+tStart = tic;
 while (true)
     % seek header
+    
     while true
         dataReceived = udpr();
         if  false == isempty(dataReceived) && frame_start_packet == dataReceived(1) 
             %convertCharsToStrings( dataReceived )
-            
+            frame_counter = frame_counter + 1;
             row_size = dataReceived(2);
             col_size = dataReceived(3);
             blk_size = dataReceived(4);
@@ -85,8 +86,8 @@ while (true)
             try
                 data = (out(HGT,WID));
                 %data = bin2dec(fliplr(dec2bin(data,32))); % bit reverse
-                img(HGT, WID*2) = data;
-                img(HGT, WID*2-1) = bitshift(data,-16);
+                img(HGT, WID*2-1) = data;
+                img(HGT, WID*2) = bitshift(data,-16);
             catch 
                 fprintf('Got error : %s, but replaced dummy data.\n',data);      % if got error,
                 data = '0xAAAAAAAA';                    % insert dummy data
@@ -106,8 +107,16 @@ while (true)
     RGB_img(:,:,2) = imgG;
     RGB_img(:,:,3) = imgB;
 
-    imshow(uint8(RGB_img));
+    imshow(imresize(uint8(RGB_img),3));
     drawnow
+    
+    if(frame_counter > 40)
+        tEnd = toc(tStart);
+        fps = frame_counter / tEnd;
+        disp(fps);
+        frame_counter = 0;
+        tStart = tic;
+    end
 end
     imwrite(RGB_img,"untitle.jpg");
 
