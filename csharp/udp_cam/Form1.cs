@@ -71,7 +71,7 @@ namespace udp_cam
                         fcounter++;
                     }
                     //else if (BitConverter.ToUInt32(data, 0) == frame_end_packet)
-                    if ((fcounter <= 479) && (header != frame_start_packet))                        
+                    if ((fcounter <= 480) && (header != frame_start_packet))                        
                     {
                         continue;
                     }
