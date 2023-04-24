@@ -40,20 +40,19 @@ namespace udp_cam
                 {
                     IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
                     byte[] data = udpClient.Receive(ref endPoint);
-
+                    UInt32 header = BitConverter.ToUInt32(data, 0);
                     // 先頭の0xDEADBEEFをチェック
-                    if (BitConverter.ToUInt32(data, 0) == frame_start_packet)
+                    if (header == frame_start_packet)
                     {
                         //bmp = new Bitmap(640, 480); // バイト配列をビットマップに変換
                     }
-                    else if (BitConverter.ToUInt32(data, 0) == header_pixel_data)
+                    else if (header == header_pixel_data)
                     {
                         //Debug.WriteLine("data!");
-                        height = BitConverter.ToUInt32(data, 4) - 1;     //height number
+                        height = BitConverter.ToUInt32(data, 4) - 1;    //height number
                         width = BitConverter.ToUInt32(data, 8) - 1;     //columb number
-                        sz = BitConverter.ToUInt32(data, 12) * 2;   // data size
-                        //Debug.WriteLine("height={0}, width={1}, sz={2}", height, width, sz);
-
+                        sz = BitConverter.ToUInt32(data, 12) * 2;       // data size
+                        
                         int index = 16; // 先頭の16バイト分はヘッダなので、indexを16から始める
 
                         for (int x = (int)width; x < sz; x++)
@@ -75,41 +74,42 @@ namespace udp_cam
                         fcounter++;
                     }
                     //else if (BitConverter.ToUInt32(data, 0) == frame_end_packet)
-                    if (fcounter > 480)
+                    if (fcounter <= 479)
                     {
-                        fcounter = 0;
-                        lock (imageLock)
+                        continue;
+                    }
+                    fcounter = 0;
+                    lock (imageLock)
+                    {
+                        //if (image == null)
                         {
-                            //if (image == null)
-                            {
-                                image = new Bitmap(bmp);
-                                //bmp.Dispose();
-                            }
-
-
-
-                            pictureBox1.Invoke(new Action(() =>
-                            {
-                                // 2倍に拡大する倍率を定義します。
-                                const int ZoomFactor = 2;
-
-                                // 2倍のサイズで新しいビットマップを作成します。
-                                Bitmap zoomedBitmap = new Bitmap(image.Width * ZoomFactor, image.Height * ZoomFactor);
-
-                                // 新しいビットマップのGraphicsオブジェクトを取得します。
-                                Graphics graphics = Graphics.FromImage(zoomedBitmap);
-
-                                // InterpolationModeをHighQualityBicubicに設定し、画像の拡大品質を向上します。
-                                graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-
-                                // 新しいビットマップにオリジナルのビットマップを2倍のサイズで描画します。
-                                graphics.DrawImage(image, new Rectangle(0, 0, zoomedBitmap.Width, zoomedBitmap.Height), new Rectangle(0, 0, image.Width, image.Height), GraphicsUnit.Pixel);
-
-                                // PictureBoxに新しいビットマップを表示します。
-                                pictureBox1.Image = zoomedBitmap;
-                                pictureBox1.Invalidate();
-                            }));
+                            image = new Bitmap(bmp);
+                            //bmp.Dispose();
                         }
+
+
+
+                        pictureBox1.Invoke(new Action(() =>
+                        {
+                            // 2倍に拡大する倍率を定義します。
+                            const int ZoomFactor = 2;
+
+                            // 2倍のサイズで新しいビットマップを作成します。
+                            Bitmap zoomedBitmap = new Bitmap(image.Width * ZoomFactor, image.Height * ZoomFactor);
+
+                            // 新しいビットマップのGraphicsオブジェクトを取得します。
+                            Graphics graphics = Graphics.FromImage(zoomedBitmap);
+
+                            // InterpolationModeをHighQualityBicubicに設定し、画像の拡大品質を向上します。
+                            graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+
+                            // 新しいビットマップにオリジナルのビットマップを2倍のサイズで描画します。
+                            graphics.DrawImage(image, new Rectangle(0, 0, zoomedBitmap.Width, zoomedBitmap.Height), new Rectangle(0, 0, image.Width, image.Height), GraphicsUnit.Pixel);
+
+                            // PictureBoxに新しいビットマップを表示します。
+                            pictureBox1.Image = zoomedBitmap;
+                            pictureBox1.Invalidate();
+                        }));
                     }
                 }
                 catch (Exception ex)
