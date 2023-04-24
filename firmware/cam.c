@@ -287,10 +287,10 @@ void sfp_cam() {
         }
         // send dummy data
         
-        for(uint32_t i = 0 ; i < 5 ; i++) {
+        //for(uint32_t i = 0 ; i < 5 ; i++) {
             a[0] = 0xdeaddead ;
             sfp_send(&a, sizeof(uint32_t)*1);
-        }
+        //}
     }
 }
 #endif
