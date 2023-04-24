@@ -41,12 +41,9 @@ namespace udp_cam
                     IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
                     byte[] data = udpClient.Receive(ref endPoint);
                     UInt32 header = BitConverter.ToUInt32(data, 0);
-                    // 先頭の0xDEADBEEFをチェック
-                    if (header == frame_start_packet)
-                    {
-                        //bmp = new Bitmap(640, 480); // バイト配列をビットマップに変換
-                    }
-                    else if (header == header_pixel_data)
+
+
+                    if (header == header_pixel_data)
                     {
                         //Debug.WriteLine("data!");
                         height = BitConverter.ToUInt32(data, 4) - 1;    //height number
@@ -74,7 +71,7 @@ namespace udp_cam
                         fcounter++;
                     }
                     //else if (BitConverter.ToUInt32(data, 0) == frame_end_packet)
-                    if (fcounter <= 479)
+                    if ((fcounter <= 479) && (header != frame_start_packet))                        
                     {
                         continue;
                     }
@@ -107,6 +104,11 @@ namespace udp_cam
                             graphics.DrawImage(image, new Rectangle(0, 0, zoomedBitmap.Width, zoomedBitmap.Height), new Rectangle(0, 0, image.Width, image.Height), GraphicsUnit.Pixel);
 
                             // PictureBoxに新しいビットマップを表示します。
+                            if (pictureBox1.Image != null)
+                            {
+                                pictureBox1.Image.Dispose();
+                                pictureBox1.Image = null;
+                            }
                             pictureBox1.Image = zoomedBitmap;
                             pictureBox1.Invalidate();
                         }));
