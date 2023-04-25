@@ -28,17 +28,20 @@ namespace udp_cam
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             Debug.WriteLine("Closing Process");
-            formClosed = true;
-            if (receiveThread != null)
-            {
-                receiveThread.Join();
-            }
-            Debug.WriteLine("Thread terminated");
-
+            
             if (udpClient != null)
             {
                 udpClient.Close();
             }
+
+            formClosed = true;
+            
+            if (receiveThread != null)
+            {
+                receiveThread.Join();
+                Debug.WriteLine("Thread terminated");
+            }
+
         }
 
         private void ReceiveData()
