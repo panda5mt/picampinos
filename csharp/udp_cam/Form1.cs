@@ -27,8 +27,18 @@ namespace udp_cam
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
+            Debug.WriteLine("Closing Process");
             formClosed = true;
-            udpClient.Close();
+            if (receiveThread != null)
+            {
+                receiveThread.Join();
+            }
+            Debug.WriteLine("Thread terminated");
+
+            if (udpClient != null)
+            {
+                udpClient.Close();
+            }
         }
 
         private void ReceiveData()
@@ -76,16 +86,11 @@ namespace udp_cam
                         continue;
                     }
                     fcounter = 0;
+
                     lock (imageLock)
                     {
-                        //if (image == null)
-                        {
-                            image = new Bitmap(bmp);
-                            //bmp.Dispose();
-                        }
-
-
-
+                        
+                        image = new Bitmap(bmp);
                         pictureBox1.Invoke(new Action(() =>
                         {
                             // 2”{‚ÉŠg‘å‚·‚é”{—¦‚ð’è‹`‚µ‚Ü‚·B
