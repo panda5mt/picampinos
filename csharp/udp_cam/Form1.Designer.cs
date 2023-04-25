@@ -36,16 +36,18 @@
             // pictureBox1
             // 
             pictureBox1.Location = new Point(63, 28);
+            pictureBox1.Margin = new Padding(4, 2, 4, 2);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(1280, 960);
+            pictureBox1.Size = new Size(640, 480);
             pictureBox1.TabIndex = 0;
             pictureBox1.TabStop = false;
             // 
             // button1
             // 
-            button1.Location = new Point(63, 1047);
+            button1.Location = new Point(63, 559);
+            button1.Margin = new Padding(4, 2, 4, 2);
             button1.Name = "button1";
-            button1.Size = new Size(331, 46);
+            button1.Size = new Size(331, 47);
             button1.TabIndex = 1;
             button1.Text = "Connect Camera";
             button1.UseVisualStyleBackColor = true;
@@ -55,9 +57,10 @@
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1474, 1129);
+            ClientSize = new Size(774, 629);
             Controls.Add(button1);
             Controls.Add(pictureBox1);
+            Margin = new Padding(4, 2, 4, 2);
             Name = "Form1";
             Text = "Form1";
             FormClosing += Form1_FormClosing;
