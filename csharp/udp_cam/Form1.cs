@@ -28,7 +28,7 @@ namespace udp_cam
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             Debug.WriteLine("Closing Process");
-            
+
             if (udpClient != null)
             {
                 udpClient.Close();
@@ -36,7 +36,7 @@ namespace udp_cam
 
             formClosed = true;
             pictureBox1.Dispose();
-            
+
             if (receiveThread != null)
             {
                 receiveThread.Join();
@@ -93,12 +93,12 @@ namespace udp_cam
 
                     lock (imageLock)
                     {
-                        
+
                         image = new Bitmap(bmp);
                         pictureBox1.Invoke(new Action(() =>
                         {
                             // 2倍に拡大する倍率を定義します。
-                            const int ZoomFactor = 2;
+                            const int ZoomFactor = 1;
 
                             // 2倍のサイズで新しいビットマップを作成します。
                             Bitmap zoomedBitmap = new Bitmap(image.Width * ZoomFactor, image.Height * ZoomFactor);
