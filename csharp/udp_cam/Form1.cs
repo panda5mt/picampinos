@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 
@@ -15,6 +16,7 @@ namespace udp_cam
         private UInt32 header_pixel_data = 0xbeefbeef;
         private UInt32 frame_end_packet = 0xdeaddead;
         private UInt32 height, width, sz, fcounter = 0; // height, column, data-size
+        private uint color, r, g, b;
         private Bitmap bmp;
 
         public Form1()
@@ -23,7 +25,7 @@ namespace udp_cam
         }
 
 
-        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             formClosed = true;
             udpClient.Close();
@@ -47,16 +49,16 @@ namespace udp_cam
                         height = BitConverter.ToUInt32(data, 4) - 1;    //height number
                         width = BitConverter.ToUInt32(data, 8) - 1;     //columb number
                         sz = BitConverter.ToUInt32(data, 12) * 2;       // data size
-                        
+
                         int index = 16; // 先頭の16バイト分はヘッダなので、indexを16から始める
 
                         for (int x = (int)width; x < sz; x++)
                         {
                             // RGB565のバイナリデータを解析して、カラー情報を取得
-                            uint color = (uint)(data[index] << 8 | data[index + 1]);
-                            uint r = (color >> 11) & 0x1f;
-                            uint g = (color >> 5) & 0x3f;
-                            uint b = color & 0x1f;
+                            color = (uint)(data[index] << 8 | data[index + 1]);
+                            r = (color >> 11) & 0x1f;
+                            g = (color >> 5) & 0x3f;
+                            b = color & 0x1f;
                             r = (r * 255 / 31);
                             g = (g * 255 / 63);
                             b = (b * 255 / 31);
@@ -69,7 +71,7 @@ namespace udp_cam
                         fcounter++;
                     }
                     //else if (BitConverter.ToUInt32(data, 0) == frame_end_packet)
-                    if ((fcounter <= 480) && (header != frame_start_packet))                        
+                    if ((fcounter <= 480) && (header != frame_start_packet))
                     {
                         continue;
                     }
@@ -114,16 +116,24 @@ namespace udp_cam
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(ex.ToString());
+                    Debug.WriteLine(ex);
                 }
             }
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            udpClient = new UdpClient(1024);
-            receiveThread = new Thread(new ThreadStart(ReceiveData));
-            receiveThread.Start();
+            if (udpClient == null)
+            {
+                udpClient = new UdpClient(1024);
+                receiveThread = new Thread(new ThreadStart(ReceiveData));
+                receiveThread.Start();
+            }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }
