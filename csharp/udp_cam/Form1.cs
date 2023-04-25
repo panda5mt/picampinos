@@ -35,6 +35,7 @@ namespace udp_cam
             }
 
             formClosed = true;
+            pictureBox1.Dispose();
             
             if (receiveThread != null)
             {
