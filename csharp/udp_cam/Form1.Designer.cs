@@ -1,4 +1,4 @@
-﻿namespace udp_cam
+namespace udp_cam
 {
     partial class Form1
     {

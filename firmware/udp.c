@@ -225,10 +225,10 @@ void __time_critical_func(udp_packet_gen)(uint32_t *buf, uint8_t *udp_payload) {
         DEF_UDP_PAYLOAD_SIZE,   // Number of transfers
         true                    // Start yet
     );
-    dma_channel_wait_for_finish_blocking(DMA_UDP);  // 転送完了待機
+    dma_channel_wait_for_finish_blocking(DMA_UDP);  // 転送完亁E��E��E
     idx += DEF_UDP_PAYLOAD_SIZE;
 #else
-    // forループコピー
+    // forループコピ�E
     for (i = 0; i < DEF_UDP_PAYLOAD_SIZE; i++) {
         data_8b[idx++] = udp_payload[i];
     }
@@ -239,9 +239,9 @@ void __time_critical_func(udp_packet_gen)(uint32_t *buf, uint8_t *udp_payload) {
     // FCS Calc
     //==========================================================================
 #ifdef DMA_LOVE
-    // DMA転送によるCRC演算
+    // DMA転送によるCRC演箁E
     channel_config_set_read_increment(&c0, true);
-    channel_config_set_write_increment(&c0, false); // 転送先はNULLのためインクリ不要
+    channel_config_set_write_increment(&c0, false); // 転送�EはNULLのためインクリ不要E
     dma_channel_configure (
         DMA_UDP,                // Channel to be configured
         &c0,                    // The configuration we just created
@@ -251,21 +251,21 @@ void __time_critical_func(udp_packet_gen)(uint32_t *buf, uint8_t *udp_payload) {
         false                   // Don't start yet
     );
     dma_sniffer_enable(DMA_UDP, 1, true);                   // CRC Mode = Calculate a CRC-32 (IEEE802.3 polynomial) with bit reversed data
-    //dma_sniffer_set_byte_swap_enabled(true);              // 1Byte単位の転送なのでSwapはなくてもOK
-    hw_set_bits(&dma_hw->sniff_ctrl,                        // おまじない
+    //dma_sniffer_set_byte_swap_enabled(true);              // 1Byte単位�E転送なのでSwapはなくてもOK
+    hw_set_bits(&dma_hw->sniff_ctrl,                        // おまじなぁE
                (DMA_SNIFF_CTRL_OUT_INV_BITS | DMA_SNIFF_CTRL_OUT_REV_BITS));
-    dma_hw->sniff_data = 0xffffffff;                        // CRCシード初期化
-    dma_channel_set_read_addr(DMA_UDP, &data_8b[8], true);  // 転送開始
-    dma_channel_wait_for_finish_blocking(DMA_UDP);          // 転送完了待機
-    uint32_t crc = dma_hw->sniff_data;                      // CRC演算結果取得
+    dma_hw->sniff_data = 0xffffffff;                        // CRCシード�E期化
+    dma_channel_set_read_addr(DMA_UDP, &data_8b[8], true);  // 転送E��姁E
+    dma_channel_wait_for_finish_blocking(DMA_UDP);          // 転送完亁E��E��E
+    uint32_t crc = dma_hw->sniff_data;                      // CRC演算結果取征E
 
-    // CRC結果格納（FCS）
+    // CRC結果格納！ECS�E�E
     data_8b[idx++] = (crc >>  0) & 0xFF;
     data_8b[idx++] = (crc >>  8) & 0xFF;
     data_8b[idx++] = (crc >> 16) & 0xFF;
     data_8b[idx++] = (crc >> 24) & 0xFF;
 #else
-    // テーブル演算によるCRC計算
+    // チE�Eブル演算によるCRC計箁E
     uint32_t crc = 0xffffffff;
     for (i = 8; i < idx; i++) {
         crc = (crc >> 8) ^ crc_table[(crc ^ data_8b[i]) & 0xFF];
@@ -279,7 +279,7 @@ void __time_critical_func(udp_packet_gen)(uint32_t *buf, uint8_t *udp_payload) {
 
     //==========================================================================
     // Encording 4b5b & NRZI Encoder
-    //  高速化のため8bit単位で処理
+    //  高速化のため8bit単位で処琁E
     //==========================================================================
     uint16_t ob = 0;
     uint32_t ans;
