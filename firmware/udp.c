@@ -296,3 +296,4 @@ void __time_critical_func(udp_packet_gen)(uint32_t *buf, uint8_t *udp_payload) {
 
     buf[DEF_UDP_BUF_SIZE] = tbl_nrzi[ob + 0b0011101101];      // [9:5]=R, [4:0]=T
 }
+

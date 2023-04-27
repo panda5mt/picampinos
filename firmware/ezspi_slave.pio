@@ -67,3 +67,4 @@ static inline void ezspi_slave_program_init( PIO pio, uint32_t sm, uint32_t offs
     pio_sm_set_enabled( pio, sm, true );
 }
 %}
+

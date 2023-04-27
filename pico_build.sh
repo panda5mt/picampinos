@@ -7,3 +7,4 @@ else
 echo -e "\e[31mError. None firmware is built.\e[m"
 fi
 
+

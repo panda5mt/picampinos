@@ -26,3 +26,4 @@ echo -e '#!/bin/bash\nNOW=`date "+%Y%m%d_%H%M%S"`\ngit add .\n# git commit -m "a
 chmod +x add_git.sh
 git config --global core.autocrlf false
 
+

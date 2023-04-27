@@ -14,6 +14,3 @@ flush(serialObj);
 %% read frames from Raspi module
 % trigger "readSpData" if 640*2 byte can be read from UART
 configureCallback(serialObj,"byte",128,@readSpData);
-
-
-

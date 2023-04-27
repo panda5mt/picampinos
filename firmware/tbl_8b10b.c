@@ -99,3 +99,4 @@ inline uint32_t tbl_8b10b_enc (uint8_t data, bool ken)
     return ret;
 }
 
+

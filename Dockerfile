@@ -25,3 +25,4 @@ RUN cp ../../pico-sdk/external/pico_sdk_import.cmake .
 RUN echo -e '#!/bin/bash\nmkdir -p build\ncd build\nexport PICO_SDK_PATH=../../../pico-sdk\ncmake ..\nmake' > pico_build.sh 
 RUN chmod +x pico_build.sh
 RUN git config --global core.autocrlf false
+

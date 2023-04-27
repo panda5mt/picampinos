@@ -5,6 +5,3 @@ function array = pascal_1d(n)
     end
     array = tmp;
 end
-
-
-

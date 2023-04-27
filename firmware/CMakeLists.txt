@@ -46,3 +46,4 @@ pico_enable_stdio_usb(${target_name} 1)
 #pico_enable_stdio_uart(${target_name} 1)
 
 pico_add_extra_outputs(${target_name})
+

@@ -44,3 +44,4 @@ This module has three options, each of which is exclusive; only one option may b
 With the SFP module, pi-cám-pinos sends image data from the DVP camera to the optical fiber at up to 100 Mbps.
 ### Using SPI Slave module(not tested)
 ### Using UART module (easiest)
+

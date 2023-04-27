@@ -75,3 +75,4 @@ static inline void iot_sram_program_init( PIO pio, uint32_t sm, uint32_t offset,
     pio_sm_set_enabled( pio, sm, true );
 }
 %}
+

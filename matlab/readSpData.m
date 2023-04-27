@@ -49,7 +49,4 @@ function readSpData(srcComObj, ~)
     if a > 480
         a = 1;
     end
-end    
-
-
-
+end

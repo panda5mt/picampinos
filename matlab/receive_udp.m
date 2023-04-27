@@ -118,12 +118,4 @@ while (true)
         tStart = tic;
     end
 end
-    imwrite(RGB_img,"untitle.jpg");
-
-
-
-
-
-
-
-
+imwrite(RGB_img,"untitle.jpg");

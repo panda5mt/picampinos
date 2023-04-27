@@ -70,3 +70,4 @@ static inline void picampinos_program_init( PIO pio, uint32_t sm, uint32_t offse
     pio_sm_set_enabled( pio, sm, true );
 }
 %}
+

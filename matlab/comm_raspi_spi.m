@@ -67,10 +67,3 @@ while (true)
     imshow(uint8(RGB_img));
     imwrite(RGB_img,"untitle.jpg");
 end
-
-
-%disableSPI(mypi);
-%mypi = 0;
-
-
-
