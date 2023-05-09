@@ -7,7 +7,7 @@
 double log_approx(uint32_t x, uint32_t base) {
     // base:2 ,10
     
-    // log2(x)を求める
+    // calc log2(x)
     int n = 0;
     if (x >= 0x10000) { x >>= 16; n += 16; }
     if (x >= 0x100) { x >>= 8; n += 8; }
@@ -15,11 +15,11 @@ double log_approx(uint32_t x, uint32_t base) {
     if (x >= 0x4) { x >>= 2; n += 2; }
     if (x >= 0x2) { n += 1; }
 
-    // xの最上位ビットからnビットを取り出す
+    // get upper n-bits of x
     uint32_t r = (x >> (n - 1)) & 0x3;
     uint32_t f = (x << (33 - n)) >> 24;
 
-    // log2(f)を求める
+    // get log2(f)
     int k = 0;
     while (f >= 0x2) {
         f >>= 1;
