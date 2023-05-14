@@ -5,6 +5,9 @@
 // Reference from ...
 // https://www.kurims.kyoto-u.ac.jp/~ooura/fftman/ftmn1_24.html
 
+float_t _sine(float_t x, uint32_t nMAX);
+float_t _cosine(float_t x, uint32_t nMAX);
+
 typedef struct {
     int32_t r; // real
     int32_t i; // imag 

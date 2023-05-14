@@ -24,7 +24,10 @@ target_sources(${target_name} PRIVATE
         cam.c
         sccb_if.c
         iot_sram.c
-#        ezspi_slave.c
+        # arithmetic/pico_dct8.c
+        # arithmetic/pico_fft.c
+        # arithmetic/test_code.c       
+        # ezspi_slave.c
         )
 
 target_link_libraries(${target_name} PRIVATE
@@ -43,6 +46,7 @@ target_link_libraries(${target_name} PRIVATE
 
 
 pico_enable_stdio_usb(${target_name} 1)
+#pico_set_float_implementation(${target_name} compiler)
 #pico_enable_stdio_uart(${target_name} 1)
 
 pico_add_extra_outputs(${target_name})
