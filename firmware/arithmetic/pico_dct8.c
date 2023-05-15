@@ -1,22 +1,33 @@
 #include "pico/stdlib.h"
 #include "pico_dct8.h"
 #include "pico_fft.h"
+
+
 #define BLOCK_SIZE 8
+#define FACTOR 512
+
+int dct_table[8 * 8];
+
+void make_dct_table(void) {
+    for(int i = 0; i < BLOCK_SIZE; i++) {
+        for(int j = 0; j < BLOCK_SIZE; j++) {
+            dct_table[i * BLOCK_SIZE + j] = (int) (cos((2 * i + 1) * j * M_PI / (2 * BLOCK_SIZE)) * FACTOR);
+            //printf("%8d",dct_table[i * BLOCK_SIZE + j]);
+        }
+        printf("\n");
+    }
+}
 
 void pico_dct8(uint8_t* image, float_t *cff, int32_t img_height, int32_t img_width) {
     
-    int32_t u, v, start_row, start_col;
-    int32_t block_rows = img_height / BLOCK_SIZE ;
-    int32_t block_cols = img_width / BLOCK_SIZE ;
-    float_t cu, cv, cos_u, cos_v, sum, pixel_value, coeff;
+    int32_t x, y, u, v, row, col;
+    int32_t block_rows = img_height; 
+    int32_t block_cols = img_width;
+    float_t cu, cv, sum, pixel_value, coeff;
    
     // 8x8ブロックごとに処理
-    for (int32_t row = 0; row < block_rows; row++) {
-        for (int32_t col = 0; col < block_cols; col++) {
-
-            // 8x8ブロックの先頭位置を計算
-            start_row = row * BLOCK_SIZE;
-            start_col = col * BLOCK_SIZE;
+    for (row = 0; row < block_rows; row+=BLOCK_SIZE) {
+        for (col = 0; col < block_cols; col+=BLOCK_SIZE) {
 
             // 8x8ブロック内の各係数を計算
             for (u = 0; u < BLOCK_SIZE; u++) {
@@ -27,20 +38,57 @@ void pico_dct8(uint8_t* image, float_t *cff, int32_t img_height, int32_t img_wid
                     sum = 0.0;
 
                     // 8x8ブロック内の各ピクセルに対してDCTを計算
-                    for (int32_t x = 0; x < BLOCK_SIZE; x++) {
-                        for (int32_t y = 0; y < BLOCK_SIZE; y++) {
-                            pixel_value = image[(start_row + y) * img_width + (start_col + x)];
-                            cos_u = cos((2 * x + 1) * u * M_PI / (2.0 *BLOCK_SIZE));
-                            cos_v = cos((2 * y + 1) * v * M_PI / (2.0 *BLOCK_SIZE));
-                            sum += pixel_value * cos_u * cos_v;
+                    for (x = 0; x < BLOCK_SIZE; x++) {
+                        for (y = 0; y < BLOCK_SIZE; y++) {
+                            pixel_value = image[(row + y) * img_width + (col + x)];
+                            
+                            sum += pixel_value  
+                                    * dct_table[x * BLOCK_SIZE + u] 
+                                    * dct_table[y * BLOCK_SIZE + v] / FACTOR / FACTOR;
+                                ;
                         }
                     }             
                     coeff = (0.25 * cu * cv * sum);
                     // 係数を格納する処理
-                    cff[((row * BLOCK_SIZE + v) * img_width) + col * BLOCK_SIZE + u] = coeff;                                
+                    cff[((row + v) * img_width) + col + u] = coeff;                                
                 }
             }
         }
     }
 }
+void pico_idct8(float_t* image, int32_t *cff, int32_t img_height, int32_t img_width) {
+    int32_t x, y, u, v, row, col;
+    int32_t block_rows = img_height; 
+    int32_t block_cols = img_width;
+    float_t cu, cv, cos_u, cos_v, sum, pixel_value, coeff;
+   
+    // 8x8ブロックごとに処理
+    for (row = 0; row < block_rows; row+=BLOCK_SIZE) {
+        for (col = 0; col < block_cols; col+=BLOCK_SIZE) {
+            for (x = 0; x < BLOCK_SIZE; x++) {
+                for (y = 0; y < BLOCK_SIZE; y++) {
+                    sum = 0.0;
+                    for (u = 0; u < BLOCK_SIZE; u++) {
+                        for (v = 0; v < BLOCK_SIZE; v++) {
+                            // 係数のスケーリング
+                            cu = (u == 0) ? 1.0 / sqrt(2.0) : 1.0;
+                            cv = (v == 0) ? 1.0 / sqrt(2.0) : 1.0;
+
+                            pixel_value = image[(row + v) * img_width + (col + u)];
+                            sum += (
+                                cu * cv * pixel_value 
+                                * dct_table[x * BLOCK_SIZE + u] 
+                                * dct_table[y * BLOCK_SIZE + v] 
+                                / FACTOR / FACTOR
+                             );
+                        }
+                    }
+
+                    cff[((row + y) * img_width) + col + x] = (int)round(sum / sqrt(2 * BLOCK_SIZE));
+                }
+            }
+        }
+    }
+}
+
 

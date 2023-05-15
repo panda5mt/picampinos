@@ -7,7 +7,6 @@ const float_t _PI = M_PI;
 const float_t _PI_PI = (M_PI * M_PI);
 const float_t _2PI = (2 * M_PI);
 
-
 float_t _sine(float_t x, uint32_t nMAX) {
     x -= (int32_t)(x / _2PI) * _2PI; 
     float_t sum = x;
@@ -32,45 +31,6 @@ float_t _cosine(float_t x, uint32_t nMAX) {
     // } 
     return _sine(x, nMAX);
 }
-/*
-float_t _sine(float_t x , uint32_t a) {
-
-    // 結果を反転させるか(x = 0~M_PIまでの計算しかしない。後はフラグ反転で答えとする)
-    bool is_minus = false;
-    // xは負の値か
-    if(x < 0.0) {
-        is_minus = true;
-        x = -x;
-    }
-
-    // 2*piより大きいか？
-    while (x > 2.0 * M_PI) 
-        x = x - 2.0 * M_PI;
-
-    if(x > M_PI){
-        x = x- M_PI;
-        is_minus = !is_minus;
-    }
-
-    //x : 0 ~ pi
-    const float_t B = 4 / M_PI;
-    const float_t C = -4 / M_PI / M_PI;
-    
-    float_t y = B * x + C * x * x;
-
-    //const float_t P = 0.225;
-    //const float_t Q = 0.775;
-
-    //y = Q * y + P * y * fabs(y);//P * (y * fabs(y) - y) + y;  
-    y = (is_minus)? y : -y;  
-    return y;
-}
-float_t _cosine(float_t x, uint32_t a) {
-    x = x + 0.5 * M_PI;
-    float_t y = _sine(x, a);
-    return y;
-}
-*/
 
 float_t _fastsin(float_t x) {
    return  _sine(x, 1);

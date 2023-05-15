@@ -3,8 +3,8 @@
 #include <math.h>
 #include "test_code.h"
 
-void dct_test(void){
-
+void dct_test(int num){
+    // num : number of calc dct
     uint8_t img[][16] = {
         {139, 144, 149, 153, 155, 155, 155, 155, 144, 151, 153, 156, 159, 156, 156, 156},
         {150, 155, 160, 163, 158, 156, 156, 156, 159, 161, 162, 160, 160, 159, 159, 159},
@@ -26,25 +26,43 @@ void dct_test(void){
 
 
     int32_t img_w = 16;
+    int32_t nowtime;
     int32_t img_h = sizeof(img) / sizeof(uint8_t) / img_w;
-    uint8_t *np = (uint8_t *)img;     // 1次元配列に変換
+    uint8_t *np = (uint8_t *)img;       // 1次元配列に変換
+    float_t coeff[img_h * img_w];       // 1次元配列で宣言
+    int32_t img_idct[img_h * img_w];    // 1次元配列で宣言
+    // DCTテーブルの作成
+    make_dct_table();
 
-    float coeff[img_h * img_w];    // 1次元配列で宣言
-    int32_t nowtime = time_us_32();
-    pico_dct8(np, coeff, img_h, img_w); 
+    for(int n = 0; n < num; n++) {
+        nowtime = time_us_32();
+        pico_dct8(np, coeff, img_h, img_w); 
 
-    nowtime = time_us_32() - nowtime;
-    printf("elapsed time = %d[us]\r\n",nowtime);
+        nowtime = time_us_32() - nowtime;
+        printf("DCT:elapsed time = %d[us]\r\n",nowtime);
 
-    // 結果を出力 
-    for(int32_t h = 0 ; h < img_h ; h++) {
-        for(int32_t w = 0 ; w < img_w ; w++) {
-            printf("%8.2f",coeff[h*img_w + w]);
+        // 結果を出力 
+        for(int32_t h = 0 ; h < img_h ; h++) {
+            for(int32_t w = 0 ; w < img_w ; w++) {
+                printf("%8.2f",coeff[h*img_w + w]);
+            }
+            printf("\n");
         }
-        printf("\n");
-    }
-    printf("\n");
+        printf("------\n");
 
+        nowtime = time_us_32();
+        pico_idct8(coeff, img_idct, img_h, img_w);
+        nowtime = time_us_32() - nowtime;
+        printf("IDCT:elapsed time = %d[us]\r\n",nowtime);
+        // 結果を出力 
+        for(int32_t h = 0 ; h < img_h ; h++) {
+            for(int32_t w = 0 ; w < img_w ; w++) {
+                printf("%6d",img_idct[h*img_w + w]);
+            }
+            printf("\n");
+        }
+        printf("------\n");
+    }
 }
 
 void fft_test(void){
