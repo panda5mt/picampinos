@@ -40,6 +40,8 @@
 #include "hardware/vreg.h"
 #include "hardware/i2c.h"
 #include "hardware/dma.h"
+#include "hardware/regs/clocks.h"
+#include "hardware/clocks.h"
 #include "cam.h"
 // #include "arithmetic/test_code.h"
 
@@ -81,13 +83,18 @@ static void read_i2c_data(i2c_inst_t *i2c)
 
 bool setup() {
     bool OC_INIT = false;
-    vreg_set_voltage(VREG_VOLTAGE_1_25);
+    vreg_set_voltage(VREG_VOLTAGE_1_30);
     // system init
     stdio_init_all();
+    sleep_ms(300);
     OC_INIT = set_sys_clock_khz(SYS_CLK_KHZ, true);
+    sleep_ms(1000);
+    setup_default_uart();
+    OC_INIT = set_sys_clock_khz(SYS_CLK_KHZ, true);
+    sleep_ms(100);
     setup_default_uart();
     
-
+    
     // INIT LED
     gpio_init(BOARD_LED);
     gpio_set_dir(BOARD_LED, GPIO_OUT);
@@ -97,7 +104,7 @@ bool setup() {
         gpio_put(BOARD_LED, 0);
         busy_wait_ms(100);
     }
-
+    setup_default_uart();
     return OC_INIT;
     //gpio_pull_up(BOARD_LED);
 
