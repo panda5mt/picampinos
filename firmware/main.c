@@ -88,13 +88,10 @@ bool setup() {
     stdio_init_all();
     sleep_ms(300);
     OC_INIT = set_sys_clock_khz(SYS_CLK_KHZ, true);
-    sleep_ms(1000);
+    sleep_ms(600);
     setup_default_uart();
-    OC_INIT = set_sys_clock_khz(SYS_CLK_KHZ, true);
-    sleep_ms(100);
-    setup_default_uart();
-    
-    
+   
+ 
     // INIT LED
     gpio_init(BOARD_LED);
     gpio_set_dir(BOARD_LED, GPIO_OUT);
