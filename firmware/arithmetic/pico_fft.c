@@ -8,6 +8,8 @@ const float_t _PI_PI = (M_PI * M_PI);
 const float_t _2PI = (2 * M_PI);
 
 float_t _sine(float_t x, uint32_t nMAX) {
+    // if nMAX > 3, you should use sin() or cos() defined by math.h
+    // because they're more faster and correct. 
     x -= (int32_t)(x / _2PI) * _2PI; 
     float_t sum = x;
     float_t t = x;
