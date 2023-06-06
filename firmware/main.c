@@ -101,9 +101,7 @@ bool setup() {
         gpio_put(BOARD_LED, 0);
         busy_wait_ms(100);
     }
-    setup_default_uart();
     return OC_INIT;
-    //gpio_pull_up(BOARD_LED);
 
 }
 
