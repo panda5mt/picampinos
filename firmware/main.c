@@ -119,6 +119,7 @@ int main() {
     }
     
     // gs_test((640 * 480));
+    // skyline_test((640 * 480));
     // while(1);
 
     init_cam(DEV_OV5642);
