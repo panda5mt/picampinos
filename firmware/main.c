@@ -118,7 +118,7 @@ int main() {
         sleep_ms(1000);
     }
     
-    // gauss_elim_test((640 * 480));
+    // gs_test((640 * 480));
     // while(1);
 
     init_cam(DEV_OV5642);

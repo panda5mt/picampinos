@@ -3,28 +3,20 @@
 #include <math.h>
 #include "test_code.h"
 
-void gauss_elim_test(int num) {
-
-
-    float A[GAUSS_ELIM_N][GAUSS_ELIM_N+1] = {{3.0, 2.0, -4.0, 3.0},
-                        {2.0, 3.0, 3.0, 15.0},
-                        {5.0, -3, 1.0, 14.0}};  // example system
-    float x[GAUSS_ELIM_N];
-    int32_t nowtime;
-    
-    for (int i = 0 ; i < num ; i++) {
-        gauss_elimination(A);
-        back_substitution(A, x);
+void gs_test(int num) {
+    float_t a[G_NUM][G_NUM] = {{5,1,1},{1,3,1},{1,1,4}};  // 行列Aを定義
+    float_t b[G_NUM] = {7,10,15};  // ベクトルbを定義
+    float_t x[G_NUM];  // 解ベクトルxを定義
+    int32_t nowtime = time_us_32();
+    for(int n = 0; n < num ; n++){
+        pico_gs(a, b, x);
     }
-    
     nowtime = time_us_32() - nowtime;
     printf("elapsed time = %d[usec]\r\n",nowtime);
-
-    printf("\nSolution: \n");
-    for (int i=0; i<GAUSS_ELIM_N; i++) {
-        printf("x[%d] = %f\n", i, x[i]);
+    
+    for(int i = 0; i < G_NUM; i++) {
+        printf("x[%d] = %f\n", i, x[i]);  // 解を表示
     }
-
     return;
 }
 
