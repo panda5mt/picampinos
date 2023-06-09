@@ -29,10 +29,10 @@ target_sources(${target_name} PRIVATE
         cam.c
         sccb_if.c
         iot_sram.c
-        arithmetic/pico_dct8.c
-        arithmetic/pico_fft.c
-        arithmetic/pico_gauss_elim.c
-        arithmetic/test_code.c       
+        # arithmetic/pico_dct8.c
+        # arithmetic/pico_fft.c
+        # arithmetic/pico_gauss_elim.c
+        # arithmetic/test_code.c       
         # ezspi_slave.c
         )
 
