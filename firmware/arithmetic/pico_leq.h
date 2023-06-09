@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 
+// solver for linear equation
 #define G_NUM 3
 #define EPSILON 5
 

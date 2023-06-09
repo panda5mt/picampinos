@@ -1,5 +1,5 @@
 #include "pico/stdlib.h"
-#include "pico_gs.h"
+#include "pico_leq.h"
 
 // Gauss-Seidel
 void pico_gs(float_t a[G_NUM][G_NUM], float_t b[G_NUM], float_t x[G_NUM]) {
