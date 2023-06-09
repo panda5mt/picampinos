@@ -3,6 +3,31 @@
 #include <math.h>
 #include "test_code.h"
 
+void gauss_elim_test(int num) {
+
+
+    float A[GAUSS_ELIM_N][GAUSS_ELIM_N+1] = {{3.0, 2.0, -4.0, 3.0},
+                        {2.0, 3.0, 3.0, 15.0},
+                        {5.0, -3, 1.0, 14.0}};  // example system
+    float x[GAUSS_ELIM_N];
+    int32_t nowtime;
+    
+    for (int i = 0 ; i < num ; i++) {
+        gauss_elimination(A);
+        back_substitution(A, x);
+    }
+    
+    nowtime = time_us_32() - nowtime;
+    printf("elapsed time = %d[usec]\r\n",nowtime);
+
+    printf("\nSolution: \n");
+    for (int i=0; i<GAUSS_ELIM_N; i++) {
+        printf("x[%d] = %f\n", i, x[i]);
+    }
+
+    return;
+}
+
 void dct_test(int num){
     // num : number of calc dct
     uint8_t img[][16] = {
