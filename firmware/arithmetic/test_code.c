@@ -4,10 +4,10 @@
 #include "test_code.h"
 
 void skyline_test(int num) {
-    float_t A[] = {5,1,1,1,3,1,1,1,4};
-    float_t b[] = {7.0, 10.0, 15.0};
+    int32_t A[] = {5,1,1,1,3,1,1,1,4};
+    int32_t b[] = {7, 10, 15};
     int n = 3;
-    float_t* x = malloc(n * sizeof(float_t));
+    int32_t* x = malloc(n * sizeof(int32_t));
     
     int32_t nowtime = time_us_32();
     
@@ -24,9 +24,9 @@ void skyline_test(int num) {
 }
 
 void gs_test(int num) {
-    float_t a[G_NUM][G_NUM] = {{5,1,1},{1,3,1},{1,1,4}};  // 行列Aを定義
-    float_t b[G_NUM] = {7,10,15};  // ベクトルbを定義
-    float_t x[G_NUM];  // 解ベクトルxを定義
+    int32_t a[G_NUM][G_NUM] = {{5,1,1},{1,3,1},{1,1,4}};  // 行列Aを定義
+    int32_t b[G_NUM] = {7,10,15};  // ベクトルbを定義
+    int32_t x[G_NUM];  // 解ベクトルxを定義
     int32_t nowtime = time_us_32();
     //for(int n = 0; n < num ; n++){
         pico_gs(a, b, x);
