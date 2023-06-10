@@ -1,6 +1,33 @@
 #include "pico/stdlib.h"
 #include "pico_leq.h"
 
+// Gauss elimination 
+void pico_ge(float_t A[G_NUM][G_NUM], float_t b[G_NUM], float_t x[G_NUM]) {
+    int i, j, k;
+    float_t temp;
+
+    // 前進消去
+    for (i = 0; i < G_NUM; i++) {
+        for (j = i + 1; j < G_NUM; j++) {
+            temp = A[j][i] / A[i][i];
+            for (k = i; k < G_NUM; k++) {
+                A[j][k] -= A[i][k] * temp;
+            }
+            b[j] -= b[i] * temp;
+        }
+    }
+
+    // 後退代入
+    for (i = G_NUM - 1; i >= 0; i--) {
+        temp = b[i];
+        for (j = i + 1; j < G_NUM; j++) {
+            temp -= A[i][j] * x[j];
+        }
+        x[i] = temp / A[i][i];
+    }
+}
+
+
 // Gauss-Seidel
 #define MAX_ITERATION 5  // 最大反復回数
 void pico_gs(float_t A[G_NUM][G_NUM], float_t b[G_NUM], float_t x[G_NUM]) {
