@@ -40,8 +40,8 @@
 #include "hardware/vreg.h"
 #include "hardware/i2c.h"
 #include "hardware/dma.h"
-#include "hardware/regs/clocks.h"
-#include "hardware/clocks.h"
+//#include "hardware/regs/clocks.h"
+//#include "hardware/clocks.h"
 #include "cam.h"
 // #include "arithmetic/test_code.h"
 
