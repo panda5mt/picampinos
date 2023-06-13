@@ -41,7 +41,7 @@
 #include "hardware/i2c.h"
 #include "hardware/dma.h"
 #include "cam.h"
-// #include "arithmetic/test_code.h"
+#include "arithmetic/test_code.h"
 
 #define BOARD_LED           (28) // pico's led => 25, self made RP2040brd's led => 28. check hardware/RP2040Board.pdf 
 
@@ -116,9 +116,9 @@ int main() {
         sleep_ms(1000);
     }
     
-    // gs_test((640 * 480));
-    // ge_test((640 * 480));
-    // while(1);
+   
+   fft_test();
+    while(1);
 
     init_cam(DEV_OV5642);
     
