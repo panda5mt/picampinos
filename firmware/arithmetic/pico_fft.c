@@ -289,8 +289,8 @@ int32_t _fft(int32_t n, int32_t is_inverse, float_t* ar, float_t* ai)
     for (mh = 1; (m = mh << 1) <= n; mh = m) {
         irev = 0;
         for (i = 0; i < n; i += m) {
-            wr = _cosine(theta * irev, 5);
-            wi = _sine(theta * irev, 5);
+            wr = _cosine(theta * irev, 3);
+            wi = _sine(theta * irev, 3);
             for (k = n >> 2; k > (irev ^= k); k >>= 1);
             for (j = i; j < mh + i; j++) {
                 k = j + mh;
@@ -313,24 +313,7 @@ int32_t _fft(int32_t n, int32_t is_inverse, float_t* ar, float_t* ai)
     
     return 0;
 }
-/*
 
-// cooley-tuckey type FFT
-void _ct_fft_core(int16_t N, float_t* xr, float_t* xi) {
-    int16_t n, i;
-    float_t tmpr, tmpi,wr, wi;
-
-    if(N > 1) {
-        n = N / 2;
-        for (i = 0; i < n ; i++) {
-            wr = cos(2 * _PI * i / N);
-            wi = -sin(2 * _PI * i / N);
-            
-
-        }
-    }
-
-}
 
 void _ct_fft(int16_t n, float_t* xr, float_t* xi ) {
     int16_t i = 0, j = 0, k = 0;
@@ -350,7 +333,6 @@ void _ct_fft(int16_t n, float_t* xr, float_t* xi ) {
         }
     }
 }
-*/
 
 int32_t _fft2(int32_t n, int32_t nmax, int32_t is_inverse, float_t* ar, float_t* ai, float_t* wr, float_t* wi)
 {
