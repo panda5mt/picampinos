@@ -315,7 +315,7 @@ int32_t _fft(int32_t n, int32_t is_inverse, float_t* ar, float_t* ai)
 }
 /*
 
-cooley-tuckey type FFT
+// cooley-tuckey type FFT
 void _ct_fft_core(int16_t N, float_t* xr, float_t* xi) {
     int16_t n, i;
     float_t tmpr, tmpi,wr, wi;
