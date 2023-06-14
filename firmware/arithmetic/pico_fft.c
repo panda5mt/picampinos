@@ -1,11 +1,24 @@
 #include "pico/stdlib.h"
 #include "pico/divider.h"
 #include "pico_fft.h"
-
+#define MAXN 1024  /* MAX FFT INPUT SIZE  */
 
 const float_t _PI = M_PI;
 const float_t _PI_PI = (M_PI * M_PI);
 const float_t _2PI = (2 * M_PI);
+
+float cos_table[MAXN / 2];
+float sin_table[MAXN / 2];
+
+int32_t table_ready = false;
+
+void _init_tables() {
+    for (int i = 0; i < MAXN / 2; i++) {
+        cos_table[i] = cos(2 * M_PI * i / MAXN);
+        sin_table[i] = sin(2 * M_PI * i / MAXN);
+    }
+    table_ready = true;
+}
 
 float_t _sine(float_t x, uint32_t nMAX) {
     // if nMAX > 3, you should use sin() or cos() defined by math.h
@@ -266,72 +279,60 @@ void _int_ifft(int32_t n, int32_t* ar, int32_t* ai) {
     }
 }
 
-int32_t _fft(int32_t n, int32_t is_inverse, float_t* ar, float_t* ai)
-{
-    long m, mh, i, j, k, irev;
-    float_t wr, wi, xr, xi;
-    float_t theta;
+// Danielson-Lanczos FFT
+int32_t _fft(int n, int is_inverse, float* real, float* imag) {
+    int i, j, m, mmax, istep;
+    float tempr, tempi;
 
-    theta = is_inverse * 2 * _PI / n;
-
-    i = 0;
-    for (j = 1; j < n - 1; j++) {
-        for (k = n >> 1; k > (i ^= k); k >>= 1);
-        if (j < i) {
-            xr = ar[j];
-            xi = ai[j];
-            ar[j] = ar[i];
-            ai[j] = ai[i];
-            ar[i] = xr;
-            ai[i] = xi;
+    // ビットリバーサル
+    j = 0;
+    for(i = 0; i < n; i++) {
+        if (j > i) {
+            // 実部の交換
+            tempr = real[j];
+            real[j] = real[i];
+            real[i] = tempr;
+            // 虚部の交換
+            tempi = imag[j];
+            imag[j] = imag[i];
+            imag[i] = tempi;
         }
+        m = n / 2;
+        while (m >= 1 && j >= m) {
+            j -= m;
+            m /= 2;
+        }
+        j += m;
     }
-    for (mh = 1; (m = mh << 1) <= n; mh = m) {
-        irev = 0;
-        for (i = 0; i < n; i += m) {
-            wr = _cosine(theta * irev, 3);
-            wi = _sine(theta * irev, 3);
-            for (k = n >> 2; k > (irev ^= k); k >>= 1);
-            for (j = i; j < mh + i; j++) {
-                k = j + mh;
-                xr = ar[j] - ar[k];
-                xi = ai[j] - ai[k];
-                ar[j] += ar[k];
-                ai[j] += ai[k];
-                ar[k] = wr * xr - wi * xi;
-                ai[k] = wr * xi + wi * xr;
+
+    // Danielson-Lanczos部分
+    mmax = 1;
+    while (n > mmax) {
+        istep = 2 * mmax;
+        for (m = 0; m < mmax; m++) {
+            float wr = cos_table[m * n / istep];
+            float wi = (is_inverse) ? -sin_table[m * n / istep] : sin_table[m * n / istep];
+            for (i = m; i < n; i += istep) {
+                j = i + mmax;
+                tempr = wr * real[j] - wi * imag[j];
+                tempi = wr * imag[j] + wi * real[j];
+                real[j] = real[i] - tempr;
+                imag[j] = imag[i] - tempi;
+                real[i] += tempr;
+                imag[i] += tempi;
             }
         }
-    }    
-    
-    if( is_inverse == 1 ){
-        for(i=0; i<n; i++){
-            ar[i] /= n;
-            ai[i] /= n;
+        mmax = istep;
+    }
+
+    if(is_inverse) {
+        // 最後にすべての値をnで除算します
+        for (i = 0; i < n; i++) {
+            real[i] /= n;
+            imag[i] /= n;
         }
     }
-    
     return 0;
-}
-
-
-void _ct_fft(int16_t n, float_t* xr, float_t* xi ) {
-    int16_t i = 0, j = 0, k = 0;
-    float_t tmpr, tmpi;
-
-    // call core
-    _ct_fft_core(n, xr, xi);
-
-    for (j = 1; j < n - 1; j++) {
-        for (k = n >> 1; k > (i ^= k); k >>=1) {
-            tmpr = xr[i];
-            tmpi = xi[j];
-            xr[j] = xr[i];
-            xi[j] = xi[i];
-            xr[i] = tmpr;
-            xi[i] = tmpi;
-        }
-    }
 }
 
 int32_t _fft2(int32_t n, int32_t nmax, int32_t is_inverse, float_t* ar, float_t* ai, float_t* wr, float_t* wi)
@@ -433,11 +434,15 @@ int32_t _int_fft2(int32_t n, int32_t nmax, bool is_inverse, int32_t* ar, int32_t
 }
 
 void pico_fft(int32_t n, float_t* ar, float_t* ai) {
-    int32_t is_inverse = -1; // forward FFT
+    if(!table_ready)
+        _init_tables();
+    int32_t is_inverse = 0; // forward FFT
     _fft(n, is_inverse, ar, ai);
 }
 
 void pico_ifft(int32_t n, float_t* ar, float_t* ai) {
+    if(!table_ready)
+        _init_tables();
     int32_t is_inverse = 1; // inverse FFT
     _fft(n, is_inverse, ar, ai);
 }
