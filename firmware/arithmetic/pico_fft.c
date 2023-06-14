@@ -1,25 +1,25 @@
 #include "pico/stdlib.h"
 #include "pico/divider.h"
 #include "pico_fft.h"
-#define MAXN 1024  /* MAX FFT INPUT SIZE  */
+#define SIZE_TBL 1024  /* MAX FFT INPUT SIZE  */
 
 const float_t _PI = M_PI;
 const float_t _PI_PI = (M_PI * M_PI);
 const float_t _2PI = (2 * M_PI);
 
-float cos_table[MAXN / 2];
-float sin_table[MAXN / 2];
+float_t cos_table[SIZE_TBL / 2];
+float_t sin_table[SIZE_TBL / 2];
 
 int32_t table_ready = false;
 
 void _init_tables() {
-    for (int i = 0; i < MAXN / 2; i++) {
-        cos_table[i] = cos(2 * M_PI * i / MAXN);
-        sin_table[i] = sin(2 * M_PI * i / MAXN);
+    for (int i = 0; i < SIZE_TBL / 2; i++) {
+        cos_table[i] = cos(2 * M_PI * i / SIZE_TBL);
+        sin_table[i] = sin(2 * M_PI * i / SIZE_TBL);
     }
     table_ready = true;
 }
-
+/*
 float_t _sine(float_t x, uint32_t nMAX) {
     // if nMAX > 3, you should use sin() or cos() defined by math.h
     // because they're more faster and correct. 
@@ -54,6 +54,7 @@ float_t _fastsin(float_t x) {
 float_t _fastcos(float_t x) {
    return  _cosine(x, 1);
 }
+*/
 
 // lifting functions
 Lifting _lift(int32_t xr, int32_t xi, float_t c, float_t s) {
@@ -153,10 +154,13 @@ void _int_fft(int32_t n, int32_t* ar, int32_t* ai)
         theta = -2 * _PI / m;
         mq = m >> 2;
         for (int32_t i = 0; i < mq; i++) {
-            s1 = _fastsin(theta * i);
-            c1 = _fastcos(theta * i);
-            s3 = _fastsin(theta * 3 * i);
-            c3 = _fastcos(theta * 3 * i);
+            int index = (int)(theta * i / _2PI * SIZE_TBL) % SIZE_TBL;
+            int index2 = (int)(theta *3 * i / _2PI * SIZE_TBL) % SIZE_TBL;
+            
+            s1 = sin_table[index];
+            c1 = cos_table[index];
+            s3 = sin_table[index2];
+            c3 = cos_table[index2];
             for (int32_t k = m; k <= n; k <<= 2) {
                 for (int32_t j0 = k - m + i; j0 < n; j0 += 2 * k) {
                     j1 = j0 + mq;
@@ -242,10 +246,14 @@ void _int_ifft(int32_t n, int32_t* ar, int32_t* ai) {
         theta =  - 2 *_PI / m;
         mq = m >> 2;
         for (int32_t i = 0; i < mq; i++) {
-            s1 = _fastsin(theta * i);
-            c1 = _fastcos(theta * i);
-            s3 = _fastsin(theta * 3 * i);
-            c3 = _fastcos(theta * 3 * i);
+            int index = (int)(theta * i / _2PI * SIZE_TBL) % SIZE_TBL;
+            int index2 = (int)(theta *3 * i / _2PI * SIZE_TBL) % SIZE_TBL;
+            
+            s1 = sin_table[index];
+            c1 = cos_table[index];
+            s3 = sin_table[index2];
+            c3 = cos_table[index2];
+
             for (int32_t k = m; k <= n; k <<= 2) {
                 for (j0 = k - m + i; j0 < n; j0 += 2 * k) {
                     j1 = j0 + mq;
@@ -280,9 +288,9 @@ void _int_ifft(int32_t n, int32_t* ar, int32_t* ai) {
 }
 
 // Danielson-Lanczos FFT
-int32_t _fft(int n, int is_inverse, float* real, float* imag) {
+int32_t _fft(int n, int is_inverse, float_t* real, float_t* imag) {
     int i, j, m, mmax, istep;
-    float tempr, tempi;
+    float_t tempr, tempi;
 
     // ビットリバーサル
     j = 0;
@@ -310,8 +318,8 @@ int32_t _fft(int n, int is_inverse, float* real, float* imag) {
     while (n > mmax) {
         istep = 2 * mmax;
         for (m = 0; m < mmax; m++) {
-            float wr = cos_table[m * n / istep];
-            float wi = (is_inverse) ? -sin_table[m * n / istep] : sin_table[m * n / istep];
+            float_t wr = cos_table[m * n / istep];
+            float_t wi = (is_inverse) ? -sin_table[m * n / istep] : sin_table[m * n / istep];
             for (i = m; i < n; i += istep) {
                 j = i + mmax;
                 tempr = wr * real[j] - wi * imag[j];
