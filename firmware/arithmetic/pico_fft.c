@@ -157,10 +157,11 @@ void _int_fft(int32_t n, int32_t* ar, int32_t* ai)
             int index = (int)(theta * i / _2PI * SIZE_TBL) % SIZE_TBL;
             int index2 = (int)(theta *3 * i / _2PI * SIZE_TBL) % SIZE_TBL;
             
-            s1 = sin_table[index];
-            c1 = cos_table[index];
-            s3 = sin_table[index2];
-            c3 = cos_table[index2];
+            s1 = sin_table[index];  // sin(theta * i)
+            c1 = cos_table[index];  // cos(theta * i)
+            s3 = sin_table[index2]; // sin(theta * 3 * i)
+            c3 = cos_table[index2]; // cos(theta * 3 * i)
+            
             for (int32_t k = m; k <= n; k <<= 2) {
                 for (int32_t j0 = k - m + i; j0 < n; j0 += 2 * k) {
                     j1 = j0 + mq;
