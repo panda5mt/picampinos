@@ -19,42 +19,6 @@ void _init_tables() {
     }
     table_ready = true;
 }
-/*
-float_t _sine(float_t x, uint32_t nMAX) {
-    // if nMAX > 3, you should use sin() or cos() defined by math.h
-    // because they're more faster and correct. 
-    x -= (int32_t)(x / _2PI) * _2PI; 
-    float_t sum = x;
-    float_t t = x;
- 
-    for(uint32_t n = 1 ; n <= nMAX ; n++) {
-        t *= - (x * x) / ((2 * n + 1) * (2 * n));
-        sum += t;
-    }
- 
-    return sum;
-
-}
-
-// nMAX = 1 to 3?
-float_t _cosine(float_t x, uint32_t nMAX) {
-    //x = _check_angle(x) ;  
-    x += _PI/2;
-    // if(x > _PI)
-    // {
-    //     x -= _2PI;  
-    // } 
-    return _sine(x, nMAX);
-}
-
-float_t _fastsin(float_t x) {
-   return  _sine(x, 1);
-}
-
-float_t _fastcos(float_t x) {
-   return  _cosine(x, 1);
-}
-*/
 
 // lifting functions
 Lifting _lift(int32_t xr, int32_t xi, float_t c, float_t s) {
@@ -151,11 +115,14 @@ void _int_fft(int32_t n, int32_t* ar, int32_t* ai)
     int32_t mq, j1, j2, j3, x0r, x0i, x1r, x1i, x3r, x3i;
     // L shaped butterflies
     for (int32_t m = n; m > 2; m >>= 1) {
-        theta = -2 * _PI / m;
+        //theta = -2 * _PI / m;
+        theta = -2 / m;
         mq = m >> 2;
         for (int32_t i = 0; i < mq; i++) {
-            int index = (int)(theta * i / _2PI * SIZE_TBL) % SIZE_TBL;
-            int index2 = (int)(theta *3 * i / _2PI * SIZE_TBL) % SIZE_TBL;
+            // int index = (int)(theta * i / _2PI * SIZE_TBL) % SIZE_TBL;
+            // int index2 = (int)(theta *3 * i / _2PI * SIZE_TBL) % SIZE_TBL;
+            int index = (int)(theta * i * SIZE_TBL) % SIZE_TBL;
+            int index2 = (int)(theta *3 * i * SIZE_TBL) % SIZE_TBL;
             
             s1 = sin_table[index];  // sin(theta * i)
             c1 = cos_table[index];  // cos(theta * i)
@@ -244,11 +211,14 @@ void _int_ifft(int32_t n, int32_t* ar, int32_t* ai) {
 
     // L shaped butterflies
     for (int32_t m = 4; m <= n; m <<= 1) {
-        theta =  - 2 *_PI / m;
+        //theta = - 2 *_PI / m;
+        theta =  - 2 / m;
         mq = m >> 2;
         for (int32_t i = 0; i < mq; i++) {
-            int index = (int)(theta * i / _2PI * SIZE_TBL) % SIZE_TBL;
-            int index2 = (int)(theta *3 * i / _2PI * SIZE_TBL) % SIZE_TBL;
+            // int index = (int)(theta * i / _2PI * SIZE_TBL) % SIZE_TBL;
+            // int index2 = (int)(theta *3 * i / _2PI * SIZE_TBL) % SIZE_TBL;
+            int index = (int)(theta * i * SIZE_TBL) % SIZE_TBL;
+            int index2 = (int)(theta *3 * i * SIZE_TBL) % SIZE_TBL;
             
             s1 = sin_table[index];  // sin(theta * i)
             c1 = cos_table[index];  // cos(theta * i)
@@ -293,15 +263,15 @@ int32_t _fft(int n, int is_inverse, float_t* real, float_t* imag) {
     int i, j, m, mmax, istep;
     float_t tempr, tempi;
 
-    // ビットリバーサル
+    // bit-reversal
     j = 0;
     for(i = 0; i < n; i++) {
         if (j > i) {
-            // 実部の交換
+            // exchange real 
             tempr = real[j];
             real[j] = real[i];
             real[i] = tempr;
-            // 虚部の交換
+            // exchange imag
             tempi = imag[j];
             imag[j] = imag[i];
             imag[i] = tempi;
@@ -314,7 +284,7 @@ int32_t _fft(int n, int is_inverse, float_t* real, float_t* imag) {
         j += m;
     }
 
-    // Danielson-Lanczos部分
+    // Danielson-Lanczos
     mmax = 1;
     while (n > mmax) {
         istep = 2 * mmax;
@@ -335,7 +305,7 @@ int32_t _fft(int n, int is_inverse, float_t* real, float_t* imag) {
     }
 
     if(is_inverse) {
-        // 最後にすべての値をnで除算します
+        // divide by n
         for (i = 0; i < n; i++) {
             real[i] /= n;
             imag[i] /= n;
@@ -467,10 +437,14 @@ void pico_ifft2(int32_t n, int32_t nmax, float_t* ar, float_t* ai, float_t* wr, 
 }
 
 void pico_int_fft2(int32_t n, int32_t nmax, int32_t* ar, int32_t* ai, int32_t* wr, int32_t* wi) {
+    if(!table_ready)
+        _init_tables();
     bool is_inverse = false;
     _int_fft2(n,nmax,is_inverse,ar,ai,wr,wi);
 }
 void pico_int_ifft2(int32_t n, int32_t nmax, int32_t* ar, int32_t* ai, int32_t* wr, int32_t* wi) {
+    if(!table_ready)
+        _init_tables();
     bool is_inverse = true;
     _int_fft2(n,nmax,is_inverse,ar,ai,wr,wi);
 }

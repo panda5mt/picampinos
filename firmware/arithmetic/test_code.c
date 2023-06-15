@@ -100,7 +100,7 @@ void dct_test(int num){
     }
 }
 
-void fft_test(void){
+void fft_test(void) {
 
     //int32_t ar2[64] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 1, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 1, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0};
     int32_t ar2[256] = {
@@ -159,8 +159,10 @@ void fft_test(void){
     n = nmax = 16;
     printf("Integer FFT2\r\n");
     nowtime = time_us_32();
-    pico_int_fft2(n,nmax,ar2,ai2,wr2,wi2);
-    pico_int_ifft2(n,nmax,ar2,ai2,wr2,wi2);
+    for(int i =0; i < 256 ; i++) {
+        pico_int_fft2(n,nmax,ar2,ai2,wr2,wi2);
+        pico_int_ifft2(n,nmax,ar2,ai2,wr2,wi2);
+    }
     nowtime = time_us_32() - nowtime;
     
     // // real
