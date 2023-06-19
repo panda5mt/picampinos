@@ -1,45 +1,23 @@
 #include "pico/stdlib.h"
 #include "pico/divider.h"
 #include "pico_fft.h"
+#define SIZE_TBL 1024  /* MAX FFT INPUT SIZE  */
 
+const float_t _PI = M_PI;
+const float_t _PI_PI = (M_PI * M_PI);
+const float_t _2PI = (2 * M_PI);
 
-const float_t _FPI = M_PI;
-const float_t _FPI2 = (M_PI * M_PI);
-const float_t _2FPI = (2 * M_PI);
+float_t cos_table[SIZE_TBL / 2];
+float_t sin_table[SIZE_TBL / 2];
 
+int32_t table_ready = false;
 
-float_t _sine(float_t x, uint32_t nMAX) {
-    x -= (int32_t)(x / _2FPI) * _2FPI; 
- 
-    float_t sum = x;
-    float_t t = x;
- 
-    for(uint32_t n = 1 ; n <= nMAX ; n++) {
-        t *= - (x * x) / ((2 * n + 1) * (2 * n));
-        sum += t;
+void _init_tables() {
+    for (int i = 0; i < SIZE_TBL / 2; i++) {
+        cos_table[i] = cos(2 * M_PI * i / SIZE_TBL);
+        sin_table[i] = sin(2 * M_PI * i / SIZE_TBL);
     }
- 
-    return sum;
-
-}
-
-// nMAX = 1 to 3?
-float_t _cosine(float_t x, uint32_t nMAX) {
-    //x = _check_angle(x) ;  
-    x += _FPI/2;
-    // if(x > _FPI)
-    // {
-    //     x -= _2FPI;  
-    // } 
-    return _sine(x, nMAX);
-}
-
-float_t _fastsin(float_t x) {
-   return  _sine(x, 1);
-}
-
-float_t _fastcos(float_t x) {
-   return  _cosine(x, 1);
+    table_ready = true;
 }
 
 // lifting functions
@@ -137,13 +115,20 @@ void _int_fft(int32_t n, int32_t* ar, int32_t* ai)
     int32_t mq, j1, j2, j3, x0r, x0i, x1r, x1i, x3r, x3i;
     // L shaped butterflies
     for (int32_t m = n; m > 2; m >>= 1) {
-        theta = -2 * _FPI / m;
+        //theta = -2 * _PI / m;
+        theta = -2 / m;
         mq = m >> 2;
         for (int32_t i = 0; i < mq; i++) {
-            s1 = _fastsin(theta * i);
-            c1 = _fastcos(theta * i);
-            s3 = _fastsin(theta * 3 * i);
-            c3 = _fastcos(theta * 3 * i);
+            // int index = (int)(theta * i / _2PI * SIZE_TBL) % SIZE_TBL;
+            // int index2 = (int)(theta *3 * i / _2PI * SIZE_TBL) % SIZE_TBL;
+            int index = (int)(theta * i * SIZE_TBL) % SIZE_TBL;
+            int index2 = (int)(theta *3 * i * SIZE_TBL) % SIZE_TBL;
+            
+            s1 = sin_table[index];  // sin(theta * i)
+            c1 = cos_table[index];  // cos(theta * i)
+            s3 = sin_table[index2]; // sin(theta * 3 * i)
+            c3 = cos_table[index2]; // cos(theta * 3 * i)
+            
             for (int32_t k = m; k <= n; k <<= 2) {
                 for (int32_t j0 = k - m + i; j0 < n; j0 += 2 * k) {
                     j1 = j0 + mq;
@@ -226,13 +211,20 @@ void _int_ifft(int32_t n, int32_t* ar, int32_t* ai) {
 
     // L shaped butterflies
     for (int32_t m = 4; m <= n; m <<= 1) {
-        theta =  - 2 *_FPI / m;
+        //theta = - 2 *_PI / m;
+        theta =  - 2 / m;
         mq = m >> 2;
         for (int32_t i = 0; i < mq; i++) {
-            s1 = _fastsin(theta * i);
-            c1 = _fastcos(theta * i);
-            s3 = _fastsin(theta * 3 * i);
-            c3 = _fastcos(theta * 3 * i);
+            // int index = (int)(theta * i / _2PI * SIZE_TBL) % SIZE_TBL;
+            // int index2 = (int)(theta *3 * i / _2PI * SIZE_TBL) % SIZE_TBL;
+            int index = (int)(theta * i * SIZE_TBL) % SIZE_TBL;
+            int index2 = (int)(theta *3 * i * SIZE_TBL) % SIZE_TBL;
+            
+            s1 = sin_table[index];  // sin(theta * i)
+            c1 = cos_table[index];  // cos(theta * i)
+            s3 = sin_table[index2]; // sin(theta * 3 * i)
+            c3 = cos_table[index2]; // cos(theta * 3 * i)
+
             for (int32_t k = m; k <= n; k <<= 2) {
                 for (j0 = k - m + i; j0 < n; j0 += 2 * k) {
                     j1 = j0 + mq;
@@ -266,51 +258,59 @@ void _int_ifft(int32_t n, int32_t* ar, int32_t* ai) {
     }
 }
 
-int32_t _fft(int32_t n, int32_t is_inverse, float_t* ar, float_t* ai)
-{
-    long m, mh, i, j, k, irev;
-    float_t wr, wi, xr, xi;
-    float_t theta;
+// Danielson-Lanczos FFT
+int32_t _fft(int n, int is_inverse, float_t* real, float_t* imag) {
+    int i, j, m, mmax, istep;
+    float_t tempr, tempi;
 
-    theta = is_inverse * 2 * _FPI / n;
-
-    i = 0;
-    for (j = 1; j < n - 1; j++) {
-        for (k = n >> 1; k > (i ^= k); k >>= 1);
-        if (j < i) {
-            xr = ar[j];
-            xi = ai[j];
-            ar[j] = ar[i];
-            ai[j] = ai[i];
-            ar[i] = xr;
-            ai[i] = xi;
+    // bit-reversal
+    j = 0;
+    for(i = 0; i < n; i++) {
+        if (j > i) {
+            // exchange real 
+            tempr = real[j];
+            real[j] = real[i];
+            real[i] = tempr;
+            // exchange imag
+            tempi = imag[j];
+            imag[j] = imag[i];
+            imag[i] = tempi;
         }
+        m = n / 2;
+        while (m >= 1 && j >= m) {
+            j -= m;
+            m /= 2;
+        }
+        j += m;
     }
-    for (mh = 1; (m = mh << 1) <= n; mh = m) {
-        irev = 0;
-        for (i = 0; i < n; i += m) {
-            wr = _cosine(theta * irev, 5);
-            wi = _sine(theta * irev, 5);
-            for (k = n >> 2; k > (irev ^= k); k >>= 1);
-            for (j = i; j < mh + i; j++) {
-                k = j + mh;
-                xr = ar[j] - ar[k];
-                xi = ai[j] - ai[k];
-                ar[j] += ar[k];
-                ai[j] += ai[k];
-                ar[k] = wr * xr - wi * xi;
-                ai[k] = wr * xi + wi * xr;
+
+    // Danielson-Lanczos
+    mmax = 1;
+    while (n > mmax) {
+        istep = 2 * mmax;
+        for (m = 0; m < mmax; m++) {
+            float_t wr = cos_table[m * n / istep];
+            float_t wi = (is_inverse) ? -sin_table[m * n / istep] : sin_table[m * n / istep];
+            for (i = m; i < n; i += istep) {
+                j = i + mmax;
+                tempr = wr * real[j] - wi * imag[j];
+                tempi = wr * imag[j] + wi * real[j];
+                real[j] = real[i] - tempr;
+                imag[j] = imag[i] - tempi;
+                real[i] += tempr;
+                imag[i] += tempi;
             }
         }
-    }    
-    
-    if( is_inverse == 1 ){
-        for(i=0; i<n; i++){
-            ar[i] /= n;
-            ai[i] /= n;
+        mmax = istep;
+    }
+
+    if(is_inverse) {
+        // divide by n
+        for (i = 0; i < n; i++) {
+            real[i] /= n;
+            imag[i] /= n;
         }
     }
-    
     return 0;
 }
 
@@ -413,11 +413,15 @@ int32_t _int_fft2(int32_t n, int32_t nmax, bool is_inverse, int32_t* ar, int32_t
 }
 
 void pico_fft(int32_t n, float_t* ar, float_t* ai) {
-    int32_t is_inverse = -1; // forward FFT
+    if(!table_ready)
+        _init_tables();
+    int32_t is_inverse = 0; // forward FFT
     _fft(n, is_inverse, ar, ai);
 }
 
 void pico_ifft(int32_t n, float_t* ar, float_t* ai) {
+    if(!table_ready)
+        _init_tables();
     int32_t is_inverse = 1; // inverse FFT
     _fft(n, is_inverse, ar, ai);
 }
@@ -433,10 +437,14 @@ void pico_ifft2(int32_t n, int32_t nmax, float_t* ar, float_t* ai, float_t* wr, 
 }
 
 void pico_int_fft2(int32_t n, int32_t nmax, int32_t* ar, int32_t* ai, int32_t* wr, int32_t* wi) {
+    if(!table_ready)
+        _init_tables();
     bool is_inverse = false;
     _int_fft2(n,nmax,is_inverse,ar,ai,wr,wi);
 }
 void pico_int_ifft2(int32_t n, int32_t nmax, int32_t* ar, int32_t* ai, int32_t* wr, int32_t* wi) {
+    if(!table_ready)
+        _init_tables();
     bool is_inverse = true;
     _int_fft2(n,nmax,is_inverse,ar,ai,wr,wi);
 }

@@ -41,7 +41,7 @@
 #include "hardware/i2c.h"
 #include "hardware/dma.h"
 #include "cam.h"
-//#include "arithmetic/pico_fft.h"
+// #include "arithmetic/test_code.h"
 
 #define BOARD_LED           (28) // pico's led => 25, self made RP2040brd's led => 28. check hardware/RP2040Board.pdf 
 
@@ -81,13 +81,15 @@ static void read_i2c_data(i2c_inst_t *i2c)
 
 bool setup() {
     bool OC_INIT = false;
-    vreg_set_voltage(VREG_VOLTAGE_1_25);
+    vreg_set_voltage(VREG_VOLTAGE_1_30);
     // system init
     stdio_init_all();
+    sleep_ms(300);
     OC_INIT = set_sys_clock_khz(SYS_CLK_KHZ, true);
+    sleep_ms(600);
     setup_default_uart();
-    
-
+   
+ 
     // INIT LED
     gpio_init(BOARD_LED);
     gpio_set_dir(BOARD_LED, GPIO_OUT);
@@ -97,10 +99,7 @@ bool setup() {
         gpio_put(BOARD_LED, 0);
         busy_wait_ms(100);
     }
-
     return OC_INIT;
-    //gpio_pull_up(BOARD_LED);
-
 }
 
 
@@ -117,6 +116,9 @@ int main() {
         sleep_ms(1000);
     }
     
+    // fft_test();
+    // while(1);
+
     init_cam(DEV_OV5642);
     
     // check SFP.

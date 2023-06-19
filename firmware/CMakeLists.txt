@@ -11,6 +11,11 @@ pico_sdk_init()
 
 add_executable(${target_name})
 
+# overclocking technique
+pico_define_boot_stage2(pico-coremark-div8 ${PICO_DEFAULT_BOOT_STAGE2_FILE})
+target_compile_definitions(pico-coremark-div8 PRIVATE PICO_FLASH_SPI_CLKDIV=8)
+pico_set_boot_stage2(${target_name} pico-coremark-div8)
+
 pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/picampinos.pio)
 pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/iot_sram.pio)
 # pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/ezspi_slave.pio)
@@ -24,7 +29,11 @@ target_sources(${target_name} PRIVATE
         cam.c
         sccb_if.c
         iot_sram.c
-#        ezspi_slave.c
+        # arithmetic/pico_dct8.c
+        # arithmetic/pico_fft.c
+        # arithmetic/pico_leq.c
+        # arithmetic/test_code.c       
+        # ezspi_slave.c
         )
 
 target_link_libraries(${target_name} PRIVATE
@@ -43,6 +52,7 @@ target_link_libraries(${target_name} PRIVATE
 
 
 pico_enable_stdio_usb(${target_name} 1)
+#pico_set_float_implementation(${target_name} compiler)
 #pico_enable_stdio_uart(${target_name} 1)
 
 pico_add_extra_outputs(${target_name})
