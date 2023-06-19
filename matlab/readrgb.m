@@ -60,3 +60,4 @@ RGB_img(:,:,3) = imgB;
 imshow(uint8(RGB_img));
 imwrite(RGB_img,"untitle.jpg");
 %disp(RGB_img);
+

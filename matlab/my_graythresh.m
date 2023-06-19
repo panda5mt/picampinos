@@ -29,3 +29,4 @@ function thresh = my_graythresh(img)
     end
     thresh = thresh / top;
 end
+
