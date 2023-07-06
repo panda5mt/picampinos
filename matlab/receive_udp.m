@@ -12,11 +12,13 @@
 clc;
 clear;
 close all;
+% open port '1024'. This is SFP CAMERA's port.
 frame_initialized = false;
 udpr = dsp.UDPReceiver( ...
     'LocalIPPort',1024, ...
     'MessageDataType', 'uint32', ...
     'MaximumMessageLength',640);
+
 % udp setup
 setup(udpr); 
 wordsReceived = 0;
