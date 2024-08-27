@@ -88,7 +88,11 @@ static void read_i2c_data(i2c_inst_t *i2c)
 bool setup()
 {
     bool OC_INIT = false;
+#if PICO_RP2040
+    vreg_set_voltage(VREG_VOLTAGE_1_30);
+#else
     vreg_set_voltage(VREG_VOLTAGE_1_40);
+#endif
     // system init
     stdio_init_all();
     sleep_ms(300);
