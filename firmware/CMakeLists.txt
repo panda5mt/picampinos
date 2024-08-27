@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 set(target_name picampinos)
 set(PICO_SDK_FETCH_FROM_GIT on)
-set(PICO_BOARD pico)
+set(PICO_BOARD pico2)
 
 include(pico_sdk_import.cmake)
 
@@ -20,7 +20,7 @@ target_compile_definitions(
         pico-coremark-div8 
         PRIVATE PICO_FLASH_SPI_CLKDIV=8
         #PLL_SYS_REFDIV=1
-        #PLL_SYS_VCO_FREQ_HZ=1164000000
+        #PLL_SYS_VCO_FREQ_HZ=1536000000
         #PLL_SYS_POSTDIV1=3
         #PLL_SYS_POSTDIV2=1
         )
