@@ -39,9 +39,9 @@ cd pico/picampinos/
 # install freertos
 cd ~/
 cd pico/picampinos/firmware/
-git clone -b V202110.00-SMP https://github.com/FreeRTOS/FreeRTOS-Kernel.git
+git clone https://github.com/raspberrypi/FreeRTOS-Kernel.git
 cd ..
-git rm --cached firmware/FreeRTOS-Kernel
+#git rm --cached firmware/FreeRTOS-Kernel
 
 
 git config --global core.autocrlf false

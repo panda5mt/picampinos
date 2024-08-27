@@ -44,7 +44,7 @@
 #include "cam.h"
 // #include "arithmetic/test_code.h"
 
-#define BOARD_LED (28) // pico's led => 25, self made RP2040brd's led => 28. check hardware/RP2040Board.pdf
+#define BOARD_LED (25) //(28) // pico's led => 25, self made RP2040brd's led => 28. check hardware/RP2040Board.pdf
 
 static PIO pio_ser_wr = pio1;
 static uint sm0;
@@ -117,7 +117,7 @@ int main()
 
     if (OC_OK)
     {
-        printf("clock init ok.\r\n");
+        printf("clock init Okay at %dkHz\r\n", SYS_CLK_IN_KHZ);
         sleep_ms(1000);
     }
     else

@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.13)
-include(pico_sdk_import.cmake)
 set(target_name picampinos)
+set(PICO_SDK_FETCH_FROM_GIT on)
+set(PICO_BOARD pico2)
+
+include(pico_sdk_import.cmake)
 
 project(${target_name} C CXX ASM)
 
