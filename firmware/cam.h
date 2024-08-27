@@ -6,30 +6,30 @@
 #include "sccb_if.h"
 
 // USE SPI Slave?
-#define USE_EZSPI_SLAVE     (false)
-#define USE_100BASE_FX      (true && !USE_EZSPI_SLAVE)
+#define USE_EZSPI_SLAVE (false)
+#define USE_100BASE_FX (true && !USE_EZSPI_SLAVE)
 
-#define SYS_CLK_KHZ         (250000)// 192000 ~ 420000 (if you use sfp, SYS_CLK_KHZ must be just 250000)
-#define CAM_BASE_PIN        (1)     // GP1 (camera module needs 11pin)
-#define PIN_PWM0            (0)     // GP0 (camera's xclk(24MHz))
-#define LINEAR_BURST        (512)   // IoT SRAM's burst length(in bytes)
-#define SFP_HEADER_WORDS    (4)     // header length(in words, = sizeof(uint32))
+#define SYS_CLK_IN_KHZ (250000) // 192000 ~ 420000 (if you use sfp, SYS_CLK_KHZ must be just 250000)
+#define CAM_BASE_PIN (1)        // GP1 (camera module needs 11pin)
+#define PIN_PWM0 (0)            // GP0 (camera's xclk(24MHz))
+#define LINEAR_BURST (512)      // IoT SRAM's burst length(in bytes)
+#define SFP_HEADER_WORDS (4)    // header length(in words, = sizeof(uint32))
 
 // interfaces
 // SCCB IF
-#define I2C1_SDA    (26)
-#define I2C1_SCL    (27)
+#define I2C1_SDA (26)
+#define I2C1_SCL (27)
 
 // camera buffer size
 // 640x480, RGB565 picture needs 640x480x2 bytes of buffers.
 // but RP2040 has no capacity such as huge buffers.
 // so, using DMA and IoT SRAM and lesser buffer to store them.
-#define BLOCK           (40)                // fixed: 40~80
-#define CAM_FUL_SIZE    (640 * 480 * 2)     // VGA size, RGB565(16bit) format
-#define CAM_BUF_SIZE    (640 * BLOCK * 2)   // in bytes
-#define CAM_BUF_HALF    (CAM_BUF_SIZE / 2)  // in bytes
-#define NUM_COMP_FRM    (CAM_FUL_SIZE/CAM_BUF_SIZE * 2) * 3// (number of call by interrupt to complete Frame) * 3
-#define CAM_TOTAL_LEN   (CAM_FUL_SIZE * 3)
+#define BLOCK (40)                                         // fixed: 40~80
+#define CAM_FUL_SIZE (640 * 480 * 2)                       // VGA size, RGB565(16bit) format
+#define CAM_BUF_SIZE (640 * BLOCK * 2)                     // in bytes
+#define CAM_BUF_HALF (CAM_BUF_SIZE / 2)                    // in bytes
+#define NUM_COMP_FRM (CAM_FUL_SIZE / CAM_BUF_SIZE * 2) * 3 // (number of call by interrupt to complete Frame) * 3
+#define CAM_TOTAL_LEN (CAM_FUL_SIZE * 3)
 // high layer APIs
 void init_cam(uint8_t DEVICE_IS);
 void config_cam_buffer();
@@ -39,6 +39,3 @@ void uartout_bin_cam();
 void spiout_cam();
 void sfp_cam();
 void free_cam();
-
-
-

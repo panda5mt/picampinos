@@ -6,7 +6,7 @@
 // You can reverse bits (GP1:GP8=D2:D9 -> GP1:GP8=D9:D2). search for keywords 'bit reverse' in 'picampinos.pio'
 // (PICO <-> OV5642/OV2640)
 // GP0 ---> XCLK(24MHz Clock IN)
-// GP1 <--- D2 
+// GP1 <--- D2
 // GP2 <--- D3
 // GP3 <--- D4
 // GP4 <--- D5
@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include "pico/stdlib.h"
 #include "pico/multicore.h"
+#include "hardware/clocks.h"
 #include "hardware/gpio.h"
 #include "hardware/vreg.h"
 #include "hardware/i2c.h"
@@ -43,8 +44,7 @@
 #include "cam.h"
 // #include "arithmetic/test_code.h"
 
-#define BOARD_LED           (28) // pico's led => 25, self made RP2040brd's led => 28. check hardware/RP2040Board.pdf 
-
+#define BOARD_LED (28) // pico's led => 25, self made RP2040brd's led => 28. check hardware/RP2040Board.pdf
 
 static PIO pio_ser_wr = pio1;
 static uint sm0;
@@ -61,17 +61,23 @@ static void read_i2c_data(i2c_inst_t *i2c)
 
     printf("read sfp end...\r\n");
     printf(" 0x50 0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef\r\n");
-    for (y = 0; y < 16; y++) {
+    for (y = 0; y < 16; y++)
+    {
         printf(" %02x: ", y << 4);
-        for (x = 0; x < 16; x++) {
+        for (x = 0; x < 16; x++)
+        {
             printf("%02x ", read_buf[(y << 4) + x]);
         }
         printf("   ");
-        for (x = 0; x < 16; x++) {
+        for (x = 0; x < 16; x++)
+        {
             tmp = read_buf[(y << 4) + x];
-            if (tmp >= 0x20 && tmp <= 0x7E) {
+            if (tmp >= 0x20 && tmp <= 0x7E)
+            {
                 printf("%c", tmp);
-            } else {
+            }
+            else
+            {
                 printf(".");
             }
         }
@@ -79,21 +85,22 @@ static void read_i2c_data(i2c_inst_t *i2c)
     }
 }
 
-bool setup() {
+bool setup()
+{
     bool OC_INIT = false;
     vreg_set_voltage(VREG_VOLTAGE_1_30);
     // system init
     stdio_init_all();
     sleep_ms(300);
-    OC_INIT = set_sys_clock_khz(SYS_CLK_KHZ, true);
+    OC_INIT = set_sys_clock_khz(SYS_CLK_IN_KHZ, true);
     sleep_ms(600);
     setup_default_uart();
-   
- 
+
     // INIT LED
     gpio_init(BOARD_LED);
     gpio_set_dir(BOARD_LED, GPIO_OUT);
-    for(int i=0 ; i < 5; i++) {     // blink LED
+    for (int i = 0; i < 5; i++)
+    { // blink LED
         gpio_put(BOARD_LED, 1);
         busy_wait_ms(100);
         gpio_put(BOARD_LED, 0);
@@ -102,46 +109,47 @@ bool setup() {
     return OC_INIT;
 }
 
-
-int main() {
+int main()
+{
 
     bool OC_OK = false;
     OC_OK = setup();
 
-    if(OC_OK) {      
+    if (OC_OK)
+    {
         printf("clock init ok.\r\n");
         sleep_ms(1000);
-    }else{
+    }
+    else
+    {
         printf("clock init failed.\r\n");
         sleep_ms(1000);
     }
-    
+
     // fft_test();
     // while(1);
 
     init_cam(DEV_OV5642);
-    
+
     // check SFP.
     // call 'read_i2c_data()' after 'init_cam()' because i2c hardware is not initialized before 'init_cam()'
     i2c_inst_t *i2c = i2c1;
     read_i2c_data(i2c);
-    config_cam_buffer();    // config buffer
-    start_cam();            // start streaming
-
-
+    config_cam_buffer(); // config buffer
+    start_cam();         // start streaming
 
     // data via USB-UART(ASCII)
-    // see also 'matlab/readrgb.m'    
+    // see also 'matlab/readrgb.m'
     // while(true) {
-    //     uartout_cam();          
+    //     uartout_cam();
     // }
 
-    // data via USB-UART(binary) 
+    // data via USB-UART(binary)
     // see also 'matlab/comm_uart_bin.m'
-    /*    
+    /*
     while(true) {
-        uartout_bin_cam();      
-    }                           
+        uartout_bin_cam();
+    }
     */
 
     // you have Raspberry Pi 3/4? and you have MATLAB?
@@ -154,19 +162,19 @@ int main() {
         printf("OK\r\n");
     }
     */
-    
+
     // using SFP module
     // see also 'matlab/receive_udp.m'
-    // To Use SFP, CHECK 'USE_EZSPI_SLAVE' is (false) 
+    // To Use SFP, CHECK 'USE_EZSPI_SLAVE' is (false)
     // AND 'USE_100BASE_FX' is (true) in 'cam.h'
     multicore_launch_core1(sfp_cam);
-    while(true) {};
-    
+    while (true)
+    {
+    };
+
     // end
     free_cam();
-    while(true) {};
+    while (true)
+    {
+    };
 }
-
-
-
-
