@@ -4,4 +4,5 @@
 /build/
 add_git.sh
 /matlab/*.bak
+/FreeRTOS-Kernel/
 */FreeRTOS-Kernel/*
