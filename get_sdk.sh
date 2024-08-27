@@ -40,7 +40,8 @@ cd pico/picampinos/
 cd ~/
 cd pico/picampinos/firmware/
 git clone -b V202110.00-SMP https://github.com/FreeRTOS/FreeRTOS-Kernel.git
-git rm --cached FreeRTOS-Kernel
+cd ..
+git rm --cached firmware/FreeRTOS-Kernel
 
 
 git config --global core.autocrlf false
