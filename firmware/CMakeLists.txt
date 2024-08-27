@@ -16,7 +16,14 @@ add_executable(${target_name})
 
 # overclocking technique
 pico_define_boot_stage2(pico-coremark-div8 ${PICO_DEFAULT_BOOT_STAGE2_FILE})
-target_compile_definitions(pico-coremark-div8 PRIVATE PICO_FLASH_SPI_CLKDIV=8)
+target_compile_definitions(
+        pico-coremark-div8 
+        PRIVATE PICO_FLASH_SPI_CLKDIV=8
+        #PLL_SYS_REFDIV=1
+        #PLL_SYS_VCO_FREQ_HZ=1164000000
+        #PLL_SYS_POSTDIV1=3
+        #PLL_SYS_POSTDIV2=1
+        )
 pico_set_boot_stage2(${target_name} pico-coremark-div8)
 
 pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/picampinos.pio)
