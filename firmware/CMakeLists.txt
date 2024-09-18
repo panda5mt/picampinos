@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 set(target_name picampinos)
 set(PICO_SDK_FETCH_FROM_GIT on)
-set(PICO_BOARD pico2)
+set(PICO_BOARD pico)
 
 include(pico_sdk_import.cmake)
 
@@ -15,16 +15,24 @@ pico_sdk_init()
 add_executable(${target_name})
 
 # overclocking technique
-pico_define_boot_stage2(pico-coremark-div8 ${PICO_DEFAULT_BOOT_STAGE2_FILE})
+# pico_define_boot_stage2(pico-coremark-div8 ${PICO_DEFAULT_BOOT_STAGE2_FILE})
+# target_compile_definitions(
+#         pico-coremark-div8 
+#         PRIVATE PICO_FLASH_SPI_CLKDIV=8
+#         #PLL_SYS_REFDIV=1
+#         #PLL_SYS_VCO_FREQ_HZ=1536000000
+#         #PLL_SYS_POSTDIV1=3
+#         #PLL_SYS_POSTDIV2=1
+#         )
+# pico_set_boot_stage2(${target_name} pico-coremark-div8)
+
+
+pico_define_boot_stage2(slower_boot2 ${PICO_DEFAULT_BOOT_STAGE2_FILE})
 target_compile_definitions(
-        pico-coremark-div8 
-        PRIVATE PICO_FLASH_SPI_CLKDIV=8
-        #PLL_SYS_REFDIV=1
-        #PLL_SYS_VCO_FREQ_HZ=1536000000
-        #PLL_SYS_POSTDIV1=3
-        #PLL_SYS_POSTDIV2=1
+        slower_boot2 
+        PRIVATE PICO_FLASH_SPI_CLKDIV=4
         )
-pico_set_boot_stage2(${target_name} pico-coremark-div8)
+pico_set_boot_stage2(${target_name} slower_boot2)
 
 pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/picampinos.pio)
 pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/iot_sram.pio)
@@ -40,9 +48,9 @@ target_sources(${target_name} PRIVATE
         sccb_if.c
         iot_sram.c
         # arithmetic/pico_dct8.c
-        # arithmetic/pico_fft.c
+        arithmetic/pico_fft.c
         # arithmetic/pico_leq.c
-        # arithmetic/test_code.c       
+        arithmetic/test_code.c       
         # ezspi_slave.c
         )
 
