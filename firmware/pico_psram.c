@@ -247,3 +247,17 @@ static size_t __no_inline_not_in_flash_func(setup_psram)(uint32_t psram_cs_pin)
 
     return psram_size;
 }
+
+// public interface
+
+// setup call
+size_t pico_setup_psram(uint32_t psram_cs_pin)
+{
+    return setup_psram(psram_cs_pin);
+}
+
+// update timing -- used if the system clock/timing was changed.
+void pico_psram_update_timing(void)
+{
+    set_psram_timing();
+}
