@@ -136,20 +136,21 @@ int main()
         sleep_ms(1000);
     }
 
-    fft_test();
-    int sz = pico_setup_psram(47);
-    if (sz > 0)
-    {
-        printf("PSRAM OK: size = %d\n", sz);
-    }
-    else
-    {
-        printf("No PSRAM ?\n");
-    }
+    /*
+        fft_test();
+        int sz = pico_setup_psram(47);
+        if (sz > 0)
+        {
+            printf("PSRAM OK: size = %d\n", sz);
+        }
+        else
+        {
+            printf("No PSRAM ?\n");
+        }
 
-    while (1)
-        ;
-
+        while (1)
+            ;
+    */
     init_cam(DEV_OV5642);
 
     // check SFP.
