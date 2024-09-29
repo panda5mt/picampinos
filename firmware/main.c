@@ -43,6 +43,9 @@
 #include "hardware/dma.h"
 #include "cam.h"
 #include "arithmetic/test_code.h"
+#include "pico_psram.h"
+#include "random_test_data.h"
+uint32_t buf[count_of(random_test_data)];
 
 #define BOARD_LED (25) // 28 // pico's led => 25, self made RP2040brd's led => 28. check hardware/RP2040Board.pdf
 
@@ -93,7 +96,7 @@ bool setup()
 #if PICO_RP2040
     vreg_set_voltage(VREG_VOLTAGE_1_25);
 #else
-    vreg_set_voltage(VREG_VOLTAGE_1_40);
+    vreg_set_voltage(VREG_VOLTAGE_1_35);
 #endif
     // system init
     stdio_init_all();
@@ -132,10 +135,11 @@ int main()
         printf("clock init failed.\r\n");
         sleep_ms(1000);
     }
-
-    // fft_test();
-    // while (1)
-    //     ;
+    /*
+        fft_test();
+        while (1)
+            ;
+    */
 
     init_cam(DEV_OV5642);
 

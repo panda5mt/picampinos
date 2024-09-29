@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 set(target_name picampinos)
 set(PICO_SDK_FETCH_FROM_GIT on)
-set(PICO_BOARD pico)
+set(PICO_BOARD pico2)
 
 include(pico_sdk_import.cmake)
 
@@ -47,6 +47,7 @@ target_sources(${target_name} PRIVATE
         cam.c
         sccb_if.c
         iot_sram.c
+        pico_psram.c
         # arithmetic/pico_dct8.c
         arithmetic/pico_fft.c
         # arithmetic/pico_leq.c
@@ -59,8 +60,10 @@ target_link_libraries(${target_name} PRIVATE
         pico_divider 
         pico_stdlib
         pico_multicore
+        pico_flash
         hardware_vreg
         hardware_pio
+        hardware_spi
         hardware_i2c
         hardware_pwm
         hardware_dma
