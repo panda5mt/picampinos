@@ -1,7 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "../pico_psram.h"
 #include "test_code.h"
+
+#define PSRAM_LOCATION _u(0x11000000)
+#define DATA_ELEMENTS 256
+#define DATA_BLOCK_SIZE (DATA_ELEMENTS * sizeof(float_t))
+
+static void erase_data_block(float_t *data_buffer)
+{
+    for (size_t i = 0; i < DATA_ELEMENTS; i++)
+        data_buffer[i] = 0.0f;
+}
+
+static void write_data_block(float_t *source_data, float_t *data_buffer)
+{
+    for (size_t i = 0; i < DATA_ELEMENTS; i++)
+        data_buffer[i] = source_data[i];
+}
 
 void ge_test(int num)
 {
@@ -111,6 +128,16 @@ void dct_test(int num)
 void fft_test(void)
 {
 
+    int sz = pico_setup_psram(47);
+    if (sz > 0)
+    {
+        printf("PSRAM OK: size = %d\n", sz);
+    }
+    else
+    {
+        printf("No PSRAM ?\n");
+    }
+
     // int32_t ar2[64] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 1, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 1, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0};
     int32_t ar2[256] = {
         139, 144, 149, 153, 155, 155, 155, 155, 144, 151, 153, 156, 159, 156, 156, 156,
@@ -162,15 +189,25 @@ void fft_test(void)
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    float_t wr3[16];
-    float_t wi3[16];
+
+    float_t *data_buffer = (float_t *)(PSRAM_LOCATION);
+    erase_data_block(data_buffer);
+    write_data_block(ar3, data_buffer);
+    float_t *arf;
+    arf = data_buffer;
+
+    data_buffer += 256;
+    erase_data_block(data_buffer);
+    write_data_block(ai3, data_buffer);
+    float_t *aif;
+    aif = data_buffer;
 
     printf("float FFT2\r\n");
     int32_t nowtime = time_us_32();
     for (int ll = 0; ll < 256; ll++)
     {
-        pico_fft2(n, nmax, ar3, ai3);
-        pico_ifft2(n, nmax, ar3, ai3);
+        pico_fft2(n, nmax, arf, aif);
+        pico_ifft2(n, nmax, arf, aif);
     }
     nowtime = time_us_32() - nowtime;
     printf("elapsed time = %d[usec]\r\n", nowtime);
@@ -178,7 +215,7 @@ void fft_test(void)
     {
         for (int i = 0; i < n; i++)
         {
-            printf("%.3f,  ", ar3[(i + j)]);
+            printf("%.3f,  ", arf[(i + j)]);
         }
         printf("\n");
     }

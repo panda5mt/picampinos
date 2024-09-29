@@ -135,18 +135,8 @@ int main()
         printf("clock init failed.\r\n");
         sleep_ms(1000);
     }
-
     /*
         fft_test();
-        int sz = pico_setup_psram(47);
-        if (sz > 0)
-        {
-            printf("PSRAM OK: size = %d\n", sz);
-        }
-        else
-        {
-            printf("No PSRAM ?\n");
-        }
 
         while (1)
             ;
