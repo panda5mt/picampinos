@@ -42,10 +42,10 @@
 #include "hardware/i2c.h"
 #include "hardware/dma.h"
 #include "cam.h"
-#include "arithmetic/test_code.h"
-#include "pico_psram.h"
-#include "random_test_data.h"
-uint32_t buf[count_of(random_test_data)];
+// #include "arithmetic/test_code.h"
+// #include "pico_psram.h"
+// #include "random_test_data.h"
+// uint32_t buf[count_of(random_test_data)];
 
 #define BOARD_LED (25) // 28 // pico's led => 25, self made RP2040brd's led => 28. check hardware/RP2040Board.pdf
 
