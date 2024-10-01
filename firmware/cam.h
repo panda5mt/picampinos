@@ -9,7 +9,7 @@
 #define USE_EZSPI_SLAVE (false)
 #define USE_100BASE_FX (true && !USE_EZSPI_SLAVE)
 
-#define SYS_CLK_IN_KHZ (250000) // 192000 ~ 420000 (if you use sfp, SYS_CLK_KHZ must be just 250000 , 380000 for RP235x)
+#define SYS_CLK_IN_KHZ (250000) // 192000 ~ 250000 (if you use sfp, SYS_CLK_KHZ must be just 250000)
 #define CAM_BASE_PIN (1)        // GP1 (camera module needs 11pin)
 #define PIN_PWM0 (0)            // GP0 (camera's xclk(24MHz))
 #define LINEAR_BURST (512)      // IoT SRAM's burst length(in bytes)

@@ -1,4 +1,4 @@
-// PICAMPINOS - Camera IF using RP2040
+// PICAMPINOS - Camera IF using RP2350
 // this project communicates OV5642(or parallel 8-bit DVP-IF Image sensor with SCCB control) using Raspberry Pi PICO
 // Need: A Raspberry Pi PICO, An IoT SRAM(APS1604M-3SQR or compatible), A DVP Camera(OV5642)
 // Connection:
@@ -42,12 +42,14 @@
 #include "hardware/i2c.h"
 #include "hardware/dma.h"
 #include "cam.h"
-// #include "arithmetic/test_code.h"
-// #include "pico_psram.h"
-// #include "random_test_data.h"
-// uint32_t buf[count_of(random_test_data)];
+#include "arithmetic/test_code.h"
+#include "arithmetic/image_process.h"
 
-#define BOARD_LED (25) // 28 // pico's led => 25, self made RP2040brd's led => 28. check hardware/RP2040Board.pdf
+#include "pico_psram.h"
+#include "random_test_data.h"
+uint32_t buf[count_of(random_test_data)];
+
+#define BOARD_LED (25) // 28 // pico's led => 25, self made RP2350brd's led => 28. check hardware/RP2350Board.pdf
 
 static PIO pio_ser_wr = pio1;
 static uint sm0;
@@ -135,9 +137,9 @@ int main()
         printf("clock init failed.\r\n");
         sleep_ms(1000);
     }
+
     /*
         fft_test();
-
         while (1)
             ;
     */

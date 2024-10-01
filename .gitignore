@@ -1,6 +1,7 @@
 *.cmake
 .vscode-server
 .vscode
+image_process.c
 /build/
 add_git.sh
 /matlab/*.bak

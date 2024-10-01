@@ -215,21 +215,10 @@ void fft_test(void)
     {
         for (int i = 0; i < n; i++)
         {
-            printf("%.3f,  ", arf[(i + j)]);
+            printf("%.1f,  ", arf[(i + j)]);
         }
         printf("\n");
     }
-    // real
-    // for (int i = 0; i < (n * nmax); i += 4)
-    // {
-    //     printf("ar3[%d]=%.3lf, ar3[%d]=%.3lf, ar3[%d]=%.3lf, ar3[%d]=%.3lf\r\n", i, ar3[i], i + 1, ar3[i + 1], i + 2, ar3[i + 2], i + 3, ar3[i + 3]);
-    // }
-
-    // imag
-    // for (int i = 0; i < (n * nmax); i += 4)
-    // {
-    //     printf("ai3[%d]=%.3lf, ai3[%d]=%.3lf, ai3[%d]=%.3lf, ai3[%d]=%.3lf\r\n", i, ai3[i], i + 1, ai3[i + 1], i + 2, ai3[i + 2], i + 3, ai3[i + 3]);
-    // }
 
     n = nmax = 16;
     printf("Integer FFT2\r\n");
