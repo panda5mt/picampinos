@@ -30,6 +30,7 @@ pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/ser_100base_fx
 
 # ライブラリ用のimage_process.cをコンパイルして、libimage_process.aを作成
 add_library(image_process STATIC arithmetic/image_process.c)
+
 # libimage_process.aをbuild/以外に配置
 set_target_properties(image_process PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/)
 
@@ -48,7 +49,6 @@ target_sources(${target_name} PRIVATE
 
         arithmetic/pico_fft.c
         arithmetic/test_code.c
-        #arithmetic/image_process.c       
         )
 
 target_link_libraries(${target_name} PRIVATE
