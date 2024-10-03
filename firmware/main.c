@@ -23,15 +23,6 @@
 // GP26 --> SDA(SCCB DATA/I2C)
 // GP27 --> SCL(SCCB CLK/I2C)
 
-// ----- with IoT SRAM -----
-// (PICO <-> APS1604M)
-// GP16 <-> D0
-// GP17 <-> D1
-// GP18 <-> D2
-// GP19 <-> D3
-// GP20 --> xCS
-// GP21 --> SCLK
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "pico/stdlib.h"
@@ -148,15 +139,16 @@ int main()
     // check SFP.
     // call 'read_i2c_data()' after 'init_cam()' because i2c hardware is not initialized before 'init_cam()'
     i2c_inst_t *i2c = i2c1;
-    read_i2c_data(i2c);
+    // read_i2c_data(i2c);
     config_cam_buffer(); // config buffer
     start_cam();         // start streaming
 
     // data via USB-UART(ASCII)
     // see also 'matlab/readrgb.m'
-    // while(true) {
-    //     uartout_cam();
-    // }
+    while (true)
+    {
+        uartout_cam();
+    }
 
     // data via USB-UART(binary)
     // see also 'matlab/comm_uart_bin.m'

@@ -57,7 +57,7 @@ uint32_t *cam_ptr2; // 2nd pointer of cam_ptr.
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
 void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_num);
 void cam_handler();
-void printbuf(uint8_t buf[], size_t len);
+// void printbuf(uint8_t buf[], size_t len);
 
 void init_cam(uint8_t DEVICE_IS)
 {
@@ -89,7 +89,7 @@ void init_cam(uint8_t DEVICE_IS)
     // camera buffer on PSRAM
     uint32_t *data_buffer = (uint32_t *)(PSRAM_LOCATION);
     cam_ptr = data_buffer;
-    data_buffer += CAM_BUF_SIZE / sizeof(uint32_t);
+    data_buffer += CAM_FUL_SIZE / sizeof(uint32_t);
     cam_ptr2 = data_buffer;
     // iot_ptr = cam_ptr;
 
@@ -101,6 +101,20 @@ void config_cam_buffer()
     // ------------------ CAMERA READ: withDMA   --------------------------------
 
     is_captured = false;
+
+    // check psram
+    int sz = pico_setup_psram(PICO_PSRAM_CS1);
+    if (sz == 0)
+    {
+        printf("No PSRAM.\nSystem halted.\n");
+        while (1)
+            ;
+    }
+    else
+    {
+        printf("PSRAM OK:size = %d\n", sz);
+    }
+
     // disable IRQ
     irq_set_enabled(DMA_IRQ_0, false);
 
@@ -112,7 +126,7 @@ void config_cam_buffer()
     dma_channel_configure(DMA_CAM_RD_CH1, &c,
                           cam_ptr2,                        // Destination pointer(back half of buffer)
                           &pio_cam->rxf[sm_cam],           // Source pointer
-                          CAM_BUF_SIZE / sizeof(uint32_t), // Number of transfers
+                          CAM_FUL_SIZE / sizeof(uint32_t), // Number of transfers
                           false                            // Don't Start yet
     );
 
@@ -123,7 +137,7 @@ void config_cam_buffer()
     dma_channel_configure(DMA_CAM_RD_CH0, &c,
                           cam_ptr,                         // Destination pointer(front half of buffer)
                           &pio_cam->rxf[sm_cam],           // Source pointer
-                          CAM_BUF_SIZE / sizeof(uint32_t), // Number of transfers
+                          CAM_FUL_SIZE / sizeof(uint32_t), // Number of transfers
                           false                            // Don't Start yet
     );
 
@@ -158,17 +172,18 @@ void uartout_cam()
     printf("!srt\r\n");
     sleep_ms(30);
 
-    is_captured = false;
-    while (!is_captured)
-        ; // wait until an image captured
+    // is_captured = false;
+    // while (!is_captured)
+    //     ; // wait until an image captured
 
-    while (ram_in_write)
-        ;                // wait until writing ram finished
-    ram_ind_read = true; // start to read
+    // while (ram_in_write)
+    //     ;                // wait until writing ram finished
+    // ram_ind_read = true; // start to read
 
     // int32_t iot_addr = 0;
     int32_t *b;
-    b = cam_ptr;
+    b = (psram_access == 0) ? cam_ptr2 : cam_ptr;
+
     for (uint32_t h = 0; h < 480; h++)
     {
         for (uint32_t i = 0; i < 320; i++)
@@ -256,28 +271,15 @@ void spiout_cam()
 #if USE_100BASE_FX
 void sfp_cam()
 {
-    static int32_t iot_addr = 0;
+    static int32_t iot_addr;
     sfp_hw_init(pio_sfp);
-
-    // check psram
-    int sz = pico_setup_psram(PICO_PSRAM_CS1);
-    if (sz == 0)
-    {
-        printf("No PSRAM.\nSystem halted.\n");
-        while (1)
-            ;
-    }
-    else
-    {
-        printf("PSRAM OK:size = %d\n", sz);
-    }
 
     while (1)
     {
 
         int32_t *b;
         uint32_t resp;
-        b = cam_ptr;
+        b = cam_ptr + iot_addr;
 
         // send header
         // frame start:
@@ -286,14 +288,11 @@ void sfp_cam()
 
         sfp_send(&a, sizeof(uint32_t) * 4);
 
-        for (uint32_t h = 0; h < 480; h++)
+        // sem_release(&psram_sem);
+        for (uint32_t i = 0; i < CAM_FUL_SIZE / sizeof(uint32_t); i += 320)
         {
-            // sem_release(&psram_sem);
-            for (uint32_t i = 0; i < CAM_FUL_SIZE / sizeof(uint32_t); i += 320)
-            {
-                // printf("0x%08X\r\n",b[i]);
-                sfp_send_with_header(0xbeefbeef, (h + i / 320) + 1, 1, 320, &(b[i]), sizeof(uint32_t) * 320);
-            }
+            // printf("0x%08X\r\n",b[i]);
+            sfp_send_with_header(0xbeefbeef, (i / 320) + 1, 1, 320, &(b[i]), sizeof(uint32_t) * 320);
         }
 
         // increment iot sram's address

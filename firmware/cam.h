@@ -29,7 +29,7 @@
 #define CAM_FUL_SIZE (640 * 480 * 2)                       // VGA size, RGB565(16bit) format
 #define CAM_BUF_SIZE (640 * BLOCK * 2)                     // in bytes
 #define CAM_BUF_HALF (CAM_BUF_SIZE / 2)                    // in bytes
-#define NUM_COMP_FRM (CAM_FUL_SIZE / CAM_BUF_SIZE * 2) * 2 // (number of call by interrupt to complete Frame) * 3
+#define NUM_COMP_FRM (CAM_FUL_SIZE / CAM_BUF_SIZE * 2) * 2 // (number of call by interrupt to complete Frame) * 2
 #define CAM_TOTAL_LEN (CAM_FUL_SIZE * 2)
 // high layer APIs
 void init_cam(uint8_t DEVICE_IS);
