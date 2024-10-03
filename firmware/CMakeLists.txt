@@ -23,7 +23,7 @@ target_compile_definitions(
 pico_set_boot_stage2(${target_name} slower_boot2)
 
 pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/picampinos.pio)
-pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/iot_sram.pio)
+# pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/iot_sram.pio)
 # pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/ezspi_slave.pio)
 pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/ser_100base_fx.pio)
 
@@ -41,7 +41,7 @@ target_sources(${target_name} PRIVATE
         main.c
         cam.c
         sccb_if.c
-        iot_sram.c
+        # iot_sram.c
         pico_psram.c
         # ezspi_slave.c
         # arithmetic/pico_dct8.c

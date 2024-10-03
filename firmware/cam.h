@@ -9,6 +9,7 @@
 #define USE_EZSPI_SLAVE (false)
 #define USE_100BASE_FX (true && !USE_EZSPI_SLAVE)
 
+#define PICO_PSRAM_CS1 (47)     // QSPI's CS of PSRAM
 #define SYS_CLK_IN_KHZ (250000) // 192000 ~ 250000 (if you use sfp, SYS_CLK_KHZ must be just 250000)
 #define CAM_BASE_PIN (1)        // GP1 (camera module needs 11pin)
 #define PIN_PWM0 (0)            // GP0 (camera's xclk(24MHz))
@@ -28,8 +29,8 @@
 #define CAM_FUL_SIZE (640 * 480 * 2)                       // VGA size, RGB565(16bit) format
 #define CAM_BUF_SIZE (640 * BLOCK * 2)                     // in bytes
 #define CAM_BUF_HALF (CAM_BUF_SIZE / 2)                    // in bytes
-#define NUM_COMP_FRM (CAM_FUL_SIZE / CAM_BUF_SIZE * 2) * 3 // (number of call by interrupt to complete Frame) * 3
-#define CAM_TOTAL_LEN (CAM_FUL_SIZE * 3)
+#define NUM_COMP_FRM (CAM_FUL_SIZE / CAM_BUF_SIZE * 2) * 2 // (number of call by interrupt to complete Frame) * 3
+#define CAM_TOTAL_LEN (CAM_FUL_SIZE * 2)
 // high layer APIs
 void init_cam(uint8_t DEVICE_IS);
 void config_cam_buffer();
