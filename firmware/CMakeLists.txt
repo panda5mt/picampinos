@@ -46,7 +46,7 @@ target_sources(${target_name} PRIVATE
         # arithmetic/pico_leq.c
 
         arithmetic/pico_fft.c
-        arithmetic/test_code.c
+        #arithmetic/test_code.c
         )
 
 target_link_libraries(${target_name} PRIVATE

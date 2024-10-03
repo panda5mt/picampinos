@@ -365,7 +365,7 @@ void cam_handler()
     }
 
     psram_access = psram_access + 1;
-    if (psram_access > NUM_COMP_FRM)
+    if (psram_access > CAM_TOTAL_FRM)
     {
         psram_access = 0;
     }
@@ -382,7 +382,7 @@ void cam_handler()
     // reset write address pointer
     dma_channel_set_write_addr(dma_chan, b, false);
 
-    if (num_of_call_this < NUM_COMP_FRM - 1)
+    if (num_of_call_this < CAM_TOTAL_FRM - 1)
     {
         num_of_call_this++;
     }
