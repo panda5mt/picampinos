@@ -33,6 +33,8 @@
 #include "hardware/i2c.h"
 #include "hardware/dma.h"
 #include "cam.h"
+#include "hwinit.h"
+#include "eth.h"
 #include "arithmetic/image_process.h"
 
 // #include "pico_psram.h"
@@ -132,17 +134,29 @@ int main()
     // check SFP.
     // call 'read_i2c_data()' after 'init_cam()' because i2c hardware is not initialized before 'init_cam()'
     i2c_inst_t *i2c = i2c1;
-    read_i2c_data(i2c);
+    // read_i2c_data(i2c);
 #endif
     config_cam_buffer(); // config buffer
     start_cam();         // start streaming
 
-    // data via USB-UART(ASCII)
-    // see also 'matlab/readrgb.m'
-    while (true)
-    {
-        uartout_cam();
-    }
+    // hw_init();
+    // eth_init();
+
+    // printf("[BOOT]\r\n");
+
+    // hw_start_led_blink();
+
+    // while (1)
+    // {
+    //     eth_main();
+    // }
+
+    // // data via USB-UART(ASCII)
+    // // see also 'matlab/readrgb.m'
+    // while (true)
+    // {
+    //     uartout_cam();
+    // }
 
     // data via USB-UART(binary)
     // see also 'matlab/comm_uart_bin.m'

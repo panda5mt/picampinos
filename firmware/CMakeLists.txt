@@ -14,6 +14,13 @@ pico_sdk_init()
 
 add_executable(${target_name})
 
+target_include_directories(${target_name} PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}/arithmetic
+    #${CMAKE_CURRENT_LIST_DIR}/sfp
+    ${CMAKE_CURRENT_LIST_DIR}/rj45
+    ${CMAKE_CURRENT_LIST_DIR}/
+)
+
 # overclocking technique
 pico_define_boot_stage2(slower_boot2 ${PICO_DEFAULT_BOOT_STAGE2_FILE})
 target_compile_definitions(
@@ -22,9 +29,12 @@ target_compile_definitions(
         )
 pico_set_boot_stage2(${target_name} slower_boot2)
 
-pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/picampinos.pio)
+
 # pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/ezspi_slave.pio)
-pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/ser_100base_fx.pio)
+pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/picampinos.pio)
+#pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/sfp/ser_100base_fx.pio)
+pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/rj45/ser_10base_t.pio)
+pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/rj45/des_10base_t.pio)
 
 
 # ライブラリ用のimage_process.cをコンパイルして、libimage_process.aを作成
@@ -34,16 +44,18 @@ add_library(image_process STATIC arithmetic/image_process.c)
 set_target_properties(image_process PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/)
 
 target_sources(${target_name} PRIVATE
-        tbl_8b10b.c
-        udp.c
-        sfp_hw.c
+        # sfp/tbl_8b10b.c
+        # sfp/udp.c
+        # sfp/sfp_hw.c
+        rj45/arp.c
+        rj45/eth.c
+        rj45/hwinit.c
+        rj45/icmp.c
+        rj45/udp.c
         main.c
         cam.c
         sccb_if.c
         pico_psram.c
-        # ezspi_slave.c
-        # arithmetic/pico_dct8.c
-        # arithmetic/pico_leq.c
 
         arithmetic/pico_fft.c
         #arithmetic/test_code.c

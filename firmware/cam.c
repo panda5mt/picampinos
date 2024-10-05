@@ -66,7 +66,7 @@ void init_cam(uint8_t DEVICE_IS)
     set_pwm_freq_kHz(24000, SYS_CLK_IN_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2640
     sleep_ms(1000);
 
-    sccb_init(DEVICE_IS, I2C1_SDA, I2C1_SCL); // sda,scl=(gp26,gp27). see 'sccb_if.c' and 'cam.h'
+    // sccb_init(DEVICE_IS, I2C1_SDA, I2C1_SCL); // sda,scl=(gp26,gp27). see 'sccb_if.c' and 'cam.h'
     sleep_ms(3000);
 
     uint32_t offset_cam = pio_add_program(pio_cam, &picampinos_program);
