@@ -8,6 +8,7 @@
 #include "hardware/pwm.h"
 #include "hardware/irq.h"
 #include "hardware/dma.h"
+#include "hardware/pio.h"
 #include "pico/multicore.h"
 
 #include "cam.h"
@@ -22,7 +23,7 @@
 // PSRAM START ADDRESS
 #define PSRAM_LOCATION _u(0x11000000)
 
-volatile bool is_captured = false;
+// volatile bool is_captured = false;
 
 // priority: sram read > sram write
 volatile bool ram_ind_read = false; // indicate Read
@@ -32,8 +33,7 @@ volatile bool irq_indicate_reset = true;
 
 volatile int32_t psram_access = 0; // write buffer:+=1, read buffer:-=1
 // init PIO
-PIO pio_cam = pio1;
-PIO pio_iot = pio0;
+static PIO pio_cam = pio0;
 
 #if USE_EZSPI_SLAVE
 PIO pio_spi = pio1; // same PIO with pio_iot
@@ -43,15 +43,15 @@ PIO pio_sfp = pio0; // same PIO with pio_iot
 #endif
 
 // statemachine's pointer
-uint32_t sm_cam; // CAMERA's state machines
+static uint32_t sm_cam; // CAMERA's state machines
 
 // dma channels
-uint32_t DMA_CAM_RD_CH0;
-uint32_t DMA_CAM_RD_CH1;
+static uint32_t DMA_CAM_RD_CH0;
+static uint32_t DMA_CAM_RD_CH1;
 
 // private functions and buffers
-uint32_t *cam_ptr;  // pointer of camera buffer
-uint32_t *cam_ptr2; // 2nd pointer of cam_ptr.
+static uint32_t *cam_ptr;  // pointer of camera buffer
+static uint32_t *cam_ptr2; // 2nd pointer of cam_ptr.
 // uint32_t *iot_ptr;  // pointer of IoT RAM's read buffer.
 
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
@@ -71,8 +71,8 @@ void init_cam(uint8_t DEVICE_IS)
 
     uint32_t offset_cam = pio_add_program(pio_cam, &picampinos_program);
     uint32_t sm = pio_claim_unused_sm(pio_cam, true);
+    // printf("camera:pio=%d, sm = %d, offset=%d\r\n", (uint32_t)pio_cam, sm, offset_cam);
 
-    // printf("camera:pio=%d, sm = %d, offset=%d\r\n",(uint32_t)pio_cam, sm, offset_cam);
     picampinos_program_init(pio_cam, sm_cam, offset_cam, CAM_BASE_PIN, 11); // VSYNC,HREF,PCLK,D[2:9] : total 11 pins
     pio_sm_set_enabled(pio_cam, sm_cam, false);
     pio_sm_clear_fifos(pio_cam, sm_cam);
@@ -85,6 +85,7 @@ void init_cam(uint8_t DEVICE_IS)
     // init DMA
     DMA_CAM_RD_CH0 = dma_claim_unused_channel(true);
     DMA_CAM_RD_CH1 = dma_claim_unused_channel(true);
+    printf("DMA_CH= %d,%d\n", DMA_CAM_RD_CH0, DMA_CAM_RD_CH1);
 
     // buffer of camera data is 640 * 480 * 2 bytes (RGB565 = 16 bits = 2 bytes)
     // camera buffer on PSRAM
@@ -101,9 +102,10 @@ void config_cam_buffer()
 {
     // ------------------ CAMERA READ: withDMA   --------------------------------
 
-    is_captured = false;
+    // is_captured = false;
 
     // check psram
+
     int sz = pico_setup_psram(PICO_PSRAM_CS1);
     if (sz == 0)
     {
@@ -147,9 +149,10 @@ void config_cam_buffer()
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH1, true);
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH0, true);
     irq_set_exclusive_handler(DMA_IRQ_0, cam_handler);
-    // irq_indicate_reset = true;
-    // sem_init(&psram_sem, 1, 1); // init semaphore
-    // enable IRQ
+    // irq_set_priority(DMA_IRQ_0, 0); // Most high priority
+    //  irq_indicate_reset = true;
+    //  sem_init(&psram_sem, 1, 1); // init semaphore
+    //  enable IRQ
     irq_set_enabled(DMA_IRQ_0, true);
 }
 
@@ -338,7 +341,8 @@ dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan)
 
 void cam_handler()
 {
-    // static uint32_t iot_addr = 0;
+    printf(".");
+
     static uint32_t num_of_call_this = 0;
     static uint32_t *b;
     uint32_t dma_chan;
@@ -347,8 +351,6 @@ void cam_handler()
     if (true == irq_indicate_reset)
     {
         num_of_call_this = 0;
-        // iot_addr = 0;
-        is_captured = false;
         irq_indicate_reset = false;
     }
 

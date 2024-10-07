@@ -36,7 +36,7 @@
 #define DEF_IP_PROTOCOL_UDP (0x11)
 
 // Global
-static PIO pio_serdes = pio0;
+static PIO pio_serdes = pio2;
 static uint sm_tx = 0;
 static uint sm_rx = 1;
 volatile static uint32_t gsram[8][512]; // RX data buffer for Core0 and 1
@@ -67,12 +67,15 @@ dma_channel_config dma_conf_10base_t;
 
 void eth_init(void)
 {
+
     udp_init();
     arp_init();
     icmp_init();
 
     // 10BASE-T Serializer PIO init. Pin numbers must be sequential.
     uint offset = pio_add_program(pio_serdes, &ser_10base_t_program);
+    // sm_tx = pio_claim_unused_sm(pio_serdes, true);
+    // printf("rx:pio=%d, sm = %d, offset=%d\r\n", (uint32_t)pio_serdes, sm_tx, offset);
     ser_10base_t_program_init(pio_serdes, sm_tx, offset, HW_PINNUM_TXN);
 
     // LED
@@ -83,7 +86,7 @@ void eth_init(void)
 
     gpio_put(HW_PINNUM_LED_G, true);
     gpio_put(HW_PINNUM_LED_Y, true);
-    sleep_ms(500);
+    sleep_ms(300);
     gpio_put(HW_PINNUM_LED_G, false);
     gpio_put(HW_PINNUM_LED_Y, false);
 
@@ -107,11 +110,16 @@ void eth_init(void)
     gpio_init(HW_PINNUM_OUT1);
     gpio_set_dir(HW_PINNUM_OUT1, GPIO_OUT); // SMA Out for Debug
     offset = pio_add_program(pio_serdes, &des_10base_t_program);
+    // sm_rx = pio_claim_unused_sm(pio_serdes, true);
+    // printf("rx:pio=%d, sm = %d, offset=%d\r\n", (uint32_t)pio_serdes, sm_rx, offset);
     des_10base_t_program_init(pio_serdes, sm_rx, offset, HW_PINNUM_RXP, HW_PINNUM_OUT0);
     multicore_launch_core1(rx_func_core1);
 
     // DMA
     dma_ch_10base_t = dma_claim_unused_channel(true);
+    dma_channel_set_irq0_enabled(dma_ch_10base_t, false);
+    dma_channel_set_irq1_enabled(dma_ch_10base_t, false);
+
     dma_conf_10base_t = dma_channel_get_default_config(dma_ch_10base_t);
     channel_config_set_dreq(&dma_conf_10base_t, pio_get_dreq(pio_serdes, sm_tx, true));
     channel_config_set_transfer_data_size(&dma_conf_10base_t, DMA_SIZE_32);
@@ -120,8 +128,10 @@ void eth_init(void)
 }
 
 // RUN at Core0
-void eth_main(void)
+uint32_t eth_main(void)
 {
+    uint32_t ret = 0;
+
     _send_link_pulse();      // Link Pulse
     _busy_led_update(false); // Busy LED (RJ45)
 
@@ -130,11 +140,14 @@ void eth_main(void)
     {
         _rx_packets_proc();
         _busy_led_update(true);
+        ret = 1;
     }
     else
     {
         _send_udp();
     }
+
+    return ret;
 }
 
 // Analysis and processing of incoming packets
@@ -239,6 +252,23 @@ bool _send_udp(void)
     }
 
     return ret;
+}
+
+// Ethernet TX data
+void eth_tx_data(uint32_t *aBuf, uint32_t aCount)
+{
+    dma_channel_configure(
+        dma_ch_10base_t,     // Channel to be configured
+        &dma_conf_10base_t,  // The configuration we just created
+        &pio_serdes->txf[0], // Destination address
+        aBuf,                // Source address
+        aCount,              // Number of transfers
+        true                 // Start yet
+    );
+    dma_channel_wait_for_finish_blocking(dma_ch_10base_t);
+    sleep_us(10); // IFG
+    _clear_nflp_timer_cnt();
+    _busy_led_update(true);
 }
 
 // Ethernet Busy LED

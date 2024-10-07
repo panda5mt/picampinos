@@ -32,6 +32,8 @@
 #include "hardware/vreg.h"
 #include "hardware/i2c.h"
 #include "hardware/dma.h"
+#include "hardware/irq.h"
+
 #include "cam.h"
 #include "hwinit.h"
 #include "eth.h"
@@ -40,9 +42,6 @@
 // #include "pico_psram.h"
 
 #define BOARD_LED (25) // 28 // pico's led => 25, self made RP2350brd's led => 28. check hardware/RP2350Board.pdf
-
-static PIO pio_ser_wr = pio1;
-static uint sm0;
 
 static void read_i2c_data(i2c_inst_t *i2c)
 {
@@ -135,13 +134,16 @@ int main()
     i2c_inst_t *i2c = i2c1;
     // read_i2c_data(i2c);
 #endif
+
     config_cam_buffer(); // config buffer
     start_cam();         // start streaming
-    printf("camera start.\r\n");
-    // hw_init();
+    printf("camera start\n");
+
+    // irq_set_enabled(DMA_IRQ_0, true); // DMA_IRQ_0の割り込みを有効化
     eth_init();
     printf("[BOOT]\r\n");
     hw_start_led_blink();
+
     while (1)
     {
         eth_main();
