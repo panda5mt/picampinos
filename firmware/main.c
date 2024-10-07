@@ -95,7 +95,6 @@ bool setup()
     sleep_ms(1000);
     OC_INIT = set_sys_clock_khz(SYS_CLK_IN_KHZ, true);
     sleep_ms(600);
-    // stdio_init_all();
     setup_default_uart();
 
     // INIT LED
@@ -138,18 +137,15 @@ int main()
 #endif
     config_cam_buffer(); // config buffer
     start_cam();         // start streaming
-
-    // hw_init();
-    // eth_init();
-
-    // printf("[BOOT]\r\n");
-
-    // hw_start_led_blink();
-
-    // while (1)
-    // {
-    //     eth_main();
-    // }
+    printf("camera start.\r\n");
+    hw_init();
+    eth_init();
+    printf("[BOOT]\r\n");
+    hw_start_led_blink();
+    while (1)
+    {
+        eth_main();
+    }
 
     // // data via USB-UART(ASCII)
     // // see also 'matlab/readrgb.m'
@@ -181,14 +177,13 @@ int main()
     // see also 'matlab/receive_udp.m'
     // To Use SFP, CHECK 'USE_EZSPI_SLAVE' is (false)
     // AND 'USE_100BASE_FX' is (true) in 'cam.h'
-    multicore_launch_core1(sfp_cam);
+    // multicore_launch_core1(sfp_cam);
     while (true)
-    {
-    };
+        ;
 
     // end
+
     free_cam();
     while (true)
-    {
-    };
+        ;
 }

@@ -66,11 +66,12 @@ void init_cam(uint8_t DEVICE_IS)
     set_pwm_freq_kHz(24000, SYS_CLK_IN_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2640
     sleep_ms(1000);
 
-    // sccb_init(DEVICE_IS, I2C1_SDA, I2C1_SCL); // sda,scl=(gp26,gp27). see 'sccb_if.c' and 'cam.h'
+    sccb_init(DEVICE_IS, I2C1_SDA, I2C1_SCL, true); // sda,scl=(gp26,gp27). see 'sccb_if.c' and 'cam.h'
     sleep_ms(3000);
 
     uint32_t offset_cam = pio_add_program(pio_cam, &picampinos_program);
     uint32_t sm = pio_claim_unused_sm(pio_cam, true);
+
     // printf("camera:pio=%d, sm = %d, offset=%d\r\n",(uint32_t)pio_cam, sm, offset_cam);
     picampinos_program_init(pio_cam, sm_cam, offset_cam, CAM_BASE_PIN, 11); // VSYNC,HREF,PCLK,D[2:9] : total 11 pins
     pio_sm_set_enabled(pio_cam, sm_cam, false);
@@ -121,6 +122,7 @@ void config_cam_buffer()
     // (2) 1st DMA Channel Config
     dma_channel_config c;
     c = get_cam_config(pio_cam, sm_cam, DMA_CAM_RD_CH1);
+
     // trigger DMA_CAM_RD_CH0 when DMA_CAM_RD_CH1 completes. (ping-pong)
     channel_config_set_chain_to(&c, DMA_CAM_RD_CH0);
     dma_channel_configure(DMA_CAM_RD_CH1, &c,

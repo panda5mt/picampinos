@@ -5,7 +5,7 @@
 /*******************************************************************************
  * Function Definitions
  */
-void sccb_init(uint8_t device_is, const uint32_t sda_pin, const uint32_t scl_pin)
+void sccb_init(uint8_t device_is, const uint32_t sda_pin, const uint32_t scl_pin, bool enable_pullup)
 {
 
     uint8_t CAM_ADDR = (0x78 >> 1); // default: OV5642
@@ -22,6 +22,14 @@ void sccb_init(uint8_t device_is, const uint32_t sda_pin, const uint32_t scl_pin
     // Initialize I2C pins
     gpio_set_function(sda_pin, GPIO_FUNC_I2C);
     gpio_set_function(scl_pin, GPIO_FUNC_I2C);
+
+    // enable pull-up
+    if (enable_pullup)
+    {
+        gpio_pull_up(sda_pin);
+        gpio_pull_up(scl_pin);
+    }
+
     uint8_t sccb_dat[3];
     switch (device_is)
     {
