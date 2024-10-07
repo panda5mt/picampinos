@@ -138,7 +138,7 @@ int main()
     config_cam_buffer(); // config buffer
     start_cam();         // start streaming
     printf("camera start.\r\n");
-    hw_init();
+    // hw_init();
     eth_init();
     printf("[BOOT]\r\n");
     hw_start_led_blink();
