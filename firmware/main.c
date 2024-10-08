@@ -126,7 +126,7 @@ int main()
         sleep_ms(1000);
     }
 
-    init_cam(DEV_OV5642);
+    // init_cam(DEV_OV5642);
 
 #if USE_100BASE_FX
     // check SFP.
@@ -135,26 +135,29 @@ int main()
     // read_i2c_data(i2c);
 #endif
 
+    init_cam(DEV_OV5642);
     config_cam_buffer(); // config buffer
     start_cam();         // start streaming
+
+    // eth_init();
+    // set_pwm_freq_kHz(4000, SYS_CLK_IN_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2640
+    printf("[BOOT]\r\n");
+    // Initialize CAMERA
     printf("camera start\n");
 
-    // irq_set_enabled(DMA_IRQ_0, true); // DMA_IRQ_0の割り込みを有効化
-    eth_init();
-    printf("[BOOT]\r\n");
-    hw_start_led_blink();
+    // hw_start_led_blink();
 
-    while (1)
-    {
-        eth_main();
-    }
+    // while (1)
+    // {
+    //     eth_main();
+    // }
 
     // // data via USB-UART(ASCII)
     // // see also 'matlab/readrgb.m'
-    // while (true)
-    // {
-    //     uartout_cam();
-    // }
+    while (true)
+    {
+        uartout_cam();
+    }
 
     // data via USB-UART(binary)
     // see also 'matlab/comm_uart_bin.m'
@@ -185,7 +188,7 @@ int main()
 
     // end
 
-    free_cam();
+    // free_cam();
     while (true)
         ;
 }

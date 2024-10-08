@@ -2,14 +2,16 @@
 #define __UDP_H__
 
 #include <stdint.h>
+// #include "vban.h"
 
 // Buffer size config
-#define DEF_UDP_PAYLOAD_SIZE    (64)
+#define DEF_UDP_PAYLOAD_SIZE (64)
+// #define DEF_UDP_PAYLOAD_SIZE    (DEF_VBAN_HEAD_SIZE+DEF_VBAN_PCM_SIZE)
 
 // UDP Header
-#define DEF_UDP_SRC_PORTNUM     (1234)
-#define DEF_UDP_DST_PORTNUM     (1234)
-#define DEF_UDP_LEN             (DEF_UDP_PAYLOAD_SIZE + 8)
+#define DEF_UDP_SRC_PORTNUM (1234)
+#define DEF_UDP_DST_PORTNUM (1234)
+#define DEF_UDP_LEN (DEF_UDP_PAYLOAD_SIZE + 8)
 
 // -------------------
 // Preamble     7
@@ -21,8 +23,7 @@
 // FCS          4
 // -------------------
 //              x + 54
-#define DEF_UDP_BUF_SIZE        (DEF_UDP_PAYLOAD_SIZE + 54)
-
+#define DEF_UDP_BUF_SIZE (DEF_UDP_PAYLOAD_SIZE + 54)
 
 void udp_init(void);
 void udp_packet_gen_10base(uint32_t *buf, uint8_t *udp_payload);

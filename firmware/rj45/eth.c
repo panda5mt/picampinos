@@ -36,7 +36,7 @@
 #define DEF_IP_PROTOCOL_UDP (0x11)
 
 // Global
-static PIO pio_serdes = pio2;
+static PIO pio_serdes = pio0;
 static uint sm_tx = 0;
 static uint sm_rx = 1;
 volatile static uint32_t gsram[8][512]; // RX data buffer for Core0 and 1
@@ -67,15 +67,12 @@ dma_channel_config dma_conf_10base_t;
 
 void eth_init(void)
 {
-
     udp_init();
     arp_init();
     icmp_init();
 
     // 10BASE-T Serializer PIO init. Pin numbers must be sequential.
     uint offset = pio_add_program(pio_serdes, &ser_10base_t_program);
-    // sm_tx = pio_claim_unused_sm(pio_serdes, true);
-    // printf("rx:pio=%d, sm = %d, offset=%d\r\n", (uint32_t)pio_serdes, sm_tx, offset);
     ser_10base_t_program_init(pio_serdes, sm_tx, offset, HW_PINNUM_TXN);
 
     // LED
@@ -110,16 +107,11 @@ void eth_init(void)
     gpio_init(HW_PINNUM_OUT1);
     gpio_set_dir(HW_PINNUM_OUT1, GPIO_OUT); // SMA Out for Debug
     offset = pio_add_program(pio_serdes, &des_10base_t_program);
-    // sm_rx = pio_claim_unused_sm(pio_serdes, true);
-    // printf("rx:pio=%d, sm = %d, offset=%d\r\n", (uint32_t)pio_serdes, sm_rx, offset);
     des_10base_t_program_init(pio_serdes, sm_rx, offset, HW_PINNUM_RXP, HW_PINNUM_OUT0);
     multicore_launch_core1(rx_func_core1);
 
     // DMA
     dma_ch_10base_t = dma_claim_unused_channel(true);
-    dma_channel_set_irq0_enabled(dma_ch_10base_t, false);
-    dma_channel_set_irq1_enabled(dma_ch_10base_t, false);
-
     dma_conf_10base_t = dma_channel_get_default_config(dma_ch_10base_t);
     channel_config_set_dreq(&dma_conf_10base_t, pio_get_dreq(pio_serdes, sm_tx, true));
     channel_config_set_transfer_data_size(&dma_conf_10base_t, DMA_SIZE_32);

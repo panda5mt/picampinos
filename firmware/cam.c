@@ -9,6 +9,8 @@
 #include "hardware/irq.h"
 #include "hardware/dma.h"
 #include "hardware/pio.h"
+
+#include "hardware/clocks.h"
 #include "pico/multicore.h"
 
 #include "cam.h"
@@ -70,7 +72,7 @@ void init_cam(uint8_t DEVICE_IS)
     sleep_ms(3000);
 
     uint32_t offset_cam = pio_add_program(pio_cam, &picampinos_program);
-    uint32_t sm = pio_claim_unused_sm(pio_cam, true);
+    uint32_t sm = 0; // pio_claim_unused_sm(pio_cam, true);
     // printf("camera:pio=%d, sm = %d, offset=%d\r\n", (uint32_t)pio_cam, sm, offset_cam);
 
     picampinos_program_init(pio_cam, sm_cam, offset_cam, CAM_BASE_PIN, 11); // VSYNC,HREF,PCLK,D[2:9] : total 11 pins
@@ -85,6 +87,11 @@ void init_cam(uint8_t DEVICE_IS)
     // init DMA
     DMA_CAM_RD_CH0 = dma_claim_unused_channel(true);
     DMA_CAM_RD_CH1 = dma_claim_unused_channel(true);
+
+    // IRQ settings
+    dma_channel_set_irq0_enabled(DMA_CAM_RD_CH0, false);
+    dma_channel_set_irq0_enabled(DMA_CAM_RD_CH1, false);
+
     printf("DMA_CH= %d,%d\n", DMA_CAM_RD_CH0, DMA_CAM_RD_CH1);
 
     // buffer of camera data is 640 * 480 * 2 bytes (RGB565 = 16 bits = 2 bytes)
@@ -124,7 +131,6 @@ void config_cam_buffer()
     // (2) 1st DMA Channel Config
     dma_channel_config c;
     c = get_cam_config(pio_cam, sm_cam, DMA_CAM_RD_CH1);
-
     // trigger DMA_CAM_RD_CH0 when DMA_CAM_RD_CH1 completes. (ping-pong)
     channel_config_set_chain_to(&c, DMA_CAM_RD_CH0);
     dma_channel_configure(DMA_CAM_RD_CH1, &c,
@@ -149,10 +155,13 @@ void config_cam_buffer()
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH1, true);
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH0, true);
     irq_set_exclusive_handler(DMA_IRQ_0, cam_handler);
-    // irq_set_priority(DMA_IRQ_0, 0); // Most high priority
     //  irq_indicate_reset = true;
-    //  sem_init(&psram_sem, 1, 1); // init semaphore
-    //  enable IRQ
+    //    sem_init(&psram_sem, 1, 1); // init semaphore
+    //    enable IRQ
+    //   irq_set_enabled(DMA_IRQ_0, true);
+    //   irq_set_priority(DMA_IRQ_0, 0); // Most high
+    //   Set IRQ handler
+    // irq_add_shared_handler(DMA_IRQ_0, &cam_handler, 127);
     irq_set_enabled(DMA_IRQ_0, true);
 }
 
@@ -324,9 +333,6 @@ void free_cam()
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH0, false);
     dma_channel_abort(DMA_CAM_RD_CH0);
     dma_channel_abort(DMA_CAM_RD_CH0);
-
-    // free(cam_ptr);
-    // free(iot_ptr);
 }
 
 /// camera dma config
@@ -335,38 +341,18 @@ dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan)
     dma_channel_config c = dma_channel_get_default_config(dma_chan);
     channel_config_set_read_increment(&c, false);
     channel_config_set_write_increment(&c, true);
+    channel_config_set_transfer_data_size(&c, DMA_SIZE_32);
     channel_config_set_dreq(&c, pio_get_dreq(pio, sm, false));
     return c;
 }
 
 void cam_handler()
 {
-    printf(".");
+    // printf(".");
 
     static uint32_t num_of_call_this = 0;
     static uint32_t *b;
     uint32_t dma_chan;
-
-    // first call?
-    if (true == irq_indicate_reset)
-    {
-        num_of_call_this = 0;
-        irq_indicate_reset = false;
-    }
-
-    // write iot sram
-    if (0 == (num_of_call_this & 0x01))
-    {
-        // even
-        b = cam_ptr;
-        dma_chan = DMA_CAM_RD_CH0;
-    }
-    else
-    {
-        // odd
-        b = cam_ptr2;
-        dma_chan = DMA_CAM_RD_CH1;
-    }
 
     psram_access = psram_access + 1;
     if (psram_access > CAM_TOTAL_FRM)
@@ -379,23 +365,31 @@ void cam_handler()
 
     // increment iot sram's address
     // iot_addr = iot_addr + CAM_BUF_HALF;
+    uint32_t triggered_dma = dma_hw->ints0; // DMA_IRQ_0に関連する割り込みステータス
+
+    if (triggered_dma & (1u << DMA_CAM_RD_CH0))
+    {
+        // Triggered by DMA_CAM_RD_CH0
+        // printf("DMA channel 0 triggered the interrupt.\n");
+        dma_chan = DMA_CAM_RD_CH0;
+        b = cam_ptr;
+        gpio_put(25, 1);
+    }
+
+    if (triggered_dma & (1u << DMA_CAM_RD_CH1))
+    {
+        // Triggered by DMA_CAM_RD_CH1
+        // printf("DMA channel 1 triggered the interrupt.\n");
+        dma_chan = DMA_CAM_RD_CH1;
+        b = cam_ptr2;
+        gpio_put(25, 0);
+    }
 
     // clear interrupt flag
-    dma_hw->ints0 = 1u << dma_chan;
+    dma_hw->ints0 = triggered_dma;
 
-    // reset write address pointer
+    // reset the DMA initial write address
     dma_channel_set_write_addr(dma_chan, b, false);
-
-    if (num_of_call_this < CAM_TOTAL_FRM - 1)
-    {
-        num_of_call_this++;
-    }
-    else
-    {
-        num_of_call_this = 0;
-        // iot_addr = 0;
-        //  is_captured = true;
-    }
 
     return;
 }
@@ -407,10 +401,10 @@ void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_n
     uint32_t pwm0_slice_num;
     uint32_t period;
     static pwm_config pwm0_slice_config;
-
+    system_clk_khz = clock_get_hz(clk_sys) / 1000;
     period = system_clk_khz / freq_khz - 1;
-    if (period < 2)
-        period = 2;
+    if (period < 1)
+        period = 1;
 
     gpio_set_function(gpio_num, GPIO_FUNC_PWM);
     pwm0_slice_num = pwm_gpio_to_slice_num(gpio_num);
