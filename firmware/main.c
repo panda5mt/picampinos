@@ -139,18 +139,18 @@ int main()
     config_cam_buffer(); // config buffer
     start_cam();         // start streaming
 
-    // eth_init();
-    // set_pwm_freq_kHz(4000, SYS_CLK_IN_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2640
+    eth_init();
+    //  set_pwm_freq_kHz(4000, SYS_CLK_IN_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2640
     printf("[BOOT]\r\n");
     // Initialize CAMERA
     printf("camera start\n");
 
     // hw_start_led_blink();
-
-    // while (1)
-    // {
-    //     eth_main();
-    // }
+    // set_pwm_freq_kHz(24000, SYS_CLK_IN_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2640
+    while (1)
+    {
+        eth_main();
+    }
 
     // // data via USB-UART(ASCII)
     // // see also 'matlab/readrgb.m'

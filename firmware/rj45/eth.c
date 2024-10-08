@@ -20,8 +20,8 @@
 #define HW_PINNUM_LED_G (13) // Ethernet LED G
 #define HW_PINNUM_LED_Y (18) // Ethernet LED Y
 
-#define HW_PINNUM_OUT0 (1)            // SMA OUT0 for Debug
-#define HW_PINNUM_OUT1 (0)            // SMA OUT0 for Debug
+// #define HW_PINNUM_OUT0 (1)            // SMA OUT0 for Debug
+// #define HW_PINNUM_OUT1 (0)            // SMA OUT0 for Debug
 #define DEF_NFLP_INTERVAL_US (16000)  // NLP/FLP interval = 16ms +/- 8ms
 #define DEF_DMY_INTERVAL_US (1000000) // Dummy Data send interval
 #define DEF_LINK_TIMEOUT_US (400000)  // Link down time out
@@ -36,7 +36,7 @@
 #define DEF_IP_PROTOCOL_UDP (0x11)
 
 // Global
-static PIO pio_serdes = pio0;
+static PIO pio_serdes = pio1;
 static uint sm_tx = 0;
 static uint sm_rx = 1;
 volatile static uint32_t gsram[8][512]; // RX data buffer for Core0 and 1
@@ -67,7 +67,9 @@ dma_channel_config dma_conf_10base_t;
 
 void eth_init(void)
 {
+
     udp_init();
+
     arp_init();
     icmp_init();
 
@@ -93,8 +95,12 @@ void eth_init(void)
         if (_send_link_pulse())
             i++;
     }
+    // TODO: ここでリターンしないと起動しなくなってしまう問題の解決をする。
+    // return;
+    //// --------------------------------------------------------
 
     // RX
+
     gpio_init(HW_PINNUM_RXP);
     gpio_set_dir(HW_PINNUM_RXP, GPIO_IN); // Ethernet RX+
     gpio_set_input_hysteresis_enabled(HW_PINNUM_RXP, false);
@@ -102,12 +108,15 @@ void eth_init(void)
     gpio_set_dir(HW_PINNUM_RXN, GPIO_OUT); // Ethernet RX-
     gpio_put(HW_PINNUM_RXN, true);
 
-    gpio_init(HW_PINNUM_OUT0);
-    gpio_set_dir(HW_PINNUM_OUT0, GPIO_OUT); // SMA Out for Debug
-    gpio_init(HW_PINNUM_OUT1);
-    gpio_set_dir(HW_PINNUM_OUT1, GPIO_OUT); // SMA Out for Debug
+    /*
+        gpio_init(HW_PINNUM_OUT0);
+        gpio_set_dir(HW_PINNUM_OUT0, GPIO_OUT); // SMA Out for Debug
+        gpio_init(HW_PINNUM_OUT1);
+        gpio_set_dir(HW_PINNUM_OUT1, GPIO_OUT); // SMA Out for Debug
+    */
+
     offset = pio_add_program(pio_serdes, &des_10base_t_program);
-    des_10base_t_program_init(pio_serdes, sm_rx, offset, HW_PINNUM_RXP, HW_PINNUM_OUT0);
+    des_10base_t_program_init(pio_serdes, sm_rx, offset, HW_PINNUM_RXP);
     multicore_launch_core1(rx_func_core1);
 
     // DMA
@@ -117,6 +126,8 @@ void eth_init(void)
     channel_config_set_transfer_data_size(&dma_conf_10base_t, DMA_SIZE_32);
     channel_config_set_read_increment(&dma_conf_10base_t, true);
     channel_config_set_write_increment(&dma_conf_10base_t, false);
+
+    return;
 }
 
 // RUN at Core0
@@ -357,7 +368,7 @@ static void __time_critical_func(rx_func_core1)(void)
 
         if (rxf_lv != 0)
         {
-            gpio_put(HW_PINNUM_OUT1, 1); // For CPU usage monitor
+            // gpio_put(HW_PINNUM_OUT1, 1); // For CPU usage monitor
             rx_buf = pio_sm_get(pio_serdes, sm_rx);
             // Search for SFD pattern
             sfd_det = false;
@@ -539,7 +550,7 @@ static void __time_critical_func(rx_func_core1)(void)
             link_up = true;
             ldm_timer = time_us_32();
 
-            gpio_put(HW_PINNUM_OUT1, 0); // For CPU usage monitor
+            // gpio_put(HW_PINNUM_OUT1, 0); // For CPU usage monitor
         }
 
         if (frame_busy && ((time_us_32() - ldm_timer) > 6))

@@ -35,7 +35,7 @@ start_of_1:            ; We are 0.25 bits into a 1 - signal is 1
 
 % c-sdk {
 
-    static inline void des_10base_t_program_init(PIO pio, uint sm, uint offset, uint pin_rx, uint pin_dbg)
+    static inline void des_10base_t_program_init(PIO pio, uint sm, uint offset, uint pin_rx/*, uint pin_dbg*/)
     {
         pio_sm_set_consecutive_pindirs(pio, sm, pin_rx, 1, false);
         pio_gpio_init(pio, pin_rx);
@@ -48,10 +48,10 @@ start_of_1:            ; We are 0.25 bits into a 1 - signal is 1
         sm_config_set_clkdiv(&c, 2.0f);
 
         // for Debug
-        sm_config_set_out_pins(&c, pin_dbg, 1);
-        sm_config_set_set_pins(&c, pin_dbg, 1);
-        pio_gpio_init(pio, pin_dbg);
-        pio_sm_set_consecutive_pindirs(pio, sm, pin_dbg, 1, true);
+        // sm_config_set_out_pins(&c, pin_dbg, 1);
+        // sm_config_set_set_pins(&c, pin_dbg, 1);
+        // pio_gpio_init(pio, pin_dbg);
+        // pio_sm_set_consecutive_pindirs(pio, sm, pin_dbg, 1, true);
 
         pio_sm_init(pio, sm, offset, &c);
 
