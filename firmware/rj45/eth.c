@@ -95,12 +95,8 @@ void eth_init(void)
         if (_send_link_pulse())
             i++;
     }
-    // TODO: ここでリターンしないと起動しなくなってしまう問題の解決をする。
-    // return;
-    //// --------------------------------------------------------
 
     // RX
-
     gpio_init(HW_PINNUM_RXP);
     gpio_set_dir(HW_PINNUM_RXP, GPIO_IN); // Ethernet RX+
     gpio_set_input_hysteresis_enabled(HW_PINNUM_RXP, false);
