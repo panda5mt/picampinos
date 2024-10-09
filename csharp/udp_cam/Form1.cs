@@ -7,17 +7,17 @@ namespace udp_cam
     public partial class Form1 : Form
     {
         private UdpClient udpClient;
-        private Thread receiveThread;
-        private Bitmap image;
-        private object imageLock = new object();
+        private Thread? receiveThread;
+        private Bitmap? image;
+        private object imageLock = new();
         private bool formClosed = false;
 
-        private UInt32 frame_start_packet = 0xdeadbeef;
-        private UInt32 header_pixel_data = 0xbeefbeef;
-        private UInt32 frame_end_packet = 0xdeaddead;
+        private readonly UInt32 frame_start_packet = 0xdeadbeef;
+        private readonly UInt32 header_pixel_data = 0xbeefbeef;
+        private readonly UInt32 frame_end_packet = 0xdeaddead;
         private UInt32 height, width, sz, fcounter = 0; // height, column, data-size
         private uint color, r, g, b;
-        private Bitmap bmp;
+        private Bitmap? bmp;
 
         public Form1()
         {
@@ -31,7 +31,7 @@ namespace udp_cam
 
             if (udpClient != null)
             {
-                udpClient.Close();
+                udpClient?.Close();
             }
 
             formClosed = true;
@@ -47,7 +47,7 @@ namespace udp_cam
 
         private void ReceiveData()
         {
-            bmp = new Bitmap(640, 480); // ƒoƒCƒg”z—ñ‚ğƒrƒbƒgƒ}ƒbƒv‚É•ÏŠ·
+            bmp = new Bitmap(640, 480); // ãƒã‚¤ãƒˆé…åˆ—ã‚’ãƒ“ãƒƒãƒˆãƒãƒƒãƒ—ã«å¤‰æ›
             while (!formClosed)
             {
                 try
@@ -64,11 +64,11 @@ namespace udp_cam
                         width = BitConverter.ToUInt32(data, 8) - 1;     //columb number
                         sz = BitConverter.ToUInt32(data, 12) * 2;       // data size
 
-                        int index = 16; // æ“ª‚Ì16ƒoƒCƒg•ª‚Íƒwƒbƒ_‚È‚Ì‚ÅAindex‚ğ16‚©‚çn‚ß‚é
+                        int index = 16; // å…ˆé ­ã®16ãƒã‚¤ãƒˆåˆ†ã¯ãƒ˜ãƒƒãƒ€ãªã®ã§ã€indexã‚’16ã‹ã‚‰å§‹ã‚ã‚‹
 
                         for (int x = (int)width; x < sz; x++)
                         {
-                            // RGB565‚ÌƒoƒCƒiƒŠƒf[ƒ^‚ğ‰ğÍ‚µ‚ÄAƒJƒ‰[î•ñ‚ğæ“¾
+                            // RGB565ã®ãƒã‚¤ãƒŠãƒªãƒ‡ãƒ¼ã‚¿ã‚’è§£æã—ã¦ã€ã‚«ãƒ©ãƒ¼æƒ…å ±ã‚’å–å¾—
                             color = (uint)(data[index] << 8 | data[index + 1]);
                             r = (color >> 11) & 0x1f;
                             g = (color >> 5) & 0x3f;
@@ -77,7 +77,7 @@ namespace udp_cam
                             g = (g * 255 / 63);
                             b = (b * 255 / 31);
 
-                            // ƒsƒNƒZƒ‹‚ÉƒJƒ‰[‚ğƒZƒbƒg
+                            // ãƒ”ã‚¯ã‚»ãƒ«ã«ã‚«ãƒ©ãƒ¼ã‚’ã‚»ãƒƒãƒˆ
                             bmp.SetPixel((int)x, (int)height, Color.FromArgb((int)r, (int)g, (int)b));
 
                             index += 2;
@@ -97,22 +97,22 @@ namespace udp_cam
                         image = new Bitmap(bmp);
                         pictureBox1.Invoke(new Action(() =>
                         {
-                            // 2”{‚ÉŠg‘å‚·‚é”{—¦‚ğ’è‹`‚µ‚Ü‚·B
+                            // 2å€ã«æ‹¡å¤§ã™ã‚‹å€ç‡ã‚’å®šç¾©ã—ã¾ã™ã€‚
                             const int ZoomFactor = 1;
 
-                            // 2”{‚ÌƒTƒCƒY‚ÅV‚µ‚¢ƒrƒbƒgƒ}ƒbƒv‚ğì¬‚µ‚Ü‚·B
-                            Bitmap zoomedBitmap = new Bitmap(image.Width * ZoomFactor, image.Height * ZoomFactor);
+                            // 2å€ã®ã‚µã‚¤ã‚ºã§æ–°ã—ã„ãƒ“ãƒƒãƒˆãƒãƒƒãƒ—ã‚’ä½œæˆã—ã¾ã™ã€‚
+                            Bitmap zoomedBitmap = new(image.Width * ZoomFactor, image.Height * ZoomFactor);
 
-                            // V‚µ‚¢ƒrƒbƒgƒ}ƒbƒv‚ÌGraphicsƒIƒuƒWƒFƒNƒg‚ğæ“¾‚µ‚Ü‚·B
+                            // æ–°ã—ã„ãƒ“ãƒƒãƒˆãƒãƒƒãƒ—ã®Graphicsã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’å–å¾—ã—ã¾ã™ã€‚
                             Graphics graphics = Graphics.FromImage(zoomedBitmap);
 
-                            // InterpolationMode‚ğHighQualityBicubic‚Éİ’è‚µA‰æ‘œ‚ÌŠg‘å•i¿‚ğŒüã‚µ‚Ü‚·B
+                            // InterpolationModeã‚’HighQualityBicubicã«è¨­å®šã—ã€ç”»åƒã®æ‹¡å¤§å“è³ªã‚’å‘ä¸Šã—ã¾ã™ã€‚
                             graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
 
-                            // V‚µ‚¢ƒrƒbƒgƒ}ƒbƒv‚ÉƒIƒŠƒWƒiƒ‹‚Ìƒrƒbƒgƒ}ƒbƒv‚ğ2”{‚ÌƒTƒCƒY‚Å•`‰æ‚µ‚Ü‚·B
+                            // æ–°ã—ã„ãƒ“ãƒƒãƒˆãƒãƒƒãƒ—ã«ã‚ªãƒªã‚¸ãƒŠãƒ«ã®ãƒ“ãƒƒãƒˆãƒãƒƒãƒ—ã‚’2å€ã®ã‚µã‚¤ã‚ºã§æç”»ã—ã¾ã™ã€‚
                             graphics.DrawImage(image, new Rectangle(0, 0, zoomedBitmap.Width, zoomedBitmap.Height), new Rectangle(0, 0, image.Width, image.Height), GraphicsUnit.Pixel);
 
-                            // PictureBox‚ÉV‚µ‚¢ƒrƒbƒgƒ}ƒbƒv‚ğ•\¦‚µ‚Ü‚·B
+                            // PictureBoxã«æ–°ã—ã„ãƒ“ãƒƒãƒˆãƒãƒƒãƒ—ã‚’è¡¨ç¤ºã—ã¾ã™ã€‚
                             if (pictureBox1.Image != null)
                             {
                                 pictureBox1.Image.Dispose();
@@ -134,7 +134,7 @@ namespace udp_cam
         {
             if (udpClient == null)
             {
-                udpClient = new UdpClient(1024);
+                udpClient = new UdpClient(1234);
                 receiveThread = new Thread(new ThreadStart(ReceiveData));
                 receiveThread.Start();
             }
