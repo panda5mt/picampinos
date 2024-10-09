@@ -150,14 +150,15 @@ int main()
     while (1)
     {
         eth_main();
+        rj45_cam();
     }
 
     // // data via USB-UART(ASCII)
     // // see also 'matlab/readrgb.m'
-    while (true)
-    {
-        uartout_cam();
-    }
+    // while (true)
+    // {
+    //     uartout_cam();
+    // }
 
     // data via USB-UART(binary)
     // see also 'matlab/comm_uart_bin.m'

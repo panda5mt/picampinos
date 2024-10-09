@@ -35,5 +35,6 @@ void uartout_cam();
 void uartout_bin_cam();
 void spiout_cam();
 void sfp_cam();
+void rj45_cam();
 void free_cam();
 void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_num);

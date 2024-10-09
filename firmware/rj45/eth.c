@@ -69,7 +69,6 @@ void eth_init(void)
 {
 
     udp_init();
-
     arp_init();
     icmp_init();
 
