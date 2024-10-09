@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include <math.h>
+#include <string.h>
 #include "pico/binary_info.h"
 #include "picampinos.pio.h"
 // #include "class/cdc/cdc_device.h" // for uart(binary output)
@@ -336,13 +337,13 @@ void rj45_cam()
     uint8_t udp_payload1[DEF_UDP_PAYLOAD_SIZE] = {0};
     uint32_t tx_buf_udp1[DEF_UDP_BUF_SIZE + 1] = {0};
 
-    int32_t *b;
+    uint32_t *b;
     uint32_t resp;
     b = cam_ptr; //+ iot_addr;
 
     // send header
     // frame start:
-    // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + columb_size_in_words(total blocks per frame)
+    // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + column_size_in_words(total blocks per frame)
     uint32_t a[4] = {0xdeadbeef, 480, 640 * 2 / sizeof(uint32_t), 480};
 
     // make image header
@@ -351,11 +352,22 @@ void rj45_cam()
     // send image header
     eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
 
-    //  for (uint32_t i = 0; i < CAM_FUL_SIZE / sizeof(uint32_t); i += 320)
-    //  {
-    //      // printf("0x%08X\r\n",b[i]);
-    //      sfp_send_with_header(0xbeefbeef, (i / 320) + 1, 1, 320, &(b[i]), sizeof(uint32_t) * 320);
-    //  }
+    for (uint32_t i = 0; i < CAM_FUL_SIZE / sizeof(uint32_t); i += 320)
+    {
+        // printf("0x%08X\r\n",b[i]);
+        uint32_t c[] = {
+            0xbeefbeef,
+            (i / 320) + 1,
+            1,
+            320};
+
+        memcpy(udp_payload1, c, 4 * sizeof(uint32_t));
+
+        memcpy(udp_payload1 + 4 * sizeof(uint32_t), b, sizeof(int32_t) * 320);
+        b += 320;
+        udp_packet_gen_10base(tx_buf_udp1, udp_payload1);
+        eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
+    }
 
     // // increment iot sram's address
     // iot_addr = iot_addr + CAM_FUL_SIZE;
@@ -366,7 +378,12 @@ void rj45_cam()
     // }
     // // send dummy data
 
-    // a[0] = 0xdeaddead;
+    a[0] = 0xdeaddead;
+    // make image header
+    udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
+
+    // send image header
+    eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
     // sfp_send(&a, sizeof(uint32_t) * 1);
 }
 

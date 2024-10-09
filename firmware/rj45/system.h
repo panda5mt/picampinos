@@ -11,7 +11,7 @@
 
 #define DEF_SYS_PICO_IP1 (169)
 #define DEF_SYS_PICO_IP2 (254)
-#define DEF_SYS_PICO_IP3 (201)
+#define DEF_SYS_PICO_IP3 (100)
 #define DEF_SYS_PICO_IP4 (24)
 
 // For UDP
@@ -19,7 +19,7 @@
 
 #define DEF_SYS_UDP_DST_IP1 (169)
 #define DEF_SYS_UDP_DST_IP2 (254)
-#define DEF_SYS_UDP_DST_IP3 (201)
-#define DEF_SYS_UDP_DST_IP4 (216)
+#define DEF_SYS_UDP_DST_IP3 (100)
+#define DEF_SYS_UDP_DST_IP4 (172)
 
 #endif //__SYSTEM_H__

@@ -55,7 +55,7 @@ const uint32_t PICO_PSRAM_MIN_DESELECT_FS = 50000000;
 
 // from psram datasheet - max Freq with VDDat 3.3v - SparkFun RP2350 boards run at 3.3v.
 // If VDD = 3.0 Max Freq is 133 Mhz
-const uint32_t PICO_PSRAM_MAX_SCK_HZ = 109000000;
+const uint32_t PICO_PSRAM_MAX_SCK_HZ = 133000000; // 109000000;
 
 // PSRAM SPI command codes
 const uint8_t PSRAM_CMD_QUAD_END = 0xF5;
