@@ -142,7 +142,7 @@ uint32_t eth_main(void)
     }
     else
     {
-        _send_udp();
+        //_send_udp();
     }
 
     return ret;
