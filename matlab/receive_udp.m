@@ -3,24 +3,24 @@
 % our original video format
 % frame start: '0xdeadbeef', row_size_in_words(type:uint32,unit is in
 % words(not bytes)) , columb_sizein_words(type:uint32), total blocks per
-% frame(type:uint32) 
+% frame(type:uint32)
 % next udp packet: '0xbeefbeef', matrix_row_number(uint32), matrix_columb_number(uint32),data_length(uint32),data....
 % next udp packet ...
 % next udp packet ...
-% frame end: '0xdeaddead' 
+% frame end: '0xdeaddead'
 
 clc;
 clear;
 close all;
-% open port '1024'. This is SFP CAMERA's port.
 frame_initialized = false;
-udpr = dsp.UDPReceiver( ...
-    'LocalIPPort',1024, ...
-    'MessageDataType', 'uint32', ...
-    'MaximumMessageLength',640);
 
+udpr = dsp.UDPReceiver( ...
+    'LocalIPPort',1234, ...
+    'MessageDataType', 'uint32', ...
+    'MaximumMessageLength',1342);
 % udp setup
-setup(udpr); 
+setup(udpr);
+disp('OK');
 wordsReceived = 0;
 row_size = 0;
 col_size = 0;
@@ -39,18 +39,20 @@ lower16 = 65535 .* ones(480,640,'uint32'); % 0xffff 0xffff ....
 tStart = tic;
 while (true)
     % seek header
-    
+    RGB_img = zeros(480,640,3,'uint8');
+    img = zeros(480,640,'uint32');
     while true
         dataReceived = udpr();
-        if  false == isempty(dataReceived) && frame_start_packet == dataReceived(1) 
+        if  false == isempty(dataReceived) && frame_start_packet == dataReceived(1)
             %convertCharsToStrings( dataReceived )
+            disp('Frame Detected');
             frame_counter = frame_counter + 1;
             row_size = dataReceived(2);
             col_size = dataReceived(3);
             blk_size = dataReceived(4);
             break;
-            
         end
+
     end
 
     wordsReceived = 0;
@@ -62,40 +64,40 @@ while (true)
     for i=1:blk_size
         while true
             dataReceived = udpr();
-            if false == isempty(dataReceived) && header_pixel_data == dataReceived(1)  
+            if false == isempty(dataReceived) && header_pixel_data == dataReceived(1)
                 r = dataReceived(2); % row number
                 c = dataReceived(3); % columb number
                 sz = dataReceived(4); % data size
 
-                if (r > 0 && c > 0 && sz > 0)  
+                if (r > 0 && c > 0 && sz > 0)
                     out(r, c:(c + sz - 1)) = dataReceived(5:5+sz-1);
                     wordsReceived = wordsReceived + length(dataReceived) - 4;
                     break;
                 end
-%             elseif frame_end_packet == dataReceived(1)
-%                 break;
+                %             elseif frame_end_packet == dataReceived(1)
+                %                 break;
             end
         end
     end
-    
+
     %wordsReceived
-    
+
 
     %% decode image
-    for HGT = 1:480 
+    for HGT = 1:480
         for WID = 1:1:320
             try
                 data = (out(HGT,WID));
                 %data = bin2dec(fliplr(dec2bin(data,32))); % bit reverse
                 img(HGT, WID*2-1) = data;
                 img(HGT, WID*2) = bitshift(data,-16);
-            catch 
+            catch
                 fprintf('Got error : %s, but replaced dummy data.\n',data);      % if got error,
                 data = '0xAAAAAAAA';                    % insert dummy data
                 img(HGT, WID) = (data);
-                img(HGT, WID+1) = bitshift((data),-16); 
+                img(HGT, WID+1) = bitshift((data),-16);
             end
-            
+
         end
     end
 
@@ -108,9 +110,40 @@ while (true)
     RGB_img(:,:,2) = imgG;
     RGB_img(:,:,3) = imgB;
 
-    imshow(imresize(uint8(RGB_img),3));
-    drawnow
-    
+    %%%%%%%%%%%%
+
+    image = RGB_img;
+    %imwrite(image(:,:,1),"./image9.jpg");
+    % imwrite(image(:,:,2),"./image5.jpg");
+    % imwrite(image(:,:,3),"./image6.jpg");
+    % グレースケールに変換
+    I = image;
+
+    % if size(I, 3) == 3
+    %     I = rgb2gray(I);
+    % end
+    % 
+    % % 入力画像をdouble型に変換
+    % 
+    % I = im2double(I);
+    % 
+    % % 光源
+    % %pos = estimate_lightsource(I);
+    % [pos,k] = estimateLightSource(I);
+    % pos = pos * k;
+    % [p, q] = estimate_normal(I, pos);
+    % Z2 = fcmethod(p, q, true);
+    % figure(5)
+    % tiledlayout(1,2);
+    % nexttile
+    imshow(I);
+
+    % 
+    % nexttile
+    % %colormap("turbo");imagesc(-Z2);colorbar;title("depth estimate");
+    % colormap("turbo");imagesc(-Z2);colorbar;clim([-0.2 0.2]);title("depth estimate");
+    drawnow;
+
     if(frame_counter > 40)
         tEnd = toc(tStart);
         fps = frame_counter / tEnd;
@@ -120,3 +153,14 @@ while (true)
     end
 end
 imwrite(RGB_img,"untitle.jpg");
+
+function [p, q] = estimate_normal(image, light_pos)
+lx = light_pos(1) ;
+ly = light_pos(2) ;
+lz = light_pos(3) ;
+
+% 画像勾配を計算（輝度から法線を推定）
+p = image * lx / lz;
+q = image * ly / lz;
+
+end
