@@ -85,9 +85,9 @@ bool setup()
     stdio_init_all();
     bool OC_INIT = false;
 #if PICO_RP2040
-    vreg_set_voltage(VREG_VOLTAGE_1_25);
+    vreg_set_voltage(VREG_VOLTAGE_1_20);
 #else
-    vreg_set_voltage(VREG_VOLTAGE_1_35);
+    vreg_set_voltage(VREG_VOLTAGE_1_25);
 #endif
     // system init
     stdio_init_all();
