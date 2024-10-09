@@ -355,13 +355,13 @@ void rj45_cam()
     //
 
     eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
-    printf("*");
-    // sem_release(&psram_sem);
-    // for (uint32_t i = 0; i < CAM_FUL_SIZE / sizeof(uint32_t); i += 320)
-    // {
-    //     // printf("0x%08X\r\n",b[i]);
-    //     sfp_send_with_header(0xbeefbeef, (i / 320) + 1, 1, 320, &(b[i]), sizeof(uint32_t) * 320);
-    // }
+    // printf("*");
+    //  sem_release(&psram_sem);
+    //  for (uint32_t i = 0; i < CAM_FUL_SIZE / sizeof(uint32_t); i += 320)
+    //  {
+    //      // printf("0x%08X\r\n",b[i]);
+    //      sfp_send_with_header(0xbeefbeef, (i / 320) + 1, 1, 320, &(b[i]), sizeof(uint32_t) * 320);
+    //  }
 
     // // increment iot sram's address
     // iot_addr = iot_addr + CAM_FUL_SIZE;
