@@ -345,18 +345,12 @@ void rj45_cam()
     // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + columb_size_in_words(total blocks per frame)
     uint32_t a[4] = {0xdeadbeef, 480, 640 * 2 / sizeof(uint32_t), 480};
 
-    // time_udp = time_now;
+    // make image header
+    udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
 
-    sprintf(udp_payload1, "aaaaa!!!%d", time_us_32());
-    udp_packet_gen_10base(tx_buf_udp1, udp_payload1);
-
-    // sfp_send(&a, sizeof(uint32_t) * 4);
-    // udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
-    //
-
+    // send image header
     eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
-    // printf("*");
-    //  sem_release(&psram_sem);
+
     //  for (uint32_t i = 0; i < CAM_FUL_SIZE / sizeof(uint32_t); i += 320)
     //  {
     //      // printf("0x%08X\r\n",b[i]);
