@@ -140,13 +140,10 @@ int main()
     start_cam();         // start streaming
 
     eth_init();
-    //  set_pwm_freq_kHz(4000, SYS_CLK_IN_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2640
     printf("[BOOT]\r\n");
     // Initialize CAMERA
     printf("camera start\n");
 
-    // hw_start_led_blink();
-    // set_pwm_freq_kHz(24000, SYS_CLK_IN_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2640
     while (1)
     {
         eth_main();

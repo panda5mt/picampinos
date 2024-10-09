@@ -39,7 +39,6 @@ volatile bool ram_in_write = false; // now writing image
 volatile bool irq_indicate_reset = true;
 
 volatile int32_t psram_access = 0; // write buffer:+=1, read buffer:-=1
-static uint32_t tx_buf_udp1[DEF_UDP_BUF_SIZE + 1] = {0};
 
 // init PIO
 static PIO pio_cam = pio0;
@@ -333,50 +332,48 @@ void sfp_cam()
 
 void rj45_cam()
 {
-    // static int32_t iot_addr;
-    // sfp_hw_init(pio_sfp);
 
-    // while (1)
-    {
+    uint8_t udp_payload1[DEF_UDP_PAYLOAD_SIZE] = {0};
+    uint32_t tx_buf_udp1[DEF_UDP_BUF_SIZE + 1] = {0};
 
-        int32_t *b;
-        uint32_t resp;
-        b = cam_ptr; //+ iot_addr;
+    int32_t *b;
+    uint32_t resp;
+    b = cam_ptr; //+ iot_addr;
 
-        // send header
-        // frame start:
-        // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + columb_size_in_words(total blocks per frame)
-        uint32_t a[4] = {0xdeadbeef, 480, 640 * 2 / sizeof(uint32_t), 480};
+    // send header
+    // frame start:
+    // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + columb_size_in_words(total blocks per frame)
+    uint32_t a[4] = {0xdeadbeef, 480, 640 * 2 / sizeof(uint32_t), 480};
 
-        // time_udp = time_now;
-        uint8_t udp_payload1[DEF_UDP_PAYLOAD_SIZE] = {0};
-        sprintf(udp_payload1, "Hello World!! Raspico 10BASE-T !!!!!!%d", time_us_32());
-        udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&udp_payload1);
+    // time_udp = time_now;
 
-        // sfp_send(&a, sizeof(uint32_t) * 4);
-        // udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
-        //
+    sprintf(udp_payload1, "aaaaa!!!%d", time_us_32());
+    udp_packet_gen_10base(tx_buf_udp1, udp_payload1);
 
-        eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE + 1);
-        // sem_release(&psram_sem);
-        // for (uint32_t i = 0; i < CAM_FUL_SIZE / sizeof(uint32_t); i += 320)
-        // {
-        //     // printf("0x%08X\r\n",b[i]);
-        //     sfp_send_with_header(0xbeefbeef, (i / 320) + 1, 1, 320, &(b[i]), sizeof(uint32_t) * 320);
-        // }
+    // sfp_send(&a, sizeof(uint32_t) * 4);
+    // udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
+    //
 
-        // // increment iot sram's address
-        // iot_addr = iot_addr + CAM_FUL_SIZE;
+    eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
+    printf("*");
+    // sem_release(&psram_sem);
+    // for (uint32_t i = 0; i < CAM_FUL_SIZE / sizeof(uint32_t); i += 320)
+    // {
+    //     // printf("0x%08X\r\n",b[i]);
+    //     sfp_send_with_header(0xbeefbeef, (i / 320) + 1, 1, 320, &(b[i]), sizeof(uint32_t) * 320);
+    // }
 
-        // if (iot_addr > CAM_TOTAL_LEN - 1)
-        // {
-        //     iot_addr = 0;
-        // }
-        // // send dummy data
+    // // increment iot sram's address
+    // iot_addr = iot_addr + CAM_FUL_SIZE;
 
-        // a[0] = 0xdeaddead;
-        // sfp_send(&a, sizeof(uint32_t) * 1);
-    }
+    // if (iot_addr > CAM_TOTAL_LEN - 1)
+    // {
+    //     iot_addr = 0;
+    // }
+    // // send dummy data
+
+    // a[0] = 0xdeaddead;
+    // sfp_send(&a, sizeof(uint32_t) * 1);
 }
 
 void free_cam()
