@@ -72,7 +72,7 @@ void init_cam(uint8_t DEVICE_IS)
 {
 
     // Initialize CAMERA
-    set_pwm_freq_kHz(24000, SYS_CLK_IN_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2640
+    set_pwm_freq_kHz(20000, SYS_CLK_IN_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2640
     sleep_ms(1000);
 
     sccb_init(DEVICE_IS, I2C1_SDA, I2C1_SCL, true); // sda,scl=(gp26,gp27). see 'sccb_if.c' and 'cam.h'
@@ -331,7 +331,7 @@ void sfp_cam()
 }
 #endif
 
-void rj45_cam()
+void __no_inline_not_in_flash_func(rj45_cam)(void)
 {
 
     uint8_t udp_payload1[DEF_UDP_PAYLOAD_SIZE] = {0};
