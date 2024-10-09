@@ -193,15 +193,6 @@ void uartout_cam()
     printf("!srt\r\n");
     sleep_ms(30);
 
-    // is_captured = false;
-    // while (!is_captured)
-    //     ; // wait until an image captured
-
-    // while (ram_in_write)
-    //     ;                // wait until writing ram finished
-    // ram_ind_read = true; // start to read
-
-    // int32_t iot_addr = 0;
     int32_t *b;
     b = (psram_access == 0) ? cam_ptr2 : cam_ptr;
 
