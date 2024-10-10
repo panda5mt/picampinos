@@ -113,35 +113,10 @@ while (true)
     %%%%%%%%%%%%
 
     image = RGB_img;
-    %imwrite(image(:,:,1),"./image9.jpg");
-    % imwrite(image(:,:,2),"./image5.jpg");
-    % imwrite(image(:,:,3),"./image6.jpg");
-    % グレースケールに変換
     I = image;
 
-    % if size(I, 3) == 3
-    %     I = rgb2gray(I);
-    % end
-    % 
-    % % 入力画像をdouble型に変換
-    % 
     % I = im2double(I);
-    % 
-    % % 光源
-    % %pos = estimate_lightsource(I);
-    % [pos,k] = estimateLightSource(I);
-    % pos = pos * k;
-    % [p, q] = estimate_normal(I, pos);
-    % Z2 = fcmethod(p, q, true);
-    % figure(5)
-    % tiledlayout(1,2);
-    % nexttile
     imshow(I);
-
-    % 
-    % nexttile
-    % %colormap("turbo");imagesc(-Z2);colorbar;title("depth estimate");
-    % colormap("turbo");imagesc(-Z2);colorbar;clim([-0.2 0.2]);title("depth estimate");
     drawnow;
 
     if(frame_counter > 40)
