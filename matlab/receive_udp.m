@@ -129,13 +129,4 @@ while (true)
 end
 imwrite(RGB_img,"untitle.jpg");
 
-function [p, q] = estimate_normal(image, light_pos)
-lx = light_pos(1) ;
-ly = light_pos(2) ;
-lz = light_pos(3) ;
 
-% 画像勾配を計算（輝度から法線を推定）
-p = image * lx / lz;
-q = image * ly / lz;
-
-end
