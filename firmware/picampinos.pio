@@ -22,7 +22,7 @@ loop1:
     wait 0  pin 10
     ; 16bit
     wait 1  pin 10      ; wait until PCLK = 1
-    in      pins, 8     ; get camera RGB data-> ISR
+    ;in      pins, 8     ; get camera RGB data-> ISR
     wait 0  pin 10
     ; 24bit
     wait 1  pin 10      ; wait until PCLK = 1
@@ -30,7 +30,23 @@ loop1:
     wait 0  pin 10
     ; 32bit
     wait 1  pin 10      ; wait until PCLK = 1
+    ;in      pins, 8     ; get camera RGB data-> ISR
+    wait 0  pin 10
+    ; 8bit
+    wait 1  pin 10      ; wait until PCLK = 1
     in      pins, 8     ; get camera RGB data-> ISR
+    wait 0  pin 10
+    ; 16bit
+    wait 1  pin 10      ; wait until PCLK = 1
+    ;in      pins, 8     ; get camera RGB data-> ISR
+    wait 0  pin 10
+    ; 24bit
+    wait 1  pin 10      ; wait until PCLK = 1
+    in      pins, 8     ; get camera RGB data-> ISR
+    wait 0  pin 10
+    ; 32bit
+    wait 1  pin 10      ; wait until PCLK = 1
+    ;in      pins, 8     ; get camera RGB data-> ISR
     wait 0  pin 10
     mov     isr, ::isr  ; bit reverse (Comment out if you don't need this)
     push                ; RX_FIFO <= ISR    
