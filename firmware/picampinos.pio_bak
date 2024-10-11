@@ -1,43 +1,41 @@
 .program picampinos
 
 ; pin8=vsync,pin9=href,pin10=pclk,pin0-pin7=D[2:9]
-
 start0:
-    
-    out     x, 32       ; X <= TX_FIFO(32bit) :the X must be 4^n
-    out     y, 32       ; Y: Num of HSYNC
+    out     x, 32       ; X <= TX_FIFO(32bit) : X must be zero 
+    out     y, 32       ; Y <= TX_FIFO(32bit) : num of trans(in words:32bit)
+
 start1:
     wait 0  pin 8       ; wait intil VSYNC=0
     wait 1  pin 8       ; wait until VSYNC=1
-    jmp     !x, loop2   ; if (0==x) goto loop2(loop forever mode)
 
-; HSYNC counter mode (for still)   
+; loop forever mode (for bit reverse mode)
 loop0:
+    mov     x, y        ; x = y (y: number of total pixel(in words:32bit) in an image)
     wait 0  pin 9
-    wait 1  pin 9
-    jmp y-- loop0       ; Count HSYNC
 
 loop1:
     wait 1  pin 9
+    ; 8bit
     wait 1  pin 10      ; wait until PCLK = 1
     in      pins, 8     ; get camera RGB data-> ISR
     wait 0  pin 10
+    ; 16bit
+    wait 1  pin 10      ; wait until PCLK = 1
+    in      pins, 8     ; get camera RGB data-> ISR
+    wait 0  pin 10
+    ; 24bit
+    wait 1  pin 10      ; wait until PCLK = 1
+    in      pins, 8     ; get camera RGB data-> ISR
+    wait 0  pin 10
+    ; 32bit
+    wait 1  pin 10      ; wait until PCLK = 1
+    in      pins, 8     ; get camera RGB data-> ISR
+    wait 0  pin 10
+    mov     isr, ::isr  ; bit reverse (Comment out if you don't need this)
+    push                ; RX_FIFO <= ISR    
     jmp     x--, loop1
-    jmp     start0
-
-; loop forever mode (for video)
-loop2:
-    mov     x, y        ; x = y (y: number of total pixel(in bytes) in an image)
-    wait 0  pin 9
-    ;wait 1  pin 9
-
-loop3:
-    wait 1  pin 9
-    wait 1  pin 10      ; wait until PCLK = 1
-    in      pins, 8     ; get camera RGB data-> ISR
-    wait 0  pin 10
-    jmp     x--, loop3
-    mov     x,null
+    
     jmp     start1
 
 
@@ -49,8 +47,8 @@ static inline void picampinos_program_init( PIO pio, uint32_t sm, uint32_t offse
     sm_config_set_set_pins(&c, in_base, in_pin_num);
     sm_config_set_in_pins( &c, in_base );
  
-    sm_config_set_in_shift( &c, false, true, 32); // auto push
-    sm_config_set_out_shift( &c, false, true, 32); //auto pull
+    sm_config_set_in_shift( &c, false, false, 32); // auto push : false
+    sm_config_set_out_shift( &c, false, true, 32); // auto pull : true
 
     //sm_config_set_fifo_join( &c, PIO_FIFO_JOIN_RX);
     
