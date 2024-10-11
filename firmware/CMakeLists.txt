@@ -43,7 +43,7 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/arithmetic/image_process.c")
     add_library(image_process STATIC arithmetic/image_process.c)
 
     # libimage_process.aをbuild/以外に配置
-    set_target_properties(image_process PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/)
+    set_target_properties(image_process PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/arithmetic)
 else()
     message(STATUS "image_process.c was not found. We'll use static library")
 endif()
@@ -68,7 +68,7 @@ target_sources(${target_name} PRIVATE
         )
 
 set(STATIC_LIBRARIES
-        ${CMAKE_CURRENT_LIST_DIR}/libimage_process.a
+        ${CMAKE_CURRENT_LIST_DIR}/arithmetic/libimage_process.a
         )
 
 target_link_libraries(${target_name} PRIVATE
