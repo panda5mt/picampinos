@@ -138,12 +138,9 @@ int main()
     init_cam(DEV_OV5642);
     config_cam_buffer(); // config buffer
     start_cam();         // start streaming
-
+    printf("camera start\n");
     eth_init();
     printf("[BOOT]\r\n");
-    // Initialize CAMERA
-    printf("camera start\n");
-
     while (1)
     {
         eth_main();

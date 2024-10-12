@@ -1072,7 +1072,7 @@ void sccb_init(uint8_t device_is, const uint32_t sda_pin, const uint32_t scl_pin
         reg_write(i2c, CAM_ADDR, sccb_dat, 3);
         sccb_dat[0] = 0x43;
         sccb_dat[1] = 0x00;
-        sccb_dat[2] = 0x61; // RGB565
+        sccb_dat[2] = 0xF9; // 0x61=RGB565, 0xF9=YUV422(=Y8,U4,V4)
         reg_write(i2c, CAM_ADDR, sccb_dat, 3);
         // AEC Settings
         sccb_dat[0] = 0x35;
