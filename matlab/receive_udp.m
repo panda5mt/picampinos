@@ -31,6 +31,8 @@ frame_end_packet = 0xdeaddead;
 frame_counter = 0;
 % image processing setup
 RGB_img = zeros(480,640,3,'uint8');
+G_img = zeros(480,640,1,'uint8');
+
 img = zeros(480,640,'uint32');
 lower5 = hex2dec('1f') .* ones(480,640,'uint32'); % 0x1f 0x1f ....
 lower6 = hex2dec('3f') .* ones(480,640,'uint32'); % 0x3f 0x3f ....
@@ -105,18 +107,16 @@ while (true)
     imgR = (255/63) .* bitand(lower5, bitshift(img,-11));   % Red component
     imgG = (255/127).* bitand(lower6, bitshift(img,-5));    % Green component
     imgB = (255/63) .* bitand(lower5, img);	                % Blue component
+    %G = bitand(lower8, bitshift(img,-8));
 
     RGB_img(:,:,1) = imgR;
     RGB_img(:,:,2) = imgG;
     RGB_img(:,:,3) = imgB;
-
+    %G_img(:,:,1) = G;
+    
     %%%%%%%%%%%%
-
-    image = RGB_img;
-    I = image;
-
-    % I = im2double(I);
-    imshow(I);
+    imshow(RGB_img);
+    %imshow(G_img);
     drawnow;
 
     if(frame_counter > 40)
@@ -127,6 +127,4 @@ while (true)
         tStart = tic;
     end
 end
-imwrite(RGB_img,"untitle.jpg");
-
 
