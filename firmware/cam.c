@@ -402,8 +402,6 @@ dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan)
 
 void cam_handler()
 {
-    // printf(".");
-
     static uint32_t num_of_call_this = 0;
     static uint32_t *b;
     uint32_t dma_chan;
