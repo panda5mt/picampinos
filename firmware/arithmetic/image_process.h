@@ -11,7 +11,8 @@ int32_t fcmethod(int width, int height,
                  float *q, float *iq,
                  float *Z_real, float *Z_imag);
 
-// Function to apply zero padding on a uint32_t input image and store it in a uint8_t output array.
+// Function to perform zero-padding on an image, handling both uint32_t and uint8_t input formats
+// 'isUint32' flag determines whether the input is treated as a uint32_t array (uint8_t packed pixels).
 void zeroPadImage(const void *input,
                   unsigned char **output,
                   int originalWidth, int originalHeight, int channels,

@@ -104,8 +104,8 @@ void init_cam(uint8_t DEVICE_IS)
     // buffer of camera data is 640 * 480 * 2 bytes (RGB565 = 16 bits = 2 bytes)
     // camera buffer on PSRAM
     // | -- im1 --| -- im2 -- | gray image1 and 2
-    // | -- p1 -- | -- ip1 -- | real and imag of xgradient1
-    // | -- q1 -- | -- iq1 -- | real and imag of ygradient1
+    // | -- p1 -- | -- ip1 -- | real and imag of x-normal1
+    // | -- q1 -- | -- iq1 -- | real and imag of y-normal1
     // | -- z1 -- | -- iz1 -- | real and imag of depth estimation1
     // |----------|-----------|
     // | -- p2 -- | -- ip2 -- |
