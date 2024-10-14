@@ -103,7 +103,15 @@ void init_cam(uint8_t DEVICE_IS)
 
     // buffer of camera data is 640 * 480 * 2 bytes (RGB565 = 16 bits = 2 bytes)
     // camera buffer on PSRAM
-    // | --- image1 --- | --- image2 --- | --- p1 --- | --- ip1 --- | --- q1 --- | --- iq1 --- |
+    // | -- im1 --| -- im2 -- | gray image1 and 2
+    // | -- p1 -- | -- ip1 -- | real and imag of xgradient1
+    // | -- q1 -- | -- iq1 -- | real and imag of ygradient1
+    // | -- z1 -- | -- iz1 -- | real and imag of depth estimation1
+    // |----------|-----------|
+    // | -- p2 -- | -- ip2 -- |
+    // | -- q2 -- | -- iq2 -- |
+    // | -- z2 -- | -- iz2 -- |
+
     uint32_t *data_buffer = (uint32_t *)(PSRAM_LOCATION);
     cam_ptr = data_buffer;
     data_buffer += CAM_FUL_SIZE / sizeof(uint32_t);
