@@ -5,9 +5,7 @@
 #include "hardware/pio.h"
 #include "sccb_if.h"
 
-// USE SPI Slave?
-#define USE_EZSPI_SLAVE (false)
-#define USE_100BASE_FX (false && !USE_EZSPI_SLAVE)
+#define USE_100BASE_FX (false)
 
 #define PICO_PSRAM_CS1 (47)     // QSPI's CS of PSRAM
 #define SYS_CLK_IN_KHZ (250000) // 192000 ~ 250000 (if you use sfp, SYS_CLK_KHZ must be just 250000)

@@ -24,9 +24,6 @@
 #include "ser_10base_t.pio.h"
 #include "des_10base_t.pio.h"
 
-#if USE_EZSPI_SLAVE
-#include "ezspi_slave.h"
-#endif
 #if USE_100BASE_FX
 #include "sfp_hw.h"
 #endif

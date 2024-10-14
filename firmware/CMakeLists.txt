@@ -29,8 +29,6 @@ target_compile_definitions(
         )
 pico_set_boot_stage2(${target_name} slower_boot2)
 
-
-# pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/ezspi_slave.pio)
 pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/picampinos.pio)
 #pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/sfp/ser_100base_fx.pio)
 pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/rj45/ser_10base_t.pio)
