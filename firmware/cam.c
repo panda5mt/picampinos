@@ -99,7 +99,7 @@ void init_cam(uint8_t DEVICE_IS)
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH0, false);
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH1, false);
 
-    printf("DMA_CH= %d,%d\n", DMA_CAM_RD_CH0, DMA_CAM_RD_CH1);
+    // printf("DMA_CH= %d,%d\n", DMA_CAM_RD_CH0, DMA_CAM_RD_CH1);
 
     // buffer of camera data is 640 * 480 * 2 bytes (RGB565 = 16 bits = 2 bytes)
     // camera buffer on PSRAM
@@ -111,6 +111,7 @@ void init_cam(uint8_t DEVICE_IS)
     // | -- p2 -- | -- ip2 -- |
     // | -- q2 -- | -- iq2 -- |
     // | -- z2 -- | -- iz2 -- |
+    // |----------|-----------|
 
     uint32_t *data_buffer = (uint32_t *)(PSRAM_LOCATION);
     cam_ptr = data_buffer;

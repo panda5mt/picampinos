@@ -15,3 +15,9 @@ void zeroPadImage(const unsigned char *input,
                   unsigned char **output,
                   int originalWidth, int originalHeight, int channels,
                   int paddedWidth, int paddedHeight);
+
+/// Function to apply zero padding on a uint32_t input image and store it in a uint8_t output array.
+// Each uint32_t contains 4 uint8_t values that are unpacked and padded with zeros where necessary.
+void zeroPadImageFromUint32Pack(uint32_t *input, uint8_t *output,
+                                int originalWidth, int originalHeight,
+                                int paddedWidth, int paddedHeight);
