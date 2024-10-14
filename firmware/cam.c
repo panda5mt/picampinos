@@ -59,8 +59,11 @@ static uint32_t DMA_CAM_RD_CH0;
 static uint32_t DMA_CAM_RD_CH1;
 
 // private functions and buffers
-static uint32_t *cam_ptr;  // pointer of camera buffer
-static uint32_t *cam_ptr2; // 2nd pointer of cam_ptr.
+static uint32_t *cam_ptr;         // pointer of camera buffer
+static uint32_t *cam_ptr2;        // 2nd pointer of cam_ptr.
+static float_t *q1_ptr, *iq1_ptr; // gradient map
+static float_t *d1_ptr, *id1_ptr; // depth map.
+
 // uint32_t *iot_ptr;  // pointer of IoT RAM's read buffer.
 
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
@@ -103,23 +106,32 @@ void init_cam(uint8_t DEVICE_IS)
 
     // buffer of camera data is 640 * 480 * 2 bytes (RGB565 = 16 bits = 2 bytes)
     // camera buffer on PSRAM
+    // | --- image1 --- | --- image2 --- | --- p1 --- | --- ip1 --- | --- q1 --- | --- iq1 --- |
     uint32_t *data_buffer = (uint32_t *)(PSRAM_LOCATION);
     cam_ptr = data_buffer;
     data_buffer += CAM_FUL_SIZE / sizeof(uint32_t);
     cam_ptr2 = data_buffer;
-    // iot_ptr = cam_ptr;
+    data_buffer += CAM_FUL_SIZE / sizeof(uint32_t);
 
+    float *flt_dbuf; // float type pointer
+    flt_dbuf = (float *)(data_buffer);
+    float *q1_ptr = flt_dbuf;
+
+    /*
+        float *p = (float *)malloc(nw * nh * sizeof(float));
+        float *ip = (float *)malloc(nw * nh * sizeof(float));
+        float *q = (float *)malloc(nw * nh * sizeof(float));
+        float *iq = (float *)malloc(nw * nh * sizeof(float));
+        float *depth = (float *)malloc(nw * nh * sizeof(float));
+        float *idepth = (float *)malloc(nw * nh * sizeof(float));
+    */
     // todo: check psram size
 }
 
 void config_cam_buffer()
 {
     // ------------------ CAMERA READ: withDMA   --------------------------------
-
-    // is_captured = false;
-
     // check psram
-
     int sz = pico_setup_psram(PICO_PSRAM_CS1);
     if (sz == 0)
     {
@@ -162,13 +174,6 @@ void config_cam_buffer()
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH1, true);
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH0, true);
     irq_set_exclusive_handler(DMA_IRQ_0, cam_handler);
-    //  irq_indicate_reset = true;
-    //    sem_init(&psram_sem, 1, 1); // init semaphore
-    //    enable IRQ
-    //   irq_set_enabled(DMA_IRQ_0, true);
-    //   irq_set_priority(DMA_IRQ_0, 0); // Most high
-    //   Set IRQ handler
-    // irq_add_shared_handler(DMA_IRQ_0, &cam_handler, 127);
     irq_set_enabled(DMA_IRQ_0, true);
 }
 
