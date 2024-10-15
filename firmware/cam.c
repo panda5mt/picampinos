@@ -104,6 +104,7 @@ void init_cam(uint8_t DEVICE_IS)
     // buffer of camera data is 640 * 480 * 2 bytes (RGB565 = 16 bits = 2 bytes)
     // camera buffer on PSRAM
     // | -- im1 --| -- im2 -- | gray image1 and 2
+    // |----------|-----------|
     // | -- p1 -- | -- ip1 -- | real and imag of x-normal1
     // | -- q1 -- | -- iq1 -- | real and imag of y-normal1
     // | -- z1 -- | -- iz1 -- | real and imag of depth estimation1
@@ -122,6 +123,7 @@ void init_cam(uint8_t DEVICE_IS)
     float *flt_dbuf; // float type pointer
     flt_dbuf = (float *)(data_buffer);
     float *q1_ptr = flt_dbuf;
+    flt_dbuf += 512 * 512;
 
     /*
         float *p = (float *)malloc(nw * nh * sizeof(float));
