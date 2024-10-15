@@ -4,7 +4,6 @@
 #include <string.h>
 #include "pico/binary_info.h"
 #include "picampinos.pio.h"
-// #include "class/cdc/cdc_device.h" // for uart(binary output)
 #include "pico_psram.h"
 #include "hardware/pwm.h"
 #include "hardware/irq.h"

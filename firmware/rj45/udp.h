@@ -2,7 +2,6 @@
 #define __UDP_H__
 
 #include <stdint.h>
-// #include "vban.h"
 
 // Buffer size config
 #define DEF_UDP_PAYLOAD_SIZE (1300)
