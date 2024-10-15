@@ -14,6 +14,10 @@ clear;
 close all;
 frame_initialized = false;
 
+
+img_h = 512;
+img_w = 512;
+
 udpr = dsp.UDPReceiver( ...
     'LocalIPPort',1234, ...
     'MessageDataType', 'uint32', ...
@@ -30,19 +34,19 @@ header_pixel_data = 0xbeefbeef;
 frame_end_packet = 0xdeaddead;
 frame_counter = 0;
 % image processing setup
-RGB_img = zeros(480,640,3,'uint8');
-G_img = zeros(480,640,1,'uint8');
+RGB_img = zeros(img_h,img_w,3,'uint8');
+G_img = zeros(img_h,img_w,1,'uint8');
 
-img = zeros(480,640,'uint32');
-lower5 = hex2dec('1f') .* ones(480,640,'uint32'); % 0x1f 0x1f ....
-lower6 = hex2dec('3f') .* ones(480,640,'uint32'); % 0x3f 0x3f ....
-lower8 = hex2dec('ff') .* ones(480,640,'uint32'); % 0xff 0xff ....
-lower16 = 65535 .* ones(480,640,'uint32'); % 0xffff 0xffff ....
+img = zeros(img_h,img_w,'uint32');
+lower5 = hex2dec('1f') .* ones(img_h,img_w,'uint32'); % 0x1f 0x1f ....
+lower6 = hex2dec('3f') .* ones(img_h,img_w,'uint32'); % 0x3f 0x3f ....
+lower8 = hex2dec('ff') .* ones(img_h,img_w,'uint32'); % 0xff 0xff ....
+lower16 = 65535 .* ones(img_h,img_w,'uint32'); % 0xffff 0xffff ....
 tStart = tic;
 while (true)
     % seek header
-    RGB_img = zeros(480,640,3,'uint8');
-    img = zeros(480,640,'uint32');
+    RGB_img = zeros(img_h,img_w,3,'uint8');
+    img = zeros(img_h,img_w,'uint32');
     while true
         dataReceived = udpr();
         if  false == isempty(dataReceived) && frame_start_packet == dataReceived(1)
@@ -86,16 +90,16 @@ while (true)
 
 
     %% decode image
-    for HGT = 1:480
-        for WID = 1:1:320
+    for HGT = 1:img_h
+        for WID = 1:1:(img_w/2)
             try
                 data = (out(HGT,WID));
                 %data = bin2dec(fliplr(dec2bin(data,32))); % bit reverse
                 img(HGT, WID*2-1) = data;
                 img(HGT, WID*2) = bitshift(data,-16);
             catch
-                fprintf('Got error : %s, but replaced dummy data.\n',data);      % if got error,
-                data = '0xAAAAAAAA';                    % insert dummy data
+                %fprintf('Got error : %s, but replaced dummy data.\n',data);      % if got error,
+                data = 0xAAAAAAAA;                    % insert dummy data
                 img(HGT, WID) = (data);
                 img(HGT, WID+1) = bitshift((data),-16);
             end
@@ -107,16 +111,16 @@ while (true)
     imgR = (255/63) .* bitand(lower5, bitshift(img,-11));   % Red component
     imgG = (255/127).* bitand(lower6, bitshift(img,-5));    % Green component
     imgB = (255/63) .* bitand(lower5, img);	                % Blue component
-    %G = bitand(lower8, bitshift(img,-8));
+    G = bitand(lower8, bitshift(img,-8));
 
     RGB_img(:,:,1) = imgR;
     RGB_img(:,:,2) = imgG;
     RGB_img(:,:,3) = imgB;
-    %G_img(:,:,1) = G;
+    G_img(:,:,1) = G;
     
     %%%%%%%%%%%%
-    imshow(RGB_img);
-    %imshow(G_img);
+    %imshow(RGB_img);
+    imshow(G_img);
     drawnow;
 
     if(frame_counter > 40)
