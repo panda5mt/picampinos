@@ -15,8 +15,8 @@ close all;
 frame_initialized = false;
 
 
-img_h = 512;
-img_w = 512;
+img_h = 256;
+img_w = 256;
 
 udpr = dsp.UDPReceiver( ...
     'LocalIPPort',1234, ...
@@ -90,8 +90,8 @@ while (true)
 
 
     %% decode image
-    for HGT = 1:img_h
-        for WID = 1:1:(img_w/2)
+    for HGT = 1:row_size %img_h
+        for WID = 1:1:col_size%(img_w/2)
             try
                 data = (out(HGT,WID));
                 %data = bin2dec(fliplr(dec2bin(data,32))); % bit reverse
