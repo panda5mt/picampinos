@@ -4,7 +4,6 @@
 #include <string.h>
 #include "pico/binary_info.h"
 #include "picampinos.pio.h"
-// #include "class/cdc/cdc_device.h" // for uart(binary output)
 #include "pico_psram.h"
 #include "hardware/pwm.h"
 #include "hardware/irq.h"
@@ -72,7 +71,7 @@ void init_cam(uint8_t DEVICE_IS)
 {
 
     // Initialize CAMERA
-    set_pwm_freq_kHz(20000, SYS_CLK_IN_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2640
+    set_pwm_freq_kHz(20000, SYS_CLK_IN_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2IMG_W
     sleep_ms(1000);
 
     sccb_init(DEVICE_IS, I2C1_SDA, I2C1_SCL, true); // sda,scl=(gp26,gp27). see 'sccb_if.c' and 'cam.h'
@@ -101,9 +100,10 @@ void init_cam(uint8_t DEVICE_IS)
 
     // printf("DMA_CH= %d,%d\n", DMA_CAM_RD_CH0, DMA_CAM_RD_CH1);
 
-    // buffer of camera data is 640 * 480 * 2 bytes (RGB565 = 16 bits = 2 bytes)
+    // buffer of camera data is IMG_W * IMG_H * 2 bytes (RGB565 = 16 bits = 2 bytes)
     // camera buffer on PSRAM
     // | -- im1 --| -- im2 -- | gray image1 and 2
+    // |----------|-----------|
     // | -- p1 -- | -- ip1 -- | real and imag of x-normal1
     // | -- q1 -- | -- iq1 -- | real and imag of y-normal1
     // | -- z1 -- | -- iz1 -- | real and imag of depth estimation1
@@ -122,6 +122,7 @@ void init_cam(uint8_t DEVICE_IS)
     float *flt_dbuf; // float type pointer
     flt_dbuf = (float *)(data_buffer);
     float *q1_ptr = flt_dbuf;
+    flt_dbuf += 512 * 512;
 
     /*
         float *p = (float *)malloc(nw * nh * sizeof(float));
@@ -207,89 +208,17 @@ void uartout_cam()
     int32_t *b;
     b = (psram_access == 0) ? cam_ptr2 : cam_ptr;
 
-    for (uint32_t h = 0; h < 480; h++)
+    for (uint32_t h = 0; h < IMG_H; h++)
     {
-        for (uint32_t i = 0; i < 320; i++)
+        for (uint32_t i = 0; i < (IMG_W / 2); i++)
         {
-            printf("0x%08X\r\n", b[(h * 320) + i]);
+            printf("0x%08X\r\n", b[(h * (IMG_W / 2)) + i]);
         }
     }
     // increment iot sram's address
     // iot_addr = cam_ptr2;
     ram_ind_read = false;
 }
-
-/*
-void uartout_bin_cam() {
-    // read Image
-    sleep_ms(30);
-    is_captured = false;
-    while(!is_captured);    // wait until an image captured
-
-    while(ram_in_write);    // wait until writing ram finished
-    ram_ind_read = true;    // indicate to read
-
-    int32_t iot_addr = 0;
-    int32_t *b;
-    b = iot_ptr;
-    for (uint32_t h = 0 ; h < 480 ; h = h + BLOCK) {
-        iot_sram_read(pio_iot,(uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); //pio, sm, buffer, start_address, length
-        for (uint32_t i = 0 ; i < CAM_BUF_SIZE/sizeof(uint32_t) ; i++) {
-            //printf("0x%08X\r\n",b[i]);
-            tud_cdc_write(&b[i], sizeof(uint32_t));
-            tud_cdc_write_flush();
-            sleep_us(150);
-        }
-        // increment iot sram's address
-        iot_addr = iot_addr + CAM_BUF_SIZE;
-
-    }
-    sleep_ms(300);
-    ram_ind_read = false;
-}
-*/
-
-#if USE_EZSPI_SLAVE
-void spiout_cam()
-{
-    uint8_t BUF_LEN = 10;
-    uint8_t in_buf[BUF_LEN];
-    uint8_t out_buf[BUF_LEN];
-
-    is_captured = false;
-    sleep_ms(80);
-
-    while (!is_captured)
-        ; // wait until an image captured
-    while (ram_in_write)
-        ;                // wait until writing ram finished
-    ram_ind_read = true; // start to read
-
-    init_spi_slave(pio_spi);
-
-    int32_t iot_addr = 0;
-    int32_t *b;
-    uint32_t resp;
-    b = iot_ptr;
-
-    // send header
-    write_word_spi_slave(pio_spi, 0xDEADBEEF);
-    for (uint32_t h = 0; h < 480; h = h + BLOCK)
-    {
-        iot_sram_read(pio_iot, (uint32_t *)b, iot_addr, CAM_BUF_SIZE, DMA_IOT_RD_CH); // pio, sm, buffer, start_address, length
-
-        for (uint32_t i = 0; i < CAM_BUF_SIZE / sizeof(uint32_t); i += 640 * 2 / sizeof(uint32_t))
-        {
-            write_blocking_spi_slave(pio_spi, &b[i], 640 * 2);
-        }
-        // increment iot sram's address
-        iot_addr = iot_addr + CAM_BUF_SIZE;
-    }
-
-    // deinit_spi_slave();
-    ram_ind_read = false;
-}
-#endif
 
 #if USE_100BASE_FX
 void sfp_cam()
@@ -307,15 +236,15 @@ void sfp_cam()
         // send header
         // frame start:
         // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + columb_size_in_words(total blocks per frame)
-        uint32_t a[4] = {0xdeadbeef, 480, 640 * 2 / sizeof(uint32_t), 480};
+        uint32_t a[4] = {0xdeadbeef, IMG_H, IMG_W * 2 / sizeof(uint32_t), IMG_H};
 
         sfp_send(&a, sizeof(uint32_t) * 4);
 
         // sem_release(&psram_sem);
-        for (uint32_t i = 0; i < CAM_FUL_SIZE / sizeof(uint32_t); i += 320)
+        for (uint32_t i = 0; i < CAM_FUL_SIZE / sizeof(uint32_t); i += (IMG_W / 2))
         {
             // printf("0x%08X\r\n",b[i]);
-            sfp_send_with_header(0xbeefbeef, (i / 320) + 1, 1, 320, &(b[i]), sizeof(uint32_t) * 320);
+            sfp_send_with_header(0xbeefbeef, (i / (IMG_W / 2)) + 1, 1, (IMG_W / 2), &(b[i]), sizeof(uint32_t) * (IMG_W / 2));
         }
 
         // increment iot sram's address
@@ -346,7 +275,7 @@ void __no_inline_not_in_flash_func(rj45_cam)(void)
     // send header
     // frame start:
     // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + column_size_in_words(total blocks per frame)
-    uint32_t a[4] = {0xdeadbeef, 480, 640 * 2 / sizeof(uint32_t), 480};
+    uint32_t a[4] = {0xdeadbeef, IMG_H, IMG_W * 2 / sizeof(uint32_t), IMG_H};
 
     // make image header
     udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
@@ -354,19 +283,19 @@ void __no_inline_not_in_flash_func(rj45_cam)(void)
     // send image header
     eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
 
-    for (uint32_t i = 0; i < CAM_FUL_SIZE / sizeof(uint32_t); i += 320)
+    for (uint32_t i = 0; i < CAM_FUL_SIZE / sizeof(uint32_t); i += (IMG_W / 2))
     {
         // printf("0x%08X\r\n",b[i]);
         uint32_t c[] = {
             0xbeefbeef,
-            (i / 320) + 1,
+            (i / (IMG_W / 2)) + 1,
             1,
-            320};
+            (IMG_W / 2)};
 
         memcpy(udp_payload1, c, 4 * sizeof(uint32_t));
 
-        memcpy(udp_payload1 + 4 * sizeof(uint32_t), b, sizeof(int32_t) * 320);
-        b += 320;
+        memcpy(udp_payload1 + 4 * sizeof(uint32_t), b, sizeof(int32_t) * (IMG_W / 2));
+        b += (IMG_W / 2);
         udp_packet_gen_10base(tx_buf_udp1, udp_payload1);
         eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
     }

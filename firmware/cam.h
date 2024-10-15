@@ -21,9 +21,14 @@
 
 // camera buffer size
 // 640x480, RGB565 picture needs 640x480x2 bytes of buffers.
-#define CAM_FUL_SIZE (640 * 480 * 2)                 // VGA size, RGB565(16bit) format
+#define IMG_H (512) //(480)
+#define IMG_W (512) //(640)
+#define PAD_H (512)
+#define PAD_W (512)
+#define CAM_FUL_SIZE (IMG_W * IMG_H * 2)             // VGA size, RGB565(16bit) format
 #define CAM_TOTAL_LEN (CAM_FUL_SIZE * 2)             // total length of pictures
 #define CAM_TOTAL_FRM (CAM_TOTAL_LEN / CAM_FUL_SIZE) // numbers(or frames) of pictures
+#define CAM_PADDED_SIZE (PAD_W * PAD_H * 2)          // VGA size, RGB565(16bit) format
 
 // high layer APIs
 void init_cam(uint8_t DEVICE_IS);
