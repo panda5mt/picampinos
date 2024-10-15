@@ -118,12 +118,12 @@ void init_cam(uint8_t DEVICE_IS)
     cam_ptr = data_buffer;
     data_buffer += CAM_FUL_SIZE / sizeof(uint32_t);
     cam_ptr2 = data_buffer;
-    data_buffer += CAM_FUL_SIZE / sizeof(uint32_t);
+    // data_buffer += CAM_FUL_SIZE / sizeof(uint32_t);
 
-    float *flt_dbuf; // float type pointer
-    flt_dbuf = (float *)(data_buffer);
-    float *q1_ptr = flt_dbuf;
-    flt_dbuf += 512 * 512;
+    // float *flt_dbuf; // float type pointer
+    // flt_dbuf = (float *)(data_buffer);
+    // float *q1_ptr = flt_dbuf;
+    // flt_dbuf += 512 * 512;
 
     /*
         float *p = (float *)malloc(nw * nh * sizeof(float));
