@@ -1025,19 +1025,19 @@ void sccb_init(uint8_t device_is, const uint32_t sda_pin, const uint32_t scl_pin
         // output setting
         sccb_dat[0] = 0x38;
         sccb_dat[1] = 0x08;
-        sccb_dat[2] = 0x02;
+        sccb_dat[2] = 0x01;
         reg_write(i2c, CAM_ADDR, sccb_dat, 3);
         sccb_dat[0] = 0x38;
         sccb_dat[1] = 0x09;
-        sccb_dat[2] = 0x00; // 0x80; // H-size:0x0280 = 640, 0x0200 = 512
+        sccb_dat[2] = 0x00; // 0x80; // H-size:0x0280 = 640, 0x0200 = 512, 0x0100 = 256
         reg_write(i2c, CAM_ADDR, sccb_dat, 3);
         sccb_dat[0] = 0x38;
         sccb_dat[1] = 0x0a;
-        sccb_dat[2] = 0x02; // 0x01;
+        sccb_dat[2] = 0x01;
         reg_write(i2c, CAM_ADDR, sccb_dat, 3);
         sccb_dat[0] = 0x38;
         sccb_dat[1] = 0x0b;
-        sccb_dat[2] = 0x00; // 0xe0; // V-size:0x01e0 = 480, 0x0200 = 512
+        sccb_dat[2] = 0x00; // 0xe0; // V-size:0x01e0 = 480, 0x0200 = 512, 0x0100 = 256
         reg_write(i2c, CAM_ADDR, sccb_dat, 3);
         sccb_dat[0] = 0x38;
         sccb_dat[1] = 0x0e;
