@@ -62,12 +62,11 @@ static float_t *p1_ptr, *ip1_ptr; // gradient map
 static float_t *q1_ptr, *iq1_ptr; // gradient map
 static float_t *d1_ptr, *id1_ptr; // depth map.
 
-// uint32_t *iot_ptr;  // pointer of IoT RAM's read buffer.
+static mutex_t image_process_mutex;
 
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
 void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_num);
 void cam_handler();
-// void printbuf(uint8_t buf[], size_t len);
 
 void init_cam(uint8_t DEVICE_IS)
 {
@@ -88,9 +87,6 @@ void init_cam(uint8_t DEVICE_IS)
     pio_sm_clear_fifos(pio_cam, sm_cam);
     pio_sm_restart(pio_cam, sm_cam);
     pio_sm_set_enabled(pio_cam, sm_cam, true);
-
-    // Initialize IoT SRAM
-    // iot_sram_init(pio_iot);
 
     // init DMA
     DMA_CAM_RD_CH0 = dma_claim_unused_channel(true);
@@ -126,31 +122,8 @@ void init_cam(uint8_t DEVICE_IS)
     cam_ptr = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE);
     cam_ptr2 = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE);
 
-    /*
     // padded image 1 and 2
-    uint8_t *padded_ptr; // float type pointer
-    padded_ptr = (uint8_t *)(img_ptr);
-    pad_ptr = padded_ptr;
-    padded_ptr += (PAD_H * PAD_W);
-    pad_ptr2 = padded_ptr;
-    padded_ptr += (PAD_H * PAD_W);
-
     // normal map1 and depth map1
-    float_t *ndmap_ptr;
-    ndmap_ptr = (float_t *)padded_ptr;
-    p1_ptr = ndmap_ptr;
-    ndmap_ptr += (PAD_H * PAD_W);
-    ip1_ptr = ndmap_ptr;
-    ndmap_ptr += (PAD_H * PAD_W);
-    q1_ptr = ndmap_ptr;
-    ndmap_ptr += (PAD_H * PAD_W);
-    iq1_ptr = ndmap_ptr;
-    ndmap_ptr += (PAD_H * PAD_W);
-    d1_ptr = ndmap_ptr;
-    ndmap_ptr += (PAD_H * PAD_W);
-    id1_ptr = ndmap_ptr;
-    ndmap_ptr += (PAD_H * PAD_W);
-    */
     pad_ptr = (uint8_t *)sfe_mem_malloc((PAD_H * PAD_W));
     pad_ptr2 = (uint8_t *)sfe_mem_malloc((PAD_H * PAD_W));
     p1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
@@ -232,9 +205,6 @@ void start_cam()
     // camera transfer settings(for video)
     pio_sm_put_blocking(pio_cam, sm_cam, 0);                                     // X=0 : reserved
     pio_sm_put_blocking(pio_cam, sm_cam, (CAM_FUL_SIZE / sizeof(uint32_t) - 1)); // Y: total words in an image
-
-    // wait until transfer finish
-    // while(false == is_captured);
 }
 
 void uartout_cam()
@@ -308,7 +278,7 @@ void __no_inline_not_in_flash_func(rj45_cam)(void)
 
     uint32_t *b;
     uint32_t resp;
-    b = cam_ptr; //+ iot_addr;
+    b = cam_ptr;
 
     // send header
     // frame start:
