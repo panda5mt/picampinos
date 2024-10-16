@@ -333,7 +333,7 @@ void free_cam()
     irq_set_enabled(DMA_IRQ_0, false);
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH1, false);
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH0, false);
-    dma_channel_abort(DMA_CAM_RD_CH0);
+    dma_channel_abort(DMA_CAM_RD_CH1);
     dma_channel_abort(DMA_CAM_RD_CH0);
 }
 
