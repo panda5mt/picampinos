@@ -1,11 +1,8 @@
 
-#ifndef _PICO_PSRAM_H_
-#define _PICO_PSRAM_H_
 /**
- * @file pico_psram.h
+ * @file set_pico_boards.c
  *
- * @brief Header file for a function that is used to detect and initialize PSRAM on
- *  SparkFun rp2350 boards.
+ * @brief Pico specific defines for SparkFun rp2* boards.
  */
 
 /*
@@ -29,19 +26,18 @@ ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
-#include <stdint.h>
-#include <stdlib.h>
+#ifndef _SFE_PICO_BOARDS_H_
+#define _SFE_PICO_BOARDS_H_
 
-/// @brief The setup_psram function - note that this is not in flash
-///
-/// @param psram_cs_pin The pin that the PSRAM is connected to
-/// @return size_t The size of the PSRAM
-///
-size_t pico_setup_psram(uint32_t psram_cs_pin);
+// Define the CS pin for the PSRAM on sparkfun rp2350 boards. This uses the
+// board #define in the pico SDK board files to determine the PSRAM settings
 
-/// @brief The sfe_psram_update_timing function - note that this is not in flash
-///
-/// @note - updates the PSRAM QSPI timing - call if the system clock is changed after PSRAM is initialized
-///
-void pico_psram_update_timing(void);
+#if defined(SPARKFUN_PROMICRO_RP2350)
+
+// For the pro micro rp2350
+#define SFE_RP2350_XIP_CSI_PIN 19
+#else
+#define SFE_RP2350_XIP_CSI_PIN 47
+#endif
+
 #endif

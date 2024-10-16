@@ -4,7 +4,8 @@
 #include <string.h>
 #include "pico/binary_info.h"
 #include "picampinos.pio.h"
-#include "pico_psram.h"
+// #include "pico_psram.h"
+#include "sfe_pico.h"
 #include "hardware/pwm.h"
 #include "hardware/irq.h"
 #include "hardware/dma.h"
@@ -41,9 +42,6 @@ volatile int32_t psram_access = 0; // write buffer:+=1, read buffer:-=1
 // init PIO
 static PIO pio_cam = pio0;
 
-#if USE_EZSPI_SLAVE
-PIO pio_spi = pio1; // same PIO with pio_iot
-#endif
 #if USE_100BASE_FX
 PIO pio_sfp = pio0; // same PIO with pio_iot
 #endif
@@ -60,6 +58,7 @@ static uint32_t *cam_ptr;         // pointer of camera buffer
 static uint32_t *cam_ptr2;        // 2nd pointer of cam_ptr.
 static uint8_t *pad_ptr;          // 1st pointer of padded image.
 static uint8_t *pad_ptr2;         // 2nd pointer of padded image.
+static float_t *p1_ptr, *ip1_ptr; // gradient map
 static float_t *q1_ptr, *iq1_ptr; // gradient map
 static float_t *d1_ptr, *id1_ptr; // depth map.
 
@@ -119,12 +118,15 @@ void init_cam(uint8_t DEVICE_IS)
     // |----------|-----------|
 
     // image1 and 2
-    uint32_t *img_ptr = (uint32_t *)(PSRAM_LOCATION);
-    cam_ptr = img_ptr;
-    img_ptr += CAM_FUL_SIZE / sizeof(uint32_t);
-    cam_ptr2 = img_ptr;
-    img_ptr += CAM_FUL_SIZE / sizeof(uint32_t);
+    // uint32_t *img_ptr = (uint32_t *)(PSRAM_LOCATION);
+    // cam_ptr = img_ptr;
+    // img_ptr += CAM_FUL_SIZE / sizeof(uint32_t);
+    // cam_ptr2 = img_ptr;
+    // img_ptr += CAM_FUL_SIZE / sizeof(uint32_t);
+    cam_ptr = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE);
+    cam_ptr2 = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE);
 
+    /*
     // padded image 1 and 2
     uint8_t *padded_ptr; // float type pointer
     padded_ptr = (uint8_t *)(img_ptr);
@@ -136,6 +138,10 @@ void init_cam(uint8_t DEVICE_IS)
     // normal map1 and depth map1
     float_t *ndmap_ptr;
     ndmap_ptr = (float_t *)padded_ptr;
+    p1_ptr = ndmap_ptr;
+    ndmap_ptr += (PAD_H * PAD_W);
+    ip1_ptr = ndmap_ptr;
+    ndmap_ptr += (PAD_H * PAD_W);
     q1_ptr = ndmap_ptr;
     ndmap_ptr += (PAD_H * PAD_W);
     iq1_ptr = ndmap_ptr;
@@ -144,6 +150,15 @@ void init_cam(uint8_t DEVICE_IS)
     ndmap_ptr += (PAD_H * PAD_W);
     id1_ptr = ndmap_ptr;
     ndmap_ptr += (PAD_H * PAD_W);
+    */
+    pad_ptr = (uint8_t *)sfe_mem_malloc((PAD_H * PAD_W));
+    pad_ptr2 = (uint8_t *)sfe_mem_malloc((PAD_H * PAD_W));
+    p1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
+    q1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
+    ip1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
+    iq1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
+    d1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
+    id1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
 
     // todo: check psram size
 }
@@ -152,7 +167,7 @@ void config_cam_buffer()
 {
     // ------------------ CAMERA READ: withDMA   --------------------------------
     // check psram
-    int sz = pico_setup_psram(PICO_PSRAM_CS1);
+    int sz = sfe_setup_psram(SFE_RP2350_XIP_CSI_PIN);
     if (sz == 0)
     {
         printf("No PSRAM.\nSystem halted.\n");
@@ -195,6 +210,16 @@ void config_cam_buffer()
     dma_channel_set_irq0_enabled(DMA_CAM_RD_CH0, true);
     irq_set_exclusive_handler(DMA_IRQ_0, cam_handler);
     irq_set_enabled(DMA_IRQ_0, true);
+}
+
+void calc_image(void)
+{
+    // 光源推定
+    float L[3];
+    float k;
+    zeroPadImage(cam_ptr, &pad_ptr, IMG_W / 2, IMG_H, 1, PAD_W / 2, PAD_H, true);
+    estimate_lightsource_and_normal(IMG_W, IMG_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
+    // printf("OK.\n");
 }
 
 void start_cam()
@@ -398,8 +423,8 @@ void cam_handler()
 
     if (b == cam_ptr)
     {
-        zeroPadImage(cam_ptr, &pad_ptr, IMG_W / 2, IMG_H, 1, PAD_W / 2, PAD_H, true);
-        
+        // multicore_launch_core1(calc_image);
+        // calc_image();
     }
 
     return;

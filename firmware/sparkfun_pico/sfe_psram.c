@@ -1,7 +1,8 @@
+
 /**
- * @file pico_psram.c
+ * @file sfe_psram.c
  *
- * @brief Header file for a function that is used to detect and initialize PSRAM on
+ * @brief This file contains a function that is used to detect and initialize PSRAM on
  *  SparkFun rp2350 boards.
  */
 
@@ -40,22 +41,35 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <stdlib.h>
 #include <string.h>
 
-#define PICO_SEC_TO_FS 1000000000000000ll
+// DETAILS/
+//
+// SparkFun RP2350 boards use the following PSRAM IC:
+//
+//      apmemory APS6404L-3SQR-ZR
+//      https://www.mouser.com/ProductDetail/AP-Memory/APS6404L-3SQR-ZR?qs=IS%252B4QmGtzzpDOdsCIglviw%3D%3D
+//
+// The origin of this logic is from the Circuit Python code that was downloaded from:
+//     https://github.com/raspberrypi/pico-sdk-rp2350/issues/12#issuecomment-2055274428
+//
+
+// Details on the PSRAM IC that are used during setup/configuration of PSRAM on SparkFun RP2350 boards.
+
+// For PSRAM timing calculations - to use int math, we work in femto seconds (fs) (1e-15),
+// NOTE: This idea is from micro python work on psram..
+
+#define SFE_SEC_TO_FS 1000000000000000ll
 
 // max select pulse width = 8us => 8e6 ns => 8000 ns => 8000 * 1e6 fs => 8000e6 fs
 // Additionally, the MAX select is in units of 64 clock cycles - will use a constant that
 // takes this into account - so 8000e6 fs / 64 = 125e6 fs
-const uint32_t PICO_PSRAM_MAX_SELECT_FS64 = 125000000;
-// The XIP has some internal hardware that can stream a linear access sequence
-// to a DMAable FIFO, while the system is still doing random accesses on flash
-// code + data.
+const uint32_t SFE_PSRAM_MAX_SELECT_FS64 = 125000000;
 
 // min deselect pulse width = 50ns => 50 * 1e6 fs => 50e7 fs
-const uint32_t PICO_PSRAM_MIN_DESELECT_FS = 50000000;
+const uint32_t SFE_PSRAM_MIN_DESELECT_FS = 50000000;
 
 // from psram datasheet - max Freq with VDDat 3.3v - SparkFun RP2350 boards run at 3.3v.
 // If VDD = 3.0 Max Freq is 133 Mhz
-const uint32_t PICO_PSRAM_MAX_SCK_HZ = 109000000;
+const uint32_t SFE_PSRAM_MAX_SCK_HZ = 109000000;
 
 // PSRAM SPI command codes
 const uint8_t PSRAM_CMD_QUAD_END = 0xF5;
@@ -69,6 +83,12 @@ const uint8_t PSRAM_CMD_NOOP = 0xFF;
 
 const uint8_t PSRAM_ID = 0x5D;
 
+//-----------------------------------------------------------------------------
+/// @brief Communicate directly with the PSRAM IC - validate it is present and return the size
+///
+/// @return size_t The size of the PSRAM
+///
+/// @note This function expects the CS pin set
 static size_t __no_inline_not_in_flash_func(get_psram_size)(void)
 {
     size_t psram_size = 0;
@@ -150,41 +170,35 @@ static void __no_inline_not_in_flash_func(set_psram_timing)(void)
     uint32_t sysHz = (uint32_t)clock_get_hz(clk_sys);
 
     // Calculate the clock divider - goal to get clock used for PSRAM <= what
-    // the PSRAM IC can handle - which is defined in PICO_PSRAM_MAX_SCK_HZ
-    volatile uint8_t clockDivider = (sysHz + PICO_PSRAM_MAX_SCK_HZ - 1) / PICO_PSRAM_MAX_SCK_HZ;
+    // the PSRAM IC can handle - which is defined in SFE_PSRAM_MAX_SCK_HZ
+    volatile uint8_t clockDivider = (sysHz + SFE_PSRAM_MAX_SCK_HZ - 1) / SFE_PSRAM_MAX_SCK_HZ;
 
     uint32_t intr_stash = save_and_disable_interrupts();
 
     // Get the clock femto seconds per cycle.
 
-    uint32_t fsPerCycle = PICO_SEC_TO_FS / sysHz;
+    uint32_t fsPerCycle = SFE_SEC_TO_FS / sysHz;
 
     // the maxSelect value is defined in units of 64 clock cycles
-    // So maxFS / (64 * fsPerCycle) = maxSelect = PICO_PSRAM_MAX_SELECT_FS64/fsPerCycle
-    volatile uint8_t maxSelect = PICO_PSRAM_MAX_SELECT_FS64 / fsPerCycle;
+    // So maxFS / (64 * fsPerCycle) = maxSelect = SFE_PSRAM_MAX_SELECT_FS64/fsPerCycle
+    volatile uint8_t maxSelect = SFE_PSRAM_MAX_SELECT_FS64 / fsPerCycle;
 
     //  minDeselect time - in system clock cycle
     // Must be higher than 50ns (min deselect time for PSRAM) so add a fsPerCycle - 1 to round up
-    // So minFS/fsPerCycle = minDeselect = PICO_PSRAM_MIN_DESELECT_FS/fsPerCycle
+    // So minFS/fsPerCycle = minDeselect = SFE_PSRAM_MIN_DESELECT_FS/fsPerCycle
 
-    volatile uint8_t minDeselect = (PICO_PSRAM_MIN_DESELECT_FS + fsPerCycle - 1) / fsPerCycle;
+    volatile uint8_t minDeselect = (SFE_PSRAM_MIN_DESELECT_FS + fsPerCycle - 1) / fsPerCycle;
 
     // printf("Max Select: %d, Min Deselect: %d, clock divider: %d\n", maxSelect, minDeselect, clockDivider);
 
     qmi_hw->m[1].timing = QMI_M1_TIMING_PAGEBREAK_VALUE_1024 << QMI_M1_TIMING_PAGEBREAK_LSB | // Break between pages.
-                          3 << QMI_M1_TIMING_SELECT_HOLD_LSB |                                // Delay releasing CS for 3 extra system cycles.
+                          3 << QMI_M1_TIMING_SELECT_HOLD_LSB | // Delay releasing CS for 3 extra system cycles.
                           1 << QMI_M1_TIMING_COOLDOWN_LSB | 1 << QMI_M1_TIMING_RXDELAY_LSB |
                           maxSelect << QMI_M1_TIMING_MAX_SELECT_LSB | minDeselect << QMI_M1_TIMING_MIN_DESELECT_LSB |
                           clockDivider << QMI_M1_TIMING_CLKDIV_LSB;
 
     restore_interrupts(intr_stash);
 }
-
-//-----------------------------------------------------------------------------
-/// @brief Update the PSRAM timing configuration based on system clock
-///
-/// @note This function expects interrupts to be enabled on entry
-
 //-----------------------------------------------------------------------------
 /// @brief The setup_psram function - note that this is not in flash
 ///
@@ -278,13 +292,13 @@ static size_t __no_inline_not_in_flash_func(setup_psram)(uint32_t psram_cs_pin)
 // public interface
 
 // setup call
-size_t pico_setup_psram(uint32_t psram_cs_pin)
+size_t sfe_setup_psram(uint32_t psram_cs_pin)
 {
     return setup_psram(psram_cs_pin);
 }
 
 // update timing -- used if the system clock/timing was changed.
-void pico_psram_update_timing(void)
+void sfe_psram_update_timing(void)
 {
     set_psram_timing();
 }
