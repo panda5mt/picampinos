@@ -20,6 +20,7 @@
 #include "arp.h"
 #include "icmp.h"
 #include "udp.h"
+#include "image_process.h"
 #include "ser_10base_t.pio.h"
 #include "des_10base_t.pio.h"
 
@@ -57,6 +58,8 @@ static uint32_t DMA_CAM_RD_CH1;
 // private functions and buffers
 static uint32_t *cam_ptr;         // pointer of camera buffer
 static uint32_t *cam_ptr2;        // 2nd pointer of cam_ptr.
+static uint8_t *pad_ptr;          // 1st pointer of padded image.
+static uint8_t *pad_ptr2;         // 2nd pointer of padded image.
 static float_t *q1_ptr, *iq1_ptr; // gradient map
 static float_t *d1_ptr, *id1_ptr; // depth map.
 
@@ -104,6 +107,8 @@ void init_cam(uint8_t DEVICE_IS)
     // camera buffer on PSRAM
     // | -- im1 --| -- im2 -- | gray image1 and 2
     // |----------|-----------|
+    // | - pad1 - | - pad2 -- | padded image 1 and 2
+    // |----------|-----------|
     // | -- p1 -- | -- ip1 -- | real and imag of x-normal1
     // | -- q1 -- | -- iq1 -- | real and imag of y-normal1
     // | -- z1 -- | -- iz1 -- | real and imag of depth estimation1
@@ -113,25 +118,33 @@ void init_cam(uint8_t DEVICE_IS)
     // | -- z2 -- | -- iz2 -- |
     // |----------|-----------|
 
-    uint32_t *data_buffer = (uint32_t *)(PSRAM_LOCATION);
-    cam_ptr = data_buffer;
-    data_buffer += CAM_FUL_SIZE / sizeof(uint32_t);
-    cam_ptr2 = data_buffer;
-    data_buffer += CAM_FUL_SIZE / sizeof(uint32_t);
+    // image1 and 2
+    uint32_t *img_ptr = (uint32_t *)(PSRAM_LOCATION);
+    cam_ptr = img_ptr;
+    img_ptr += CAM_FUL_SIZE / sizeof(uint32_t);
+    cam_ptr2 = img_ptr;
+    img_ptr += CAM_FUL_SIZE / sizeof(uint32_t);
 
-    float *flt_dbuf; // float type pointer
-    flt_dbuf = (float *)(data_buffer);
-    float *q1_ptr = flt_dbuf;
-    flt_dbuf += 512 * 512;
+    // padded image 1 and 2
+    uint8_t *padded_ptr; // float type pointer
+    padded_ptr = (uint8_t *)(img_ptr);
+    pad_ptr = padded_ptr;
+    padded_ptr += (PAD_H * PAD_W);
+    pad_ptr2 = padded_ptr;
+    padded_ptr += (PAD_H * PAD_W);
 
-    /*
-        float *p = (float *)malloc(nw * nh * sizeof(float));
-        float *ip = (float *)malloc(nw * nh * sizeof(float));
-        float *q = (float *)malloc(nw * nh * sizeof(float));
-        float *iq = (float *)malloc(nw * nh * sizeof(float));
-        float *depth = (float *)malloc(nw * nh * sizeof(float));
-        float *idepth = (float *)malloc(nw * nh * sizeof(float));
-    */
+    // normal map1 and depth map1
+    float_t *ndmap_ptr;
+    ndmap_ptr = (float_t *)padded_ptr;
+    q1_ptr = ndmap_ptr;
+    ndmap_ptr += (PAD_H * PAD_W);
+    iq1_ptr = ndmap_ptr;
+    ndmap_ptr += (PAD_H * PAD_W);
+    d1_ptr = ndmap_ptr;
+    ndmap_ptr += (PAD_H * PAD_W);
+    id1_ptr = ndmap_ptr;
+    ndmap_ptr += (PAD_H * PAD_W);
+
     // todo: check psram size
 }
 
@@ -382,6 +395,12 @@ void cam_handler()
 
     // reset the DMA initial write address
     dma_channel_set_write_addr(dma_chan, b, false);
+
+    if (b == cam_ptr)
+    {
+        zeroPadImage(cam_ptr, &pad_ptr, IMG_W / 2, IMG_H, 1, PAD_W / 2, PAD_H, true);
+        
+    }
 
     return;
 }

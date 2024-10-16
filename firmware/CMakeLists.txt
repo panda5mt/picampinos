@@ -46,6 +46,9 @@ else()
     message(STATUS "image_process.c was not found. We'll use static library")
 endif()
 
+set(STATIC_LIBRARIES
+        ${CMAKE_CURRENT_LIST_DIR}/arithmetic/libimage_process.a
+        )
 
 target_sources(${target_name} PRIVATE
         # sfp/tbl_8b10b.c
@@ -65,9 +68,7 @@ target_sources(${target_name} PRIVATE
         #arithmetic/test_code.c
         )
 
-set(STATIC_LIBRARIES
-        ${CMAKE_CURRENT_LIST_DIR}/arithmetic/libimage_process.a
-        )
+
 
 target_link_libraries(${target_name} PRIVATE
         pico_malloc
@@ -82,6 +83,7 @@ target_link_libraries(${target_name} PRIVATE
         hardware_pwm
         hardware_dma
         hardware_irq
+        image_process
         )
 
 
