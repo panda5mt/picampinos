@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 // Buffer size config
-#define DEF_UDP_PAYLOAD_SIZE (1300)
+#define DEF_UDP_PAYLOAD_SIZE (512)
 // #define DEF_UDP_PAYLOAD_SIZE    (DEF_VBAN_HEAD_SIZE+DEF_VBAN_PCM_SIZE)
 
 // UDP Header
