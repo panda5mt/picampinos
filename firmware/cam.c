@@ -67,10 +67,20 @@ static mutex_t image_process_mutex;
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
 void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_num);
 void cam_handler();
+static void memory_stats()
+{
+    size_t mem_size = sfe_mem_size();
+    size_t mem_used = sfe_mem_used();
+    printf("\tMemory pool - Total: 0x%X (%u)  Used: 0x%X (%u) - %3.2f%%\n", mem_size, mem_size, mem_used, mem_used,
+           (float)mem_used / (float)mem_size * 100.0);
+
+    size_t max_block = sfe_mem_max_free_size();
+    printf("\tMax free block size: 0x%X (%u) \n", max_block, max_block);
+}
 
 void init_cam(uint8_t DEVICE_IS)
 {
-
+    sfe_pico_alloc_init();
     // Initialize CAMERA
     set_pwm_freq_kHz(20000, SYS_CLK_IN_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2IMG_W
     sleep_ms(1000);
@@ -114,32 +124,33 @@ void init_cam(uint8_t DEVICE_IS)
     // |----------|-----------|
 
     // image1 and 2
-    // uint32_t *img_ptr = (uint32_t *)(PSRAM_LOCATION);
-    // cam_ptr = img_ptr;
-    // img_ptr += CAM_FUL_SIZE / sizeof(uint32_t);
-    // cam_ptr2 = img_ptr;
-    // img_ptr += CAM_FUL_SIZE / sizeof(uint32_t);
     cam_ptr = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE);
     cam_ptr2 = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE);
+    // 262144
+    //  padded image 1 and 2
+    //  normal map1 and depth map1
+    pad_ptr = (uint8_t *)sfe_mem_malloc((PAD_H * PAD_W) * sizeof(uint8_t));
+    p1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W) * sizeof(float_t));
+    q1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W) * sizeof(float_t));
 
-    // padded image 1 and 2
-    // normal map1 and depth map1
-    pad_ptr = (uint8_t *)sfe_mem_malloc((PAD_H * PAD_W));
-    pad_ptr2 = (uint8_t *)sfe_mem_malloc((PAD_H * PAD_W));
-    p1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
-    q1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
-    ip1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
-    iq1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
-    d1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
-    id1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
-
+    // ip1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
+    // iq1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
+    // d1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
+    // id1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
+    if (!cam_ptr || !cam_ptr2 || !pad_ptr || !p1_ptr || !q1_ptr)
+    {
+        printf("Big block built in allocation failed\n");
+        // return 1;
+    }
     // todo: check psram size
+    memory_stats();
 }
 
 void config_cam_buffer()
 {
     // ------------------ CAMERA READ: withDMA   --------------------------------
     // check psram
+    /*
     int sz = sfe_setup_psram(SFE_RP2350_XIP_CSI_PIN);
     if (sz == 0)
     {
@@ -151,7 +162,7 @@ void config_cam_buffer()
     {
         printf("PSRAM OK:size = %d\n", sz);
     }
-
+    */
     // disable IRQ
     irq_set_enabled(DMA_IRQ_0, false);
 
@@ -191,7 +202,8 @@ void calc_image(void)
     float L[3];
     float k;
     zeroPadImage(cam_ptr, &pad_ptr, IMG_W / 2, IMG_H, 1, PAD_W / 2, PAD_H, true);
-    estimate_lightsource_and_normal(IMG_W, IMG_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
+    //  sfe_mem_free(cam_ptr);
+    // estimate_lightsource_and_normal(IMG_W, IMG_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
     // printf("OK.\n");
 }
 
@@ -270,7 +282,7 @@ void sfp_cam()
 }
 #endif
 
-void __no_inline_not_in_flash_func(rj45_cam)(void)
+void rj45_cam(void)
 {
 
     uint8_t udp_payload1[DEF_UDP_PAYLOAD_SIZE] = {0};
@@ -354,6 +366,10 @@ void cam_handler()
     static uint32_t *b;
     uint32_t dma_chan;
 
+    if (num_of_call_this > 0)
+        return;
+    num_of_call_this++;
+
     psram_access = psram_access + 1;
     if (psram_access > CAM_TOTAL_FRM)
     {
@@ -394,9 +410,9 @@ void cam_handler()
     if (b == cam_ptr)
     {
         // multicore_launch_core1(calc_image);
-        // calc_image();
+        calc_image();
     }
-
+    num_of_call_this = 0;
     return;
 }
 
