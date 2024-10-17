@@ -149,20 +149,7 @@ void init_cam(uint8_t DEVICE_IS)
 void config_cam_buffer()
 {
     // ------------------ CAMERA READ: withDMA   --------------------------------
-    // check psram
-    /*
-    int sz = sfe_setup_psram(SFE_RP2350_XIP_CSI_PIN);
-    if (sz == 0)
-    {
-        printf("No PSRAM.\nSystem halted.\n");
-        while (1)
-            ;
-    }
-    else
-    {
-        printf("PSRAM OK:size = %d\n", sz);
-    }
-    */
+
     // disable IRQ
     irq_set_enabled(DMA_IRQ_0, false);
 
