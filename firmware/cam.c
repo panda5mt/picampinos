@@ -192,10 +192,10 @@ void calc_image(void)
     float L[3];
     float k;
     extract_green_from_uint32_array(cam_ptr, gray_ptr, CAM_FUL_SIZE / 2);
-    zeroPadImage(gray_ptr, &pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
-    //   sfe_mem_free(cam_ptr);
-    //  estimate_lightsource_and_normal(IMG_W, IMG_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
-    //  printf("OK.\n");
+    // zeroPadImage(gray_ptr, &pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
+    //    sfe_mem_free(cam_ptr);
+    //   estimate_lightsource_and_normal(IMG_W, IMG_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
+    //   printf("OK.\n");
 }
 
 void start_cam()
