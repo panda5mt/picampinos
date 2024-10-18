@@ -48,6 +48,7 @@
 // #include "pico_psram.h"
 
 #define BOARD_LED (25) // 28 // pico's led => 25, self made RP2350brd's led => 28. check hardware/RP2350Board.pdf
+void vRJ45Task(void *pvParameters);
 
 static void read_i2c_data(i2c_inst_t *i2c)
 {
@@ -147,11 +148,11 @@ int main()
     printf("camera start\n");
     eth_init();
     printf("[BOOT]\r\n");
-    while (1)
-    {
-        eth_main();
-        rj45_cam();
-    }
+
+    xTaskCreate(vRJ45Task, "Key In Task", configMINIMAL_STACK_SIZE * 5, NULL, tskIDLE_PRIORITY + 1, NULL);
+    // xTaskCreate(vRadarTask, "Radar Task1", configMINIMAL_STACK_SIZE * 20, NULL, tskIDLE_PRIORITY + 2, NULL);
+    //  FreeRTOSのスケジューラを開始
+    vTaskStartScheduler();
 
     // // data via USB-UART(ASCII)
     // // see also 'matlab/readrgb.m'
@@ -192,4 +193,13 @@ int main()
     // free_cam();
     while (true)
         ;
+}
+
+void vRJ45Task(void *pvParameters)
+{
+    while (1)
+    {
+        eth_main();
+        rj45_cam();
+    }
 }
