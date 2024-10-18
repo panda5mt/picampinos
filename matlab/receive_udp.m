@@ -119,8 +119,8 @@ while (true)
     G_img(:,:,1) = G;
     
     %%%%%%%%%%%%
-    %imshow(RGB_img);
-    imshow(G_img);
+    imshow(RGB_img);
+    %imshow(G_img);
     drawnow;
 
     if(frame_counter > 40)
