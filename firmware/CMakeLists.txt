@@ -17,6 +17,11 @@ add_definitions(-DSFE_PICO_ALLOC_WRAP)
 set(PICO_SDK_FETCH_FROM_GIT on)
 include(pico_sdk_import.cmake)
 
+set(FREERTOS_KERNEL_PATH ${CMAKE_SOURCE_DIR}/FreeRTOS-Kernel CACHE PATH "Path to the FreeRTOS Kernel" FORCE)
+# import FreeRTOS
+include(${CMAKE_SOURCE_DIR}/FreeRTOS_Kernel_import.cmake)
+
+
 project(${target_name} C CXX ASM)
 
 set(CMAKE_C_STANDARD 11)
@@ -100,6 +105,9 @@ target_link_libraries(${target_name} PRIVATE
         hardware_irq
         image_process
         sparkfun_pico
+        pico_async_context_freertos
+        FreeRTOS-Kernel
+        FreeRTOS-Kernel-Heap4
         )
 
 
