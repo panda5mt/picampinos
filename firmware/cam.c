@@ -56,6 +56,7 @@ static uint32_t DMA_CAM_RD_CH1;
 // private functions and buffers
 static uint32_t *cam_ptr;         // pointer of camera buffer
 static uint32_t *cam_ptr2;        // 2nd pointer of cam_ptr.
+static uint8_t *gray_ptr;         // pointer of gray image.
 static uint8_t *pad_ptr;          // 1st pointer of padded image.
 static uint8_t *pad_ptr2;         // 2nd pointer of padded image.
 static float_t *p1_ptr, *ip1_ptr; // gradient map
@@ -67,6 +68,7 @@ static mutex_t image_process_mutex;
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
 void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_num);
 void cam_handler();
+
 static void memory_stats()
 {
     size_t mem_size = sfe_mem_size();
@@ -82,7 +84,7 @@ void init_cam(uint8_t DEVICE_IS)
 {
     sfe_pico_alloc_init();
     // Initialize CAMERA
-    set_pwm_freq_kHz(20000, SYS_CLK_IN_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2IMG_W
+    set_pwm_freq_kHz(20000, SYS_CLK_IN_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2640
     sleep_ms(1000);
 
     sccb_init(DEVICE_IS, I2C1_SDA, I2C1_SCL, true); // sda,scl=(gp26,gp27). see 'sccb_if.c' and 'cam.h'
@@ -124,8 +126,9 @@ void init_cam(uint8_t DEVICE_IS)
     // |----------|-----------|
 
     // image1 and 2
-    cam_ptr = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE);
-    cam_ptr2 = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE);
+    cam_ptr = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE * sizeof(uint32_t) / 2);
+    cam_ptr2 = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE * sizeof(uint32_t) / 2);
+    gray_ptr = (uint8_t *)sfe_mem_malloc(CAM_FUL_SIZE * sizeof(uint8_t));
     // 262144
     //  padded image 1 and 2
     //  normal map1 and depth map1
@@ -137,7 +140,7 @@ void init_cam(uint8_t DEVICE_IS)
     // iq1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
     // d1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
     // id1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
-    if (!cam_ptr || !cam_ptr2 || !pad_ptr || !p1_ptr || !q1_ptr)
+    if (!cam_ptr || !gray_ptr || !cam_ptr2 || !pad_ptr || !p1_ptr || !q1_ptr)
     {
         printf("Big block built in allocation failed\n");
         // return 1;
@@ -159,10 +162,10 @@ void config_cam_buffer()
     // trigger DMA_CAM_RD_CH0 when DMA_CAM_RD_CH1 completes. (ping-pong)
     channel_config_set_chain_to(&c, DMA_CAM_RD_CH0);
     dma_channel_configure(DMA_CAM_RD_CH1, &c,
-                          cam_ptr2,                        // Destination pointer(back half of buffer)
-                          &pio_cam->rxf[sm_cam],           // Source pointer
-                          CAM_FUL_SIZE / sizeof(uint32_t), // Number of transfers
-                          false                            // Don't Start yet
+                          cam_ptr2,              // Destination pointer(back half of buffer)
+                          &pio_cam->rxf[sm_cam], // Source pointer
+                          CAM_FUL_SIZE / 2,      // Number of transfers
+                          false                  // Don't Start yet
     );
 
     // (1) 0th DMA Channel Config
@@ -170,10 +173,10 @@ void config_cam_buffer()
     // trigger DMA_CAM_RD_CH1 when DMA_CAM_RD_CH0 completes.
     channel_config_set_chain_to(&c, DMA_CAM_RD_CH1);
     dma_channel_configure(DMA_CAM_RD_CH0, &c,
-                          cam_ptr,                         // Destination pointer(front half of buffer)
-                          &pio_cam->rxf[sm_cam],           // Source pointer
-                          CAM_FUL_SIZE / sizeof(uint32_t), // Number of transfers
-                          false                            // Don't Start yet
+                          cam_ptr,               // Destination pointer(front half of buffer)
+                          &pio_cam->rxf[sm_cam], // Source pointer
+                          CAM_FUL_SIZE / 2,      // Number of transfers
+                          false                  // Don't Start yet
     );
 
     // IRQ settings
@@ -188,10 +191,11 @@ void calc_image(void)
     // 光源推定
     float L[3];
     float k;
-    zeroPadImage(cam_ptr, &pad_ptr, IMG_W / 2, IMG_H, 1, PAD_W / 2, PAD_H, true);
-    //  sfe_mem_free(cam_ptr);
-    // estimate_lightsource_and_normal(IMG_W, IMG_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
-    // printf("OK.\n");
+    extract_green_from_uint32_array(cam_ptr, gray_ptr, CAM_FUL_SIZE / 2);
+    zeroPadImage(gray_ptr, &pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
+    //   sfe_mem_free(cam_ptr);
+    //  estimate_lightsource_and_normal(IMG_W, IMG_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
+    //  printf("OK.\n");
 }
 
 void start_cam()
@@ -202,8 +206,8 @@ void start_cam()
     dma_start_channel_mask(1u << DMA_CAM_RD_CH0);
 
     // camera transfer settings(for video)
-    pio_sm_put_blocking(pio_cam, sm_cam, 0);                                     // X=0 : reserved
-    pio_sm_put_blocking(pio_cam, sm_cam, (CAM_FUL_SIZE / sizeof(uint32_t) - 1)); // Y: total words in an image
+    pio_sm_put_blocking(pio_cam, sm_cam, 0);                      // X=0 : reserved
+    pio_sm_put_blocking(pio_cam, sm_cam, (CAM_FUL_SIZE / 2 - 1)); // Y: total words in an image
 }
 
 void uartout_cam()
@@ -282,7 +286,7 @@ void rj45_cam(void)
     // send header
     // frame start:
     // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + column_size_in_words(total blocks per frame)
-    uint32_t a[4] = {0xdeadbeef, IMG_H, IMG_W * 2 / sizeof(uint32_t), IMG_H};
+    uint32_t a[4] = {0xdeadbeef, IMG_H, IMG_W / 2, IMG_H};
 
     // make image header
     udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
@@ -290,7 +294,7 @@ void rj45_cam(void)
     // send image header
     eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
 
-    for (uint32_t i = 0; i < CAM_FUL_SIZE / sizeof(uint32_t); i += (IMG_W / 2))
+    for (uint32_t i = 0; i < CAM_FUL_SIZE / 2; i += (IMG_W / 2))
     {
         // printf("0x%08X\r\n",b[i]);
         uint32_t c[] = {

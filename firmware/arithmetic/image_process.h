@@ -11,13 +11,13 @@ int32_t fcmethod(int width, int height,
                  float *q, float *iq,
                  float *Z_real, float *Z_imag);
 
-// When 'yuv_to_mono' is true, this function processes a uint32_t input array
-// where only the 1st and 3rd bytes of each uint32_t are valid.
-// The 2nd and 4th bytes are ignored. The output array is padded with zeros where necessary.
-// The original image is stored as a uint32_t array, while the padded output is a uint8_t array.
-// Each pixel in the output uses 2 bytes (the 1st and 3rd valid bytes from each uint32_t in the input).
-void zeroPadImage(const void *input,
+// Function to perform zero-padding on an image
+void zeroPadImage(const unsigned char *input,
                   unsigned char **output,
                   int originalWidth, int originalHeight, int channels,
-                  int paddedWidth, int paddedHeight,
-                  bool yuv_to_mono);
+                  int paddedWidth, int paddedHeight);
+
+// extract green from RGB565 packed data.
+// length: input's length. you will need output[2*length]
+// (length = sizeof(input[array])/sizeof(input[0]) )
+void extract_green_from_uint32_array(const uint32_t *input, uint8_t *output, size_t length);
