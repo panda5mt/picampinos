@@ -30,6 +30,9 @@
 #define CAM_TOTAL_FRM (CAM_TOTAL_LEN / CAM_FUL_SIZE) // numbers(or frames) of pictures
 #define CAM_PADDED_SIZE_IN_32 (PAD_W * PAD_H / 2)    // in uint32_t[] size
 
+// FreeRTOS Tasks
+void vImageProc(void *pvParameters);
+
 // high layer APIs
 void init_cam(uint8_t DEVICE_IS);
 void config_cam_buffer();

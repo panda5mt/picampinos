@@ -192,9 +192,9 @@ void calc_image(void)
     float L[3];
     float k;
     extract_green_from_uint32_array(cam_ptr, gray_ptr, CAM_FUL_SIZE / 2);
-    // zeroPadImage(gray_ptr, &pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
+    zeroPadImage(gray_ptr, &pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
     //    sfe_mem_free(cam_ptr);
-    //   estimate_lightsource_and_normal(IMG_W, IMG_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
+    estimate_lightsource_and_normal(IMG_W, IMG_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
     //   printf("OK.\n");
 }
 
@@ -398,11 +398,11 @@ void cam_handler()
     // reset the DMA initial write address
     dma_channel_set_write_addr(dma_chan, b, false);
 
-    if (b == cam_ptr)
-    {
-        // multicore_launch_core1(calc_image);
-        calc_image();
-    }
+    // if (b == cam_ptr)
+    // {
+    //     // multicore_launch_core1(calc_image);
+    //     //  wcalc_image();
+    // }
     num_of_call_this = 0;
     return;
 }
@@ -432,4 +432,14 @@ void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_n
     // set PWM start
     pwm_init(pwm0_slice_num, &pwm0_slice_config, true);
     pwm_set_gpio_level(gpio_num, (pwm0_slice_config.top * 0.50)); // duty:50%
+}
+
+void vImageProc(void *pvParameters)
+{
+    printf("vImageProc - Running on Core: %d\n", get_core_num()); // 現在のコア番号を表示
+    while (1)
+    {
+        calc_image();
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
 }

@@ -48,8 +48,10 @@
 #define BOARD_LED (25) // 28 // pico's led => 25, self made RP2350brd's led => 28. check hardware/RP2350Board.pdf
 
 // FreeRTOS Tasks
-TaskHandle_t rj45handle;
-TaskHandle_t rxhandle;
+TaskHandle_t rj45Handle;
+TaskHandle_t rxHandle;
+TaskHandle_t imageHandle;
+
 void vRJ45Task(void *pvParameters);
 // FreeRTOS Tasks: End
 
@@ -153,14 +155,16 @@ int main()
     printf("[BOOT]\r\n");
 
     UBaseType_t uxCoreAffinityMask;
-    xTaskCreate(vRJ45Task, "Eth Task", configMINIMAL_STACK_SIZE * 10, NULL, tskIDLE_PRIORITY + 1, &rj45handle);
-    xTaskCreate(vLaunchRxFunc, "Rx Task", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, &rxhandle);
-
+    xTaskCreate(vRJ45Task, "Eth Task", configMINIMAL_STACK_SIZE * 10, NULL, tskIDLE_PRIORITY + 1, &rj45Handle);
+    xTaskCreate(vLaunchRxFunc, "Rx Task", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, &rxHandle);
+    xTaskCreate(vImageProc, "Image Task", configMINIMAL_STACK_SIZE * 10, NULL, tskIDLE_PRIORITY + 1, &imageHandle);
     uxCoreAffinityMask = ((1 << 0)); // Core0
-    vTaskCoreAffinitySet(rj45handle, uxCoreAffinityMask);
+    vTaskCoreAffinitySet(rj45Handle, uxCoreAffinityMask);
 
     uxCoreAffinityMask = ((1 << 1)); // Core1
-    vTaskCoreAffinitySet(rxhandle, uxCoreAffinityMask);
+    vTaskCoreAffinitySet(rxHandle, uxCoreAffinityMask);
+    vTaskCoreAffinitySet(imageHandle, uxCoreAffinityMask);
+
     //   FreeRTOSのスケジューラを開始
     vTaskStartScheduler();
 
