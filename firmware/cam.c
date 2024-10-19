@@ -55,7 +55,8 @@ static uint32_t DMA_CAM_RD_CH1;
 
 // private functions and buffers
 static uint32_t *cam_ptr;         // pointer of camera buffer
-static uint32_t *cam_ptr2;        // 2nd pointer of cam_ptr.
+static uint32_t *cam_ptr1;        // 2nd pointer of cam_ptr.
+static uint8_t *gray_ptr;         // pointer of gray image.
 static uint8_t *pad_ptr;          // 1st pointer of padded image.
 static uint8_t *pad_ptr2;         // 2nd pointer of padded image.
 static float_t *p1_ptr, *ip1_ptr; // gradient map
@@ -67,6 +68,7 @@ static mutex_t image_process_mutex;
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
 void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_num);
 void cam_handler();
+
 static void memory_stats()
 {
     size_t mem_size = sfe_mem_size();
@@ -82,7 +84,7 @@ void init_cam(uint8_t DEVICE_IS)
 {
     sfe_pico_alloc_init();
     // Initialize CAMERA
-    set_pwm_freq_kHz(20000, SYS_CLK_IN_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2IMG_W
+    set_pwm_freq_kHz(20000, SYS_CLK_IN_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2640
     sleep_ms(1000);
 
     sccb_init(DEVICE_IS, I2C1_SDA, I2C1_SCL, true); // sda,scl=(gp26,gp27). see 'sccb_if.c' and 'cam.h'
@@ -124,20 +126,21 @@ void init_cam(uint8_t DEVICE_IS)
     // |----------|-----------|
 
     // image1 and 2
-    cam_ptr = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE);
-    cam_ptr2 = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE);
+    cam_ptr = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE * sizeof(uint32_t) / 2);
+    cam_ptr1 = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE * sizeof(uint32_t) / 2);
+    gray_ptr = (uint8_t *)sfe_mem_malloc(CAM_FUL_SIZE * 1 * sizeof(uint8_t));
     // 262144
     //  padded image 1 and 2
     //  normal map1 and depth map1
     pad_ptr = (uint8_t *)sfe_mem_malloc((PAD_H * PAD_W) * sizeof(uint8_t));
     p1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W) * sizeof(float_t));
     q1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W) * sizeof(float_t));
-
+    printf("pad addr=%x\n", pad_ptr);
     // ip1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
     // iq1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
     // d1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
     // id1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
-    if (!cam_ptr || !cam_ptr2 || !pad_ptr || !p1_ptr || !q1_ptr)
+    if (!cam_ptr || !gray_ptr || !cam_ptr1 || !pad_ptr || !p1_ptr || !q1_ptr)
     {
         printf("Big block built in allocation failed\n");
         // return 1;
@@ -159,10 +162,10 @@ void config_cam_buffer()
     // trigger DMA_CAM_RD_CH0 when DMA_CAM_RD_CH1 completes. (ping-pong)
     channel_config_set_chain_to(&c, DMA_CAM_RD_CH0);
     dma_channel_configure(DMA_CAM_RD_CH1, &c,
-                          cam_ptr2,                        // Destination pointer(back half of buffer)
-                          &pio_cam->rxf[sm_cam],           // Source pointer
-                          CAM_FUL_SIZE / sizeof(uint32_t), // Number of transfers
-                          false                            // Don't Start yet
+                          cam_ptr1,              // Destination pointer(back half of buffer)
+                          &pio_cam->rxf[sm_cam], // Source pointer
+                          CAM_FUL_SIZE / 2,      // Number of transfers
+                          false                  // Don't Start yet
     );
 
     // (1) 0th DMA Channel Config
@@ -170,10 +173,10 @@ void config_cam_buffer()
     // trigger DMA_CAM_RD_CH1 when DMA_CAM_RD_CH0 completes.
     channel_config_set_chain_to(&c, DMA_CAM_RD_CH1);
     dma_channel_configure(DMA_CAM_RD_CH0, &c,
-                          cam_ptr,                         // Destination pointer(front half of buffer)
-                          &pio_cam->rxf[sm_cam],           // Source pointer
-                          CAM_FUL_SIZE / sizeof(uint32_t), // Number of transfers
-                          false                            // Don't Start yet
+                          cam_ptr,               // Destination pointer(front half of buffer)
+                          &pio_cam->rxf[sm_cam], // Source pointer
+                          CAM_FUL_SIZE / 2,      // Number of transfers
+                          false                  // Don't Start yet
     );
 
     // IRQ settings
@@ -188,10 +191,13 @@ void calc_image(void)
     // 光源推定
     float L[3];
     float k;
-    zeroPadImage(cam_ptr, &pad_ptr, IMG_W / 2, IMG_H, 1, PAD_W / 2, PAD_H, true);
-    //  sfe_mem_free(cam_ptr);
-    // estimate_lightsource_and_normal(IMG_W, IMG_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
-    // printf("OK.\n");
+    uint32_t *b;
+    b = (psram_access == 0) ? cam_ptr : cam_ptr1;
+
+    extract_green_from_uint32_array(b, gray_ptr, CAM_FUL_SIZE / 2);
+    zeroPadImage(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
+    estimate_lightsource_and_normal(IMG_W, IMG_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
+    printf(".\n");
 }
 
 void start_cam()
@@ -202,8 +208,8 @@ void start_cam()
     dma_start_channel_mask(1u << DMA_CAM_RD_CH0);
 
     // camera transfer settings(for video)
-    pio_sm_put_blocking(pio_cam, sm_cam, 0);                                     // X=0 : reserved
-    pio_sm_put_blocking(pio_cam, sm_cam, (CAM_FUL_SIZE / sizeof(uint32_t) - 1)); // Y: total words in an image
+    pio_sm_put_blocking(pio_cam, sm_cam, 0);                      // X=0 : reserved
+    pio_sm_put_blocking(pio_cam, sm_cam, (CAM_FUL_SIZE / 2 - 1)); // Y: total words in an image
 }
 
 void uartout_cam()
@@ -213,7 +219,7 @@ void uartout_cam()
     sleep_ms(30);
 
     int32_t *b;
-    b = (psram_access == 0) ? cam_ptr2 : cam_ptr;
+    b = (psram_access == 0) ? cam_ptr1 : cam_ptr;
 
     for (uint32_t h = 0; h < IMG_H; h++)
     {
@@ -223,7 +229,7 @@ void uartout_cam()
         }
     }
     // increment iot sram's address
-    // iot_addr = cam_ptr2;
+    // iot_addr = cam_ptr1;
     ram_ind_read = false;
 }
 
@@ -282,7 +288,7 @@ void rj45_cam(void)
     // send header
     // frame start:
     // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + column_size_in_words(total blocks per frame)
-    uint32_t a[4] = {0xdeadbeef, IMG_H, IMG_W * 2 / sizeof(uint32_t), IMG_H};
+    uint32_t a[4] = {0xdeadbeef, IMG_H, IMG_W / 2, IMG_H};
 
     // make image header
     udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
@@ -290,7 +296,7 @@ void rj45_cam(void)
     // send image header
     eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
 
-    for (uint32_t i = 0; i < CAM_FUL_SIZE / sizeof(uint32_t); i += (IMG_W / 2))
+    for (uint32_t i = 0; i < CAM_FUL_SIZE / 2; i += (IMG_W / 2))
     {
         // printf("0x%08X\r\n",b[i]);
         uint32_t c[] = {
@@ -357,11 +363,6 @@ void cam_handler()
         return;
     num_of_call_this++;
 
-    psram_access = psram_access + 1;
-    if (psram_access > CAM_TOTAL_FRM)
-    {
-        psram_access = 0;
-    }
     // sem_acquire_blocking(&psram_sem);
     // iot_sram_write(pio_iot, b, iot_addr, CAM_BUF_HALF, DMA_IOT_WR_CH); // pio, sm, buffer, start_address, length
     // sem_release(&psram_sem);
@@ -375,6 +376,7 @@ void cam_handler()
         // Triggered by DMA_CAM_RD_CH0
         // printf("DMA channel 0 triggered the interrupt.\n");
         dma_chan = DMA_CAM_RD_CH0;
+        psram_access = 0;
         b = cam_ptr;
         gpio_put(25, 1);
     }
@@ -384,7 +386,8 @@ void cam_handler()
         // Triggered by DMA_CAM_RD_CH1
         // printf("DMA channel 1 triggered the interrupt.\n");
         dma_chan = DMA_CAM_RD_CH1;
-        b = cam_ptr2;
+        psram_access = 1;
+        b = cam_ptr1;
         gpio_put(25, 0);
     }
 
@@ -394,11 +397,11 @@ void cam_handler()
     // reset the DMA initial write address
     dma_channel_set_write_addr(dma_chan, b, false);
 
-    if (b == cam_ptr)
-    {
-        // multicore_launch_core1(calc_image);
-        calc_image();
-    }
+    // if (b == cam_ptr)
+    // {
+    //     // multicore_launch_core1(calc_image);
+    //     //  wcalc_image();
+    // }
     num_of_call_this = 0;
     return;
 }
@@ -428,4 +431,14 @@ void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_n
     // set PWM start
     pwm_init(pwm0_slice_num, &pwm0_slice_config, true);
     pwm_set_gpio_level(gpio_num, (pwm0_slice_config.top * 0.50)); // duty:50%
+}
+
+void vImageProc(void *pvParameters)
+{
+    printf("vImageProc - Running on Core: %d\n", get_core_num()); // 現在のコア番号を表示
+    while (1)
+    {
+        calc_image();
+        vTaskDelay(pdMS_TO_TICKS(1));
+    }
 }

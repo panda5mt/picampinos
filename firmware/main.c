@@ -39,9 +39,21 @@
 #include "eth.h"
 #include "arithmetic/image_process.h"
 
-// #include "pico_psram.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#include "timers.h"
+#include "semphr.h"
+#include "pico/async_context_freertos.h"
 
 #define BOARD_LED (25) // 28 // pico's led => 25, self made RP2350brd's led => 28. check hardware/RP2350Board.pdf
+
+// FreeRTOS Tasks
+TaskHandle_t rj45Handle;
+TaskHandle_t rxHandle;
+TaskHandle_t imageHandle;
+
+void vRJ45Task(void *pvParameters);
+// FreeRTOS Tasks: End
 
 static void read_i2c_data(i2c_inst_t *i2c)
 {
@@ -141,11 +153,20 @@ int main()
     printf("camera start\n");
     eth_init();
     printf("[BOOT]\r\n");
-    while (1)
-    {
-        eth_main();
-        rj45_cam();
-    }
+
+    UBaseType_t uxCoreAffinityMask;
+    xTaskCreate(vRJ45Task, "Eth Task", configMINIMAL_STACK_SIZE * 3, NULL, tskIDLE_PRIORITY + 1, &rj45Handle);
+    xTaskCreate(vLaunchRxFunc, "Rx Task", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, &rxHandle);
+    xTaskCreate(vImageProc, "Image Task", configMINIMAL_STACK_SIZE * 10, NULL, tskIDLE_PRIORITY + 2, &imageHandle);
+    uxCoreAffinityMask = ((1 << 0)); // Core0
+    vTaskCoreAffinitySet(rj45Handle, uxCoreAffinityMask);
+
+    uxCoreAffinityMask = ((1 << 1)); // Core1
+    vTaskCoreAffinitySet(rxHandle, uxCoreAffinityMask);
+    vTaskCoreAffinitySet(imageHandle, uxCoreAffinityMask);
+
+    //   FreeRTOSのスケジューラを開始
+    vTaskStartScheduler();
 
     // // data via USB-UART(ASCII)
     // // see also 'matlab/readrgb.m'
@@ -162,17 +183,6 @@ int main()
     }
     */
 
-    // you have Raspberry Pi 3/4? and you have MATLAB?
-    // you can use SPI + RPi + MATLAB
-    // and CHECK 'USE_EZSPI_SLAVE' is (true) in 'cam.h'
-    // See also 'matlab/comm_raspi_spi.m'
-    /*
-    while(true) {
-        spiout_cam();
-        printf("OK\r\n");
-    }
-    */
-
     // using SFP module
     // see also 'matlab/receive_udp.m'
     // To Use SFP, CHECK 'USE_EZSPI_SLAVE' is (false)
@@ -181,9 +191,17 @@ int main()
     while (true)
         ;
 
-    // end
-
     // free_cam();
     while (true)
         ;
+}
+
+void vRJ45Task(void *pvParameters)
+{
+    printf("RJ45Task - Running on Core: %d\n", get_core_num()); // 現在のコア番号を表示
+    while (1)
+    {
+        eth_main();
+        rj45_cam();
+    }
 }

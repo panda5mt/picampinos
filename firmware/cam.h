@@ -8,7 +8,7 @@
 #define USE_100BASE_FX (false)
 
 // #define PICO_PSRAM_CS1 (47)     // QSPI's CS of PSRAM
-#define SYS_CLK_IN_KHZ (250000) // 192000 ~ 250000 (if you use sfp, SYS_CLK_KHZ must be just 250000)
+#define SYS_CLK_IN_KHZ (280000) // 192000 ~ 250000 (if you use sfp, SYS_CLK_KHZ must be just 250000)
 #define CAM_BASE_PIN (1)        // GP1 (camera module needs 11pin)
 #define PIN_PWM0 (0)            // GP0 (camera's xclk(24MHz))
 #define LINEAR_BURST (512)      // IoT SRAM's burst length(in bytes)
@@ -25,10 +25,13 @@
 #define IMG_W (256) //(640)
 #define PAD_H (512) // in bytes
 #define PAD_W (512)
-#define CAM_FUL_SIZE (IMG_W * IMG_H * 2)             // VGA size, RGB565(16bit) format
+#define CAM_FUL_SIZE (IMG_W * IMG_H)                 // VGA size, RGB565(16bit) format
 #define CAM_TOTAL_LEN (CAM_FUL_SIZE * 2)             // total length of pictures
 #define CAM_TOTAL_FRM (CAM_TOTAL_LEN / CAM_FUL_SIZE) // numbers(or frames) of pictures
 #define CAM_PADDED_SIZE_IN_32 (PAD_W * PAD_H / 2)    // in uint32_t[] size
+
+// FreeRTOS Tasks
+void vImageProc(void *pvParameters);
 
 // high layer APIs
 void init_cam(uint8_t DEVICE_IS);
