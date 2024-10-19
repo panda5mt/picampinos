@@ -49,7 +49,11 @@
 
 #define BOARD_LED (25) // 28 // pico's led => 25, self made RP2350brd's led => 28. check hardware/RP2350Board.pdf
 void vRJ45Task(void *pvParameters);
-
+void vHogeTask(void *pvParameters);
+void vHoge2Task(void *pvParameters);
+TaskHandle_t rj45handle;
+TaskHandle_t rxhandle;
+TaskHandle_t hoge2handle;
 static void read_i2c_data(i2c_inst_t *i2c)
 {
     uint8_t read_buf[256] = {0};
@@ -148,10 +152,16 @@ int main()
     printf("camera start\n");
     eth_init();
     printf("[BOOT]\r\n");
+    UBaseType_t uxCoreAffinityMask;
+    xTaskCreate(vRJ45Task, "Eth Task", configMINIMAL_STACK_SIZE * 10, NULL, tskIDLE_PRIORITY + 1, &rj45handle);
+    xTaskCreate(vLaunchRxFunc, "Hoge Task1", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, &rxhandle);
+    // xTaskCreate(vHoge2Task, "Hoge Task2", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, &hoge2handle);
+    uxCoreAffinityMask = ((1 << 0)); // Core0
+    vTaskCoreAffinitySet(rj45handle, uxCoreAffinityMask);
 
-    xTaskCreate(vRJ45Task, "Key In Task", configMINIMAL_STACK_SIZE * 5, NULL, tskIDLE_PRIORITY + 1, NULL);
-    // xTaskCreate(vRadarTask, "Radar Task1", configMINIMAL_STACK_SIZE * 20, NULL, tskIDLE_PRIORITY + 2, NULL);
-    //  FreeRTOSのスケジューラを開始
+    uxCoreAffinityMask = ((1 << 1)); // Core1
+    vTaskCoreAffinitySet(rxhandle, uxCoreAffinityMask);
+    //   FreeRTOSのスケジューラを開始
     vTaskStartScheduler();
 
     // // data via USB-UART(ASCII)
@@ -197,9 +207,29 @@ int main()
 
 void vRJ45Task(void *pvParameters)
 {
+    printf("RJ45Task - Running on Core: %d\n", get_core_num()); // 現在のコア番号を表示
     while (1)
     {
         eth_main();
         rj45_cam();
     }
 }
+/*
+void vHogeTask(void *pvParameters)
+{
+    while (1)
+    {
+        printf("hoge - Running on Core: %d\n", get_core_num()); // 現在のコア番号を表示
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
+void vHoge2Task(void *pvParameters)
+{
+    while (1)
+    {
+        printf("hoge2 - Running on Core: %d\n", get_core_num()); // 現在のコア番号を表示
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+*/

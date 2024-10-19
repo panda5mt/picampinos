@@ -112,7 +112,7 @@ void eth_init(void)
 
     offset = pio_add_program(pio_serdes, &des_10base_t_program);
     des_10base_t_program_init(pio_serdes, sm_rx, offset, HW_PINNUM_RXP);
-    multicore_launch_core1(rx_func_core1);
+    // multicore_launch_core1(rx_func_core1);
 
     // DMA
     dma_ch_10base_t = dma_claim_unused_channel(true);
@@ -576,4 +576,10 @@ static void __time_critical_func(rx_func_core1)(void)
             link_up_old = link_up;
         }
     }
+}
+
+void vLaunchRxFunc(void *pvParameters)
+{
+    printf("RxTask - Running on Core: %d\n", get_core_num()); // 現在のコア番号を表示
+    rx_func_core1();
 }
