@@ -2,6 +2,15 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+/*
+
+compiler infomation: You should same compiler version when rebuild this code.
+# arm-none-eabi-gcc -v
+
+Using built-in specs.
+COLLECT_GCC=arm-none-eabi-gcc
+COLLECT_LTO_WRAPPER=/usr/lib/gcc/arm-none-eabi/12.2.1/lto-wrapper
+*/
 void estimate_lightsource_and_normal(int width, int height,
                                      unsigned char *img_gray, float *p, float *q,
                                      float *L, float *absL);
