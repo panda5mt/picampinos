@@ -12,6 +12,14 @@
 #include "ser_10base_t.pio.h"
 #include "des_10base_t.pio.h"
 
+#include "FreeRTOS.h"
+#include "task.h"
+#include "timers.h"
+#include "semphr.h"
+#include "pico/async_context_freertos.h"
+
+QueueHandle_t xQueue;
+
 // Define
 #define HW_PINNUM_RXP (17)   // Ethernet RX+
 #define HW_PINNUM_RXN (16)   // Ethernet RX-
@@ -59,7 +67,7 @@ static void _send_nlp(void);
 static void _send_flp(uint16_t data);
 static bool _send_udp(void);
 static void _busy_led_update(bool led_on);
-static void _rx_packets_proc(void);
+static void _rx_packets_proc(uint32_t);
 
 // DMA
 static uint32_t dma_ch_10base_t;
@@ -134,9 +142,11 @@ uint32_t eth_main(void)
     _busy_led_update(false); // Busy LED (RJ45)
 
     // RX Buffer check
-    if (multicore_fifo_rvalid())
+    // if (multicore_fifo_rvalid())
+    uint32_t pop_data;
+    if (xQueueReceive(xQueue, &pop_data, 0) == pdPASS)
     {
-        _rx_packets_proc();
+        _rx_packets_proc(pop_data);
         _busy_led_update(true);
         ret = 1;
     }
@@ -147,13 +157,13 @@ uint32_t eth_main(void)
 
     return ret;
 }
-
 // Analysis and processing of incoming packets
-void _rx_packets_proc(void)
+void _rx_packets_proc(uint32_t pop_data)
 {
-    uint32_t pop_data = multicore_fifo_pop_blocking(); // index num
-    uint32_t slot = pop_data & 0x7;                    // 0 ~ 7
-    uint32_t size = pop_data >> 3;                     // x 32bit
+
+    // uint32_t pop_data = multicore_fifo_pop_blocking(); // index num
+    uint32_t slot = pop_data & 0x7; // 0 ~ 7
+    uint32_t size = pop_data >> 3;  // x 32bit
 
 #if UART_EBG_EN
     printf("slot:%d, size:%d\r\n", slot, size);
@@ -346,6 +356,7 @@ void _send_flp(uint16_t data)
 // Receiving
 static void __time_critical_func(rx_func_core1)(void)
 {
+    xQueue = xQueueCreate(1, sizeof(uint32_t));
     uint32_t rx_buf;
     uint32_t rx_buf_old;
     bool sfd_det = false;
@@ -555,7 +566,9 @@ static void __time_critical_func(rx_func_core1)(void)
             uint32_t tmp = (rx_buf << (32 - shift_num)) + (rx_buf_old >> shift_num);
             gsram[slot][index] = (tmp << 24) | ((tmp & 0x0000FF00) << 8) | ((tmp & 0x00FF0000) >> 8) | (tmp >> 24);
 
-            multicore_fifo_push_blocking((index << 3) + slot); // Notify for Core0
+            // multicore_fifo_push_blocking((index << 3) + slot); // Notify for Core0
+            uint32_t dataToSend = (index << 3) + slot;
+            xQueueSend(xQueue, &dataToSend, portMAX_DELAY);
             slot = (slot + 1) & 0x7;
         }
 
@@ -580,6 +593,6 @@ static void __time_critical_func(rx_func_core1)(void)
 
 void vLaunchRxFunc(void *pvParameters)
 {
-    printf("RxTask - Running on Core: %d\n", get_core_num()); // 現在のコア番号を表示
+    printf("vLaunchRxFunc - Running on Core: %d\n", get_core_num()); // 現在のコア番号を表示
     rx_func_core1();
 }

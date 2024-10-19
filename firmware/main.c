@@ -49,8 +49,6 @@
 
 #define BOARD_LED (25) // 28 // pico's led => 25, self made RP2350brd's led => 28. check hardware/RP2350Board.pdf
 void vRJ45Task(void *pvParameters);
-void vHogeTask(void *pvParameters);
-void vHoge2Task(void *pvParameters);
 TaskHandle_t rj45handle;
 TaskHandle_t rxhandle;
 TaskHandle_t hoge2handle;
