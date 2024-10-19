@@ -155,8 +155,8 @@ int main()
 
     UBaseType_t uxCoreAffinityMask;
     xTaskCreate(vRJ45Task, "Eth Task", configMINIMAL_STACK_SIZE * 10, NULL, tskIDLE_PRIORITY + 1, &rj45handle);
-    xTaskCreate(vLaunchRxFunc, "Rx Task1", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, &rxhandle);
-    // xTaskCreate(vHoge2Task, "Hoge Task2", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, &hoge2handle);
+    xTaskCreate(vLaunchRxFunc, "Rx Task", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, &rxhandle);
+
     uxCoreAffinityMask = ((1 << 0)); // Core0
     vTaskCoreAffinitySet(rj45handle, uxCoreAffinityMask);
 
@@ -198,8 +198,6 @@ int main()
     // multicore_launch_core1(sfp_cam);
     while (true)
         ;
-
-    // end
 
     // free_cam();
     while (true)
