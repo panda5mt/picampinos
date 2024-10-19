@@ -45,8 +45,6 @@
 #include "semphr.h"
 #include "pico/async_context_freertos.h"
 
-// #include "pico_psram.h"
-
 #define BOARD_LED (25) // 28 // pico's led => 25, self made RP2350brd's led => 28. check hardware/RP2350Board.pdf
 void vRJ45Task(void *pvParameters);
 TaskHandle_t rj45handle;
