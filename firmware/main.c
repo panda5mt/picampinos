@@ -152,9 +152,10 @@ int main()
     printf("camera start\n");
     eth_init();
     printf("[BOOT]\r\n");
+
     UBaseType_t uxCoreAffinityMask;
     xTaskCreate(vRJ45Task, "Eth Task", configMINIMAL_STACK_SIZE * 10, NULL, tskIDLE_PRIORITY + 1, &rj45handle);
-    xTaskCreate(vLaunchRxFunc, "Hoge Task1", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, &rxhandle);
+    xTaskCreate(vLaunchRxFunc, "Rx Task1", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, &rxhandle);
     // xTaskCreate(vHoge2Task, "Hoge Task2", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, &hoge2handle);
     uxCoreAffinityMask = ((1 << 0)); // Core0
     vTaskCoreAffinitySet(rj45handle, uxCoreAffinityMask);
@@ -214,22 +215,3 @@ void vRJ45Task(void *pvParameters)
         rj45_cam();
     }
 }
-/*
-void vHogeTask(void *pvParameters)
-{
-    while (1)
-    {
-        printf("hoge - Running on Core: %d\n", get_core_num()); // 現在のコア番号を表示
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-}
-
-void vHoge2Task(void *pvParameters)
-{
-    while (1)
-    {
-        printf("hoge2 - Running on Core: %d\n", get_core_num()); // 現在のコア番号を表示
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-}
-*/
