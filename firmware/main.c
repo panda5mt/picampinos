@@ -46,10 +46,10 @@
 #include "pico/async_context_freertos.h"
 
 #define BOARD_LED (25) // 28 // pico's led => 25, self made RP2350brd's led => 28. check hardware/RP2350Board.pdf
-void vRJ45Task(void *pvParameters);
+
 TaskHandle_t rj45handle;
-TaskHandle_t rxhandle;
-TaskHandle_t hoge2handle;
+void vRJ45Task(void *pvParameters);
+
 static void read_i2c_data(i2c_inst_t *i2c)
 {
     uint8_t read_buf[256] = {0};
@@ -173,17 +173,6 @@ int main()
     /*
     while(true) {
         uartout_bin_cam();
-    }
-    */
-
-    // you have Raspberry Pi 3/4? and you have MATLAB?
-    // you can use SPI + RPi + MATLAB
-    // and CHECK 'USE_EZSPI_SLAVE' is (true) in 'cam.h'
-    // See also 'matlab/comm_raspi_spi.m'
-    /*
-    while(true) {
-        spiout_cam();
-        printf("OK\r\n");
     }
     */
 
