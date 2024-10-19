@@ -12,12 +12,6 @@
 #include "ser_10base_t.pio.h"
 #include "des_10base_t.pio.h"
 
-#include "FreeRTOS.h"
-#include "task.h"
-#include "timers.h"
-#include "semphr.h"
-#include "pico/async_context_freertos.h"
-
 QueueHandle_t xQueue;
 
 // Define
