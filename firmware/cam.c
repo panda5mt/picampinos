@@ -55,7 +55,7 @@ static uint32_t DMA_CAM_RD_CH1;
 
 // private functions and buffers
 static uint32_t *cam_ptr;         // pointer of camera buffer
-static uint32_t *cam_ptr2;        // 2nd pointer of cam_ptr.
+static uint32_t *cam_ptr1;        // 2nd pointer of cam_ptr.
 static uint8_t *gray_ptr;         // pointer of gray image.
 static uint8_t *pad_ptr;          // 1st pointer of padded image.
 static uint8_t *pad_ptr2;         // 2nd pointer of padded image.
@@ -127,20 +127,20 @@ void init_cam(uint8_t DEVICE_IS)
 
     // image1 and 2
     cam_ptr = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE * sizeof(uint32_t) / 2);
-    cam_ptr2 = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE * sizeof(uint32_t) / 2);
-    gray_ptr = (uint8_t *)sfe_mem_malloc(CAM_FUL_SIZE * sizeof(uint8_t));
+    cam_ptr1 = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE * sizeof(uint32_t) / 2);
+    gray_ptr = (uint8_t *)sfe_mem_malloc(CAM_FUL_SIZE * 1 * sizeof(uint8_t));
     // 262144
     //  padded image 1 and 2
     //  normal map1 and depth map1
     pad_ptr = (uint8_t *)sfe_mem_malloc((PAD_H * PAD_W) * sizeof(uint8_t));
     p1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W) * sizeof(float_t));
     q1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W) * sizeof(float_t));
-
+    printf("pad addr=%x\n", pad_ptr);
     // ip1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
     // iq1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
     // d1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
     // id1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
-    if (!cam_ptr || !gray_ptr || !cam_ptr2 || !pad_ptr || !p1_ptr || !q1_ptr)
+    if (!cam_ptr || !gray_ptr || !cam_ptr1 || !pad_ptr || !p1_ptr || !q1_ptr)
     {
         printf("Big block built in allocation failed\n");
         // return 1;
@@ -162,7 +162,7 @@ void config_cam_buffer()
     // trigger DMA_CAM_RD_CH0 when DMA_CAM_RD_CH1 completes. (ping-pong)
     channel_config_set_chain_to(&c, DMA_CAM_RD_CH0);
     dma_channel_configure(DMA_CAM_RD_CH1, &c,
-                          cam_ptr2,              // Destination pointer(back half of buffer)
+                          cam_ptr1,              // Destination pointer(back half of buffer)
                           &pio_cam->rxf[sm_cam], // Source pointer
                           CAM_FUL_SIZE / 2,      // Number of transfers
                           false                  // Don't Start yet
@@ -191,11 +191,13 @@ void calc_image(void)
     // 光源推定
     float L[3];
     float k;
-    extract_green_from_uint32_array(cam_ptr, gray_ptr, CAM_FUL_SIZE / 2);
-    zeroPadImage(gray_ptr, &pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
-    //    sfe_mem_free(cam_ptr);
+    uint32_t *b;
+    b = (psram_access == 0) ? cam_ptr : cam_ptr1;
+
+    extract_green_from_uint32_array(b, gray_ptr, CAM_FUL_SIZE / 2);
+    zeroPadImage(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
     estimate_lightsource_and_normal(IMG_W, IMG_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
-    //   printf("OK.\n");
+    printf(".\n");
 }
 
 void start_cam()
@@ -217,7 +219,7 @@ void uartout_cam()
     sleep_ms(30);
 
     int32_t *b;
-    b = (psram_access == 0) ? cam_ptr2 : cam_ptr;
+    b = (psram_access == 0) ? cam_ptr1 : cam_ptr;
 
     for (uint32_t h = 0; h < IMG_H; h++)
     {
@@ -227,7 +229,7 @@ void uartout_cam()
         }
     }
     // increment iot sram's address
-    // iot_addr = cam_ptr2;
+    // iot_addr = cam_ptr1;
     ram_ind_read = false;
 }
 
@@ -361,11 +363,6 @@ void cam_handler()
         return;
     num_of_call_this++;
 
-    psram_access = psram_access + 1;
-    if (psram_access > CAM_TOTAL_FRM)
-    {
-        psram_access = 0;
-    }
     // sem_acquire_blocking(&psram_sem);
     // iot_sram_write(pio_iot, b, iot_addr, CAM_BUF_HALF, DMA_IOT_WR_CH); // pio, sm, buffer, start_address, length
     // sem_release(&psram_sem);
@@ -379,6 +376,7 @@ void cam_handler()
         // Triggered by DMA_CAM_RD_CH0
         // printf("DMA channel 0 triggered the interrupt.\n");
         dma_chan = DMA_CAM_RD_CH0;
+        psram_access = 0;
         b = cam_ptr;
         gpio_put(25, 1);
     }
@@ -388,7 +386,8 @@ void cam_handler()
         // Triggered by DMA_CAM_RD_CH1
         // printf("DMA channel 1 triggered the interrupt.\n");
         dma_chan = DMA_CAM_RD_CH1;
-        b = cam_ptr2;
+        psram_access = 1;
+        b = cam_ptr1;
         gpio_put(25, 0);
     }
 
@@ -440,6 +439,6 @@ void vImageProc(void *pvParameters)
     while (1)
     {
         calc_image();
-        vTaskDelay(pdMS_TO_TICKS(100));
+        vTaskDelay(pdMS_TO_TICKS(1));
     }
 }

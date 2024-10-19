@@ -13,7 +13,7 @@ int32_t fcmethod(int width, int height,
 
 // Function to perform zero-padding on an image
 void zeroPadImage(const unsigned char *input,
-                  unsigned char **output,
+                  unsigned char *output,
                   int originalWidth, int originalHeight, int channels,
                   int paddedWidth, int paddedHeight);
 
