@@ -116,13 +116,9 @@ void init_cam(uint8_t DEVICE_IS)
     // |----------|-----------|
     // | - pad1 - | - pad2 -- | padded image 1 and 2
     // |----------|-----------|
-    // | -- p1 -- | -- ip1 -- | real and imag of x-normal1
-    // | -- q1 -- | -- iq1 -- | real and imag of y-normal1
-    // | -- z1 -- | -- iz1 -- | real and imag of depth estimation1
-    // |----------|-----------|
-    // | -- p2 -- | -- ip2 -- |
-    // | -- q2 -- | -- iq2 -- |
-    // | -- z2 -- | -- iz2 -- |
+    // | -------- p1  ------- | real and imag of x-normal1
+    // | -------- q1  ------- | real and imag of y-normal1
+    // | -------- z1  ------- | real and imag of depth estimation1(reserved)
     // |----------|-----------|
 
     // image1 and 2
@@ -133,9 +129,9 @@ void init_cam(uint8_t DEVICE_IS)
     //  padded image 1 and 2
     //  normal map1 and depth map1
     pad_ptr = (uint8_t *)sfe_mem_malloc((PAD_H * PAD_W) * sizeof(uint8_t));
-    p1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W) * sizeof(float_t));
-    q1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W) * sizeof(float_t));
-    printf("pad addr=%x\n", pad_ptr);
+    p1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W * 2) * sizeof(float_t));
+    q1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W * 2) * sizeof(float_t));
+    printf("pad addr=%x\n", cam_ptr);
     // ip1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
     // iq1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
     // d1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
