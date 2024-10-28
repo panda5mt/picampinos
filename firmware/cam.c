@@ -190,6 +190,7 @@ void calc_image(void)
     zeroPadImage(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
     estimate_lightsource_and_normal(IMG_W, IMG_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
     fcmethod(IMG_W, IMG_H, p1_ptr, q1_ptr, d1_ptr);
+    /*
     printf("depth = [");
     for (int i = 0; i < PAD_H; i++)
     {
@@ -204,6 +205,7 @@ void calc_image(void)
             printf("\n");
     }
     printf("];\n");
+    */
 }
 
 void start_cam()
@@ -286,58 +288,16 @@ void rj45_cam(void)
 
     uint8_t udp_payload1[DEF_UDP_PAYLOAD_SIZE] = {0};
     uint32_t tx_buf_udp1[DEF_UDP_BUF_SIZE + 1] = {0};
-    float_t *b;
+
+    uint32_t *b;
     uint32_t resp;
-
-    /*
-        uint32_t *b;
-        uint32_t resp;
-        // RGB565のデータの場合
-        b = cam_ptr;
-
-        // send header
-        // frame start:
-        // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + column_size_in_words(total blocks per frame)
-        uint32_t a[4] = {0xdeadbeef, IMG_H, IMG_W / 2, IMG_H};
-
-        // make image header
-        udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
-
-        // send image header
-        eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
-
-        for (uint32_t i = 0; i < CAM_FUL_SIZE / 2; i += (IMG_W / 2))
-        {
-            // printf("0x%08X\r\n",b[i]);
-            uint32_t c[] = {
-                0xbeefbeef,
-                (i / (IMG_W / 2)) + 1,
-                1,
-                (IMG_W / 2)};
-
-            memcpy(udp_payload1, c, 4 * sizeof(uint32_t));
-
-            memcpy(udp_payload1 + 4 * sizeof(uint32_t), b, sizeof(int32_t) * (IMG_W / 2));
-            b += (IMG_W / 2);
-            udp_packet_gen_10base(tx_buf_udp1, udp_payload1);
-            eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
-        }
-
-        a[0] = 0xdeaddead;
-        // make image header
-        udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
-
-    // send image header
-    // eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
-    */
-
-    // Float型の場合
-    // b = d1_ptr;
+    // RGB565のデータの場合
+    b = cam_ptr;
 
     // send header
     // frame start:
     // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + column_size_in_words(total blocks per frame)
-    uint32_t a[4] = {0xdeadbeef, IMG_H, IMG_W, IMG_H};
+    uint32_t a[4] = {0xdeadbeef, IMG_H, IMG_W / 2, IMG_H};
 
     // make image header
     udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
@@ -345,21 +305,19 @@ void rj45_cam(void)
     // send image header
     eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
 
-    int jj = 0;
-    for (uint32_t i = 0; i < IMG_H; i++)
+    for (uint32_t i = 0; i < CAM_FUL_SIZE / 2; i += (IMG_W / 2))
     {
-        b = d1_ptr[i];
-        if (i == 0)
-            printf("d1ptr=0x%x\n", b);
+        // printf("0x%08X\r\n",b[i]);
         uint32_t c[] = {
             0xbeefbeef,
-            i + 1,
+            (i / (IMG_W / 2)) + 1,
             1,
-            (IMG_W)};
+            (IMG_W / 2)};
 
         memcpy(udp_payload1, c, 4 * sizeof(uint32_t));
 
-        memcpy(udp_payload1 + 4 * sizeof(uint32_t), b, sizeof(float_t) * (IMG_W));
+        memcpy(udp_payload1 + 4 * sizeof(uint32_t), b, sizeof(int32_t) * (IMG_W / 2));
+        b += (IMG_W / 2);
         udp_packet_gen_10base(tx_buf_udp1, udp_payload1);
         eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
     }
@@ -370,6 +328,48 @@ void rj45_cam(void)
 
     // send image header
     eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
+
+    /*
+        // Float型の場合
+         float_t *b;
+
+        // send header
+        // frame start:
+        // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + column_size_in_words(total blocks per frame)
+        uint32_t a[4] = {0xdeadbeef, IMG_H, IMG_W, IMG_H};
+
+        // make image header
+        udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
+
+        // send image header
+        eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
+
+        int jj = 0;
+        for (uint32_t i = 0; i < IMG_H; i++)
+        {
+            b = d1_ptr[i];
+            if (i == 0)
+                printf("d1ptr=0x%x\n", b);
+            uint32_t c[] = {
+                0xbeefbeef,
+                i + 1,
+                1,
+                (IMG_W)};
+
+            memcpy(udp_payload1, c, 4 * sizeof(uint32_t));
+
+            memcpy(udp_payload1 + 4 * sizeof(uint32_t), b, sizeof(uint8_t) * (IMG_W));
+            udp_packet_gen_10base(tx_buf_udp1, udp_payload1);
+            eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
+        }
+
+        a[0] = 0xdeaddead;
+        // make image header
+        udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
+
+        // send image header
+        eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
+    */
 }
 
 void free_cam()
