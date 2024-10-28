@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
+#include "fft4f2d.h"
 /*
 
 compiler infomation: You should same compiler version when rebuild this code.
@@ -12,7 +12,7 @@ COLLECT_GCC=arm-none-eabi-gcc
 COLLECT_LTO_WRAPPER=/usr/lib/gcc/arm-none-eabi/12.2.1/lto-wrapper
 */
 void estimate_lightsource_and_normal(int width, int height,
-                                     unsigned char *img_gray, float *p, float *q,
+                                     unsigned char *img_gray, float **p, float **q,
                                      float *L, float *absL);
 
 // Use estimate_normal() if you already have the light source position(L*).
@@ -26,13 +26,11 @@ void estimate_lightsource_and_normal(int width, int height,
 // output:
 // p: normal map(X)
 // q: normal map(Y)
-void estimate_normal(int width, int height, unsigned char *img_gray, float *p, float *q, float *L);
+void estimate_normal(int width, int height, unsigned char *img_gray, float **p, float **q, float *L);
 
 // Frankot-Chellappa algorithm(We need just *Z_real)
 int32_t fcmethod(int width, int height,
-                 float *p, float *ip,
-                 float *q, float *iq,
-                 float *Z_real, float *Z_imag);
+                 float **p, float **q);
 
 // Function to perform zero-padding on an image
 void zeroPadImage(const unsigned char *input,

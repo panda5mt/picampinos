@@ -84,7 +84,9 @@ target_sources(${target_name} PRIVATE
         sccb_if.c
         #pico_psram.c
 
-        arithmetic/pico_fft.c
+        arithmetic/fft4f2d.c
+        
+        #arithmetic/pico_fft.c
         #arithmetic/test_code.c
         )
 

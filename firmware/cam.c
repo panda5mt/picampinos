@@ -54,14 +54,13 @@ static uint32_t DMA_CAM_RD_CH0;
 static uint32_t DMA_CAM_RD_CH1;
 
 // private functions and buffers
-static uint32_t *cam_ptr;         // pointer of camera buffer
-static uint32_t *cam_ptr1;        // 2nd pointer of cam_ptr.
-static uint8_t *gray_ptr;         // pointer of gray image.
-static uint8_t *pad_ptr;          // 1st pointer of padded image.
-static uint8_t *pad_ptr2;         // 2nd pointer of padded image.
-static float_t *p1_ptr, *ip1_ptr; // gradient map
-static float_t *q1_ptr, *iq1_ptr; // gradient map
-static float_t *d1_ptr, *id1_ptr; // depth map.
+static uint32_t *cam_ptr;  // pointer of camera buffer
+static uint32_t *cam_ptr1; // 2nd pointer of cam_ptr.
+static uint8_t *gray_ptr;  // pointer of gray image.
+static uint8_t *pad_ptr;   // 1st pointer of padded image.
+static float_t **p1_ptr;   // gradient map
+static float_t **q1_ptr;   // gradient map
+static float_t **d1_ptr;   // depth map.
 
 static mutex_t image_process_mutex;
 
@@ -129,14 +128,14 @@ void init_cam(uint8_t DEVICE_IS)
     //  padded image 1 and 2
     //  normal map1 and depth map1
     pad_ptr = (uint8_t *)sfe_mem_malloc((PAD_H * PAD_W) * sizeof(uint8_t));
-    p1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W * 2) * sizeof(float_t));
-    q1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W * 2) * sizeof(float_t));
-    printf("pad addr=%x\n", cam_ptr);
+    p1_ptr = alloc_2d_float(PAD_H, PAD_W * 2);
+    q1_ptr = alloc_2d_float(PAD_H, PAD_W * 2);
+    d1_ptr = alloc_2d_float(PAD_H, PAD_W * 2);
     // ip1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
     // iq1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
     // d1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
     // id1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
-    if (!cam_ptr || !gray_ptr || !cam_ptr1 || !pad_ptr || !p1_ptr || !q1_ptr)
+    if (!cam_ptr || !gray_ptr || !cam_ptr1 || !pad_ptr || !p1_ptr || !q1_ptr || !d1_ptr)
     {
         printf("Big block built in allocation failed\n");
         // return 1;
@@ -193,6 +192,7 @@ void calc_image(void)
     extract_green_from_uint32_array(b, gray_ptr, CAM_FUL_SIZE / 2);
     zeroPadImage(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
     estimate_lightsource_and_normal(IMG_W, IMG_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
+    fcmethod(IMG_W, IMG_H, p1_ptr, q1_ptr);
     printf(".\n");
 }
 
