@@ -15,13 +15,13 @@ void estimate_lightsource_and_normal(int width, int height,
                                      unsigned char *img_gray, float *p, float *q,
                                      float *L, float *absL);
 
-// Use estimate_normal() if you already have the light source location(L*).
+// Use estimate_normal() if you already have the light source position(L*).
 // this is faster than estimate_lightsource_and_normal().
 //
 // input:
 // width, height
 // img_gray(uint8_t 1-D array)
-// L[3] : lightsource (x,y,z)
+// L[3] : lightsource (L[3] = {Lx,Ly,Lz};)
 //
 // output:
 // p: normal map(X)
