@@ -190,22 +190,21 @@ void calc_image(void)
     zeroPadImage(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
     estimate_lightsource_and_normal(IMG_W, IMG_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
     fcmethod(IMG_W, IMG_H, p1_ptr, q1_ptr, d1_ptr);
-    /*
+
     printf("depth = [");
-    for (int i = 0; i < PAD_H; i++)
+    for (int i = 0; i < IMG_H; i++)
     {
-        for (int j = 0; j < PAD_W; j++)
+        for (int j = 0; j < IMG_W; j++)
         {
-            if (i < IMG_H && j < IMG_W)
+            // if (i < IMG_H && j < IMG_W)
             {
-                printf("%.4f,", p1_ptr[i][2 * j]); // 実数部のみ抽出
+                int index = i * IMG_W + j;
+                printf("%d,", gray_ptr[index]); // 実数部のみ抽出
             }
         }
-        if (i <= IMG_H)
-            printf("\n");
+        printf("\n");
     }
     printf("];\n");
-    */
 }
 
 void start_cam()
