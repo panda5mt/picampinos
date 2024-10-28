@@ -8,7 +8,7 @@
 #define USE_100BASE_FX (false)
 
 // #define PICO_PSRAM_CS1 (47)     // QSPI's CS of PSRAM
-#define SYS_CLK_IN_KHZ (280000) // 192000 ~ 250000 (if you use sfp, SYS_CLK_KHZ must be just 250000)
+#define SYS_CLK_IN_KHZ (250000) // 192000 ~ 250000 (if you use sfp, SYS_CLK_KHZ must be just 250000)
 #define CAM_BASE_PIN (1)        // GP1 (camera module needs 11pin)
 #define PIN_PWM0 (0)            // GP0 (camera's xclk(24MHz))
 #define LINEAR_BURST (512)      // IoT SRAM's burst length(in bytes)
