@@ -131,10 +131,7 @@ void init_cam(uint8_t DEVICE_IS)
     p1_ptr = alloc_2d_float(PAD_H, PAD_W * 2);
     q1_ptr = alloc_2d_float(PAD_H, PAD_W * 2);
     d1_ptr = alloc_2d_float(PAD_H, PAD_W * 2);
-    // ip1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
-    // iq1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
-    // d1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
-    // id1_ptr = (float_t *)sfe_mem_malloc((PAD_H * PAD_W));
+
     if (!cam_ptr || !gray_ptr || !cam_ptr1 || !pad_ptr || !p1_ptr || !q1_ptr || !d1_ptr)
     {
         printf("Big block built in allocation failed\n");
