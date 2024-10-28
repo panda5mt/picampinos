@@ -21,13 +21,14 @@ void estimate_lightsource_and_normal(int width, int height,
 // input:
 // width, height
 // img_gray(uint8_t 1-D array)
-// L[3] : lightsource (L[3] = {Lx,Ly,Lz};)
+// *L: lightsource (L[3] = {Lx,Ly,Lz};)
 //
 // output:
 // p: normal map(X)
 // q: normal map(Y)
 void estimate_normal(int width, int height, unsigned char *img_gray, float *p, float *q, float *L);
 
+// Frankot-Chellappa algorithm(We need just *Z_real)
 int32_t fcmethod(int width, int height,
                  float *p, float *ip,
                  float *q, float *iq,
