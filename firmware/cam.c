@@ -189,7 +189,7 @@ void calc_image(void)
     extract_green_from_uint32_array(b, gray_ptr, CAM_FUL_SIZE / 2);
     zeroPadImage(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
     estimate_lightsource_and_normal(IMG_W, IMG_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
-    fcmethod(IMG_W, IMG_H, p1_ptr, q1_ptr);
+    fcmethod(IMG_W, IMG_H, p1_ptr, q1_ptr, d1_ptr);
     printf(".\n");
 }
 
@@ -390,11 +390,6 @@ void cam_handler()
     // reset the DMA initial write address
     dma_channel_set_write_addr(dma_chan, b, false);
 
-    // if (b == cam_ptr)
-    // {
-    //     // multicore_launch_core1(calc_image);
-    //     //  wcalc_image();
-    // }
     num_of_call_this = 0;
     return;
 }

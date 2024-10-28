@@ -30,7 +30,8 @@ void estimate_normal(int width, int height, unsigned char *img_gray, float **p, 
 
 // Frankot-Chellappa algorithm(We need just *Z_real)
 int32_t fcmethod(int width, int height,
-                 float **p, float **q);
+                 float **p, float **q,
+                 float **depth);
 
 // Function to perform zero-padding on an image
 void zeroPadImage(const unsigned char *input,
