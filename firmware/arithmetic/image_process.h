@@ -15,6 +15,19 @@ void estimate_lightsource_and_normal(int width, int height,
                                      unsigned char *img_gray, float *p, float *q,
                                      float *L, float *absL);
 
+// Use estimate_normal() if you already have the light source location(L*).
+// this is faster than estimate_lightsource_and_normal().
+//
+// input:
+// width, height
+// img_gray(uint8_t 1-D array)
+// L[3] : lightsource (x,y,z)
+//
+// output:
+// p: normal map(X)
+// q: normal map(Y)
+void estimate_normal(int width, int height, unsigned char *img_gray, float *p, float *q, float *L);
+
 int32_t fcmethod(int width, int height,
                  float *p, float *ip,
                  float *q, float *iq,
