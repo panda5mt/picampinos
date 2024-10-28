@@ -276,6 +276,9 @@ void rj45_cam(void)
 
     uint32_t *b;
     uint32_t resp;
+#define SEND_RGB565 (0)
+#ifdef SEND_RGB565
+    // RGB565のデータの場合
     b = cam_ptr;
 
     // send header
@@ -321,7 +324,55 @@ void rj45_cam(void)
 
     // send image header
     eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
-    // sfp_send(&a, sizeof(uint32_t) * 1);
+#else
+    // Float型の場合
+    b = d1_ptr;
+
+    // send header
+    // frame start:
+    // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + column_size_in_words(total blocks per frame)
+    uint32_t a[4] = {0xdeadbeef, IMG_H, IMG_W, IMG_H};
+
+    // make image header
+    udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
+
+    // send image header
+    eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
+
+    for (uint32_t i = 0; i < CAM_FUL_SIZE; i += IMG_W)
+    {
+        // printf("0x%08X\r\n",b[i]);
+        uint32_t c[] = {
+            0xbeefbeef,
+            (i / (IMG_W)) + 1,
+            1,
+            (IMG_W)};
+
+        memcpy(udp_payload1, c, 4 * sizeof(uint32_t));
+
+        memcpy(udp_payload1 + 4 * sizeof(float_t), b, sizeof(float_t) * (IMG_W));
+        b += (IMG_W);
+        udp_packet_gen_10base(tx_buf_udp1, udp_payload1);
+        eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
+    }
+
+    // // increment iot sram's address
+    // iot_addr = iot_addr + CAM_FUL_SIZE;
+
+    // if (iot_addr > CAM_TOTAL_LEN - 1)
+    // {
+    //     iot_addr = 0;
+    // }
+    // // send dummy data
+
+    a[0] = 0xdeaddead;
+    // make image header
+    udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
+
+    // send image header
+    eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
+
+#endif
 }
 
 void free_cam()
