@@ -181,6 +181,20 @@ void config_cam_buffer()
 void calc_image(void)
 {
     // 光源推定
+
+    for (int i = 0; i < PAD_H; i++)
+    {
+        for (int j = 0; j < PAD_W; j++)
+        {
+            int index = i * PAD_W + j;
+            d1_ptr[i][2 * j] = 0;
+            d1_ptr[i][2 * j + 1] = 0;
+            p1_ptr[i][2 * j] = 0;
+            p1_ptr[i][2 * j + 1] = 0;
+            q1_ptr[i][2 * j] = 0;
+            q1_ptr[i][2 * j + 1] = 0;
+        }
+    }
     float L[3];
     float k;
     uint32_t *b;
@@ -192,15 +206,12 @@ void calc_image(void)
     fcmethod(IMG_W, IMG_H, p1_ptr, q1_ptr, d1_ptr);
 
     printf("depth = [");
-    for (int i = 0; i < IMG_H; i++)
+    for (int i = 0; i < PAD_H; i++)
     {
-        for (int j = 0; j < IMG_W; j++)
+        for (int j = 0; j < PAD_W; j++)
         {
-            // if (i < IMG_H && j < IMG_W)
-            {
-                int index = i * IMG_W + j;
-                printf("%d,", gray_ptr[index]); // 実数部のみ抽出
-            }
+            int index = i * PAD_W + j;
+            printf("%.2f,", d1_ptr[i][2 * j]); // 実数部のみ抽出
         }
         printf("\n");
     }

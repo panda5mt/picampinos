@@ -4,6 +4,7 @@
 
 #include <math.h>
 #include <float.h>
+#include "fft4f2d.h"
 
 #define alloc_error_check(p)                          \
     {                                                 \
@@ -30,9 +31,9 @@ float **alloc_2d_float(int n1, int n2)
     float **dd, *d;
     int j;
 
-    dd = (float **)malloc(sizeof(float *) * n1);
+    dd = (float **)sfe_mem_malloc(sizeof(float *) * n1);
     alloc_error_check(dd);
-    d = (float *)malloc(sizeof(float) * n1 * n2);
+    d = (float *)sfe_mem_malloc(sizeof(float) * n1 * n2);
     alloc_error_check(d);
     dd[0] = d;
     for (j = 1; j < n1; j++)
@@ -44,8 +45,9 @@ float **alloc_2d_float(int n1, int n2)
 
 void free_2d_float(float **dd)
 {
-    free(dd[0]);
-    free(dd);
+
+    sfe_mem_free(dd[0]);
+    sfe_mem_free(dd);
 }
 
 void cdft2d(int n1, int n2, int isgn, float **a, int *ip, float *w)
