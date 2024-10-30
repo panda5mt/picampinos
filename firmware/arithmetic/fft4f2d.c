@@ -26,6 +26,34 @@ void cftfrow(int n, int n2, float **a, float *w);
 void rftbcol(int n1, int n, float **a, int nc, float *c);
 void rftfcol(int n1, int n, float **a, int nc, float *c);
 
+int *alloc_1d_int(int n1)
+{
+    int *i;
+
+    i = (int *)sfe_mem_malloc(sizeof(int) * n1);
+    alloc_error_check(i);
+    return i;
+}
+
+void free_1d_int(int *i)
+{
+    sfe_mem_free(i);
+}
+
+float *alloc_1d_float(int n1)
+{
+    float *d;
+
+    d = (float *)sfe_mem_malloc(sizeof(float) * n1);
+    alloc_error_check(d);
+    return d;
+}
+
+void free_1d_float(float *d)
+{
+    free(d);
+}
+
 float **alloc_2d_float(int n1, int n2)
 {
     float **dd, *d;

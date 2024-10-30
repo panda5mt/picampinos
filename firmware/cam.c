@@ -29,11 +29,8 @@
 #include "sfp_hw.h"
 #endif
 
-static SemaphoreHandle_t xMutex;
-
 volatile bool ram_ind_read = false; // indicate Read
 volatile bool ram_in_write = false; // now writing image
-
 volatile bool irq_indicate_reset = true;
 
 volatile int32_t psram_access = 0; // write buffer:+=1, read buffer:-=1
@@ -61,8 +58,8 @@ static float_t **p1_ptr;   // gradient map
 static float_t **q1_ptr;   // gradient map
 static float_t **d1_ptr;   // depth map.
 
-// static mutex_t image_process_mutex;
-
+// static SemaphoreHandle_t xImageGenBinSemaphore;
+static bool genDepth = false;
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
 void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_num);
 void cam_handler();
@@ -120,6 +117,7 @@ void init_cam(uint8_t DEVICE_IS)
     // | -------- z1  ------- | real and imag of depth estimation1(reserved)
     // |----------|-----------|
 
+    init_image_process(PAD_H, PAD_W);
     // image1 and 2
     cam_ptr = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE * sizeof(uint32_t) / 2);
     cam_ptr1 = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE * sizeof(uint32_t) / 2);
@@ -204,13 +202,17 @@ void calc_image(void)
     zeroPadImage(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
     estimate_lightsource_and_normal(IMG_W, IMG_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
     // セマフォの取得,できなければ直ちに通過
-    // if (xSemaphoreTake(xImgSemp, 0) == pdTRUE)
-    {
-        fcmethod(IMG_W, IMG_H, p1_ptr, q1_ptr, d1_ptr);
-        // セマフォの解放
-        // xSemaphoreGive(xImgSemp);
-    }
 
+    // if (xSemaphoreTake(xImageGenBinSemaphore, (TickType_t)10) == pdTRUE)
+    genDepth = true;
+    {
+        // タスク排他処理
+        fcmethod(IMG_W, IMG_H, p1_ptr, q1_ptr, d1_ptr);
+
+        // タスク処理が完了したらセマフォを解放
+        // xSemaphoreGive(xImageGenBinSemaphore);
+    }
+    genDepth = false;
     // printf("depth = [");
     // for (int i = 0; i < IMG_W; i++)
     // {
@@ -355,8 +357,11 @@ void rj45_cam(void)
     uint32_t a[4] = {0xdeadbeef, IMG_H, IMG_W, IMG_H};
 
     // セマフォの取得
-    // if (xSemaphoreTake(xImgSemp, 0) == pdTRUE)
+    // if (xSemaphoreTake(xImageGenBinSemaphore, (TickType_t)10) == pdTRUE)
+    if (genDepth == false)
     {
+        // タスク完了を待たずにセマフォを解放
+        // xSemaphoreGive(xImageGenBinSemaphore);
         // make image header
         udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
 
@@ -393,7 +398,6 @@ void rj45_cam(void)
 
         // send image header
         eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
-        // xSemaphoreGive(xImgSemp);
     }
 #endif
 }
@@ -493,18 +497,6 @@ void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_n
     // set PWM start
     pwm_init(pwm0_slice_num, &pwm0_slice_config, true);
     pwm_set_gpio_level(gpio_num, (pwm0_slice_config.top * 0.50)); // duty:50%
-}
-
-void xMutexInit()
-{
-    // ミューテックスを生成
-    xMutex = xSemaphoreCreateMutex();
-    if (xMutex == NULL)
-    {
-        printf("ERROR:Semaphore Init NG.\n");
-    }
-    else
-        printf("Semaphore Init OK.\n");
 }
 
 void vImageProc(void *pvParameters)

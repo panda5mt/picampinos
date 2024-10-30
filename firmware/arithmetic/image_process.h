@@ -11,6 +11,8 @@ Using built-in specs.
 COLLECT_GCC=arm-none-eabi-gcc
 COLLECT_LTO_WRAPPER=/usr/lib/gcc/arm-none-eabi/12.2.1/lto-wrapper
 */
+void init_image_process(int height, int width);
+
 void estimate_lightsource_and_normal(int width, int height,
                                      unsigned char *img_gray, float **p, float **q,
                                      float *L, float *absL);
