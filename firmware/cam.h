@@ -5,6 +5,12 @@
 #include "hardware/pio.h"
 #include "sccb_if.h"
 
+#include "FreeRTOS.h"
+#include "task.h"
+#include "timers.h"
+#include "semphr.h"
+#include "pico/async_context_freertos.h"
+
 #define USE_100BASE_FX (false)
 
 // #define PICO_PSRAM_CS1 (47)     // QSPI's CS of PSRAM
@@ -21,17 +27,19 @@
 
 // camera buffer size
 // 640x480, RGB565 picture needs 640x480x2 bytes of buffers.
-#define IMG_H (256) //(480)
-#define IMG_W (256) //(640)
-#define PAD_H (512) // in bytes
-#define PAD_W (512)
+#define IMG_H (256)                                  //(480)
+#define IMG_W (256)                                  //(640)
+#define PAD_H (256)                                  //(512) // in bytes
+#define PAD_W (256)                                  //(512)
 #define CAM_FUL_SIZE (IMG_W * IMG_H)                 // VGA size, RGB565(16bit) format
 #define CAM_TOTAL_LEN (CAM_FUL_SIZE * 2)             // total length of pictures
 #define CAM_TOTAL_FRM (CAM_TOTAL_LEN / CAM_FUL_SIZE) // numbers(or frames) of pictures
 #define CAM_PADDED_SIZE_IN_32 (PAD_W * PAD_H / 2)    // in uint32_t[] size
 
+static SemaphoreHandle_t xMutex;
 // FreeRTOS Tasks
 void vImageProc(void *pvParameters);
+void xMutexInit();
 
 // high layer APIs
 void init_cam(uint8_t DEVICE_IS);

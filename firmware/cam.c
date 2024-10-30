@@ -29,8 +29,7 @@
 #include "sfp_hw.h"
 #endif
 
-// PSRAM START ADDRESS
-#define PSRAM_LOCATION _u(0x11000000)
+static SemaphoreHandle_t xMutex;
 
 volatile bool ram_ind_read = false; // indicate Read
 volatile bool ram_in_write = false; // now writing image
@@ -62,7 +61,7 @@ static float_t **p1_ptr;   // gradient map
 static float_t **q1_ptr;   // gradient map
 static float_t **d1_ptr;   // depth map.
 
-static mutex_t image_process_mutex;
+// static mutex_t image_process_mutex;
 
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
 void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_num);
@@ -82,6 +81,7 @@ static void memory_stats()
 void init_cam(uint8_t DEVICE_IS)
 {
     sfe_pico_alloc_init();
+
     // Initialize CAMERA
     set_pwm_freq_kHz(20000, SYS_CLK_IN_KHZ, PIN_PWM0); // XCLK 24MHz -> OV5642,OV2640
     sleep_ms(1000);
@@ -203,7 +203,13 @@ void calc_image(void)
     extract_green_from_uint32_array(b, gray_ptr, CAM_FUL_SIZE / 2);
     zeroPadImage(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
     estimate_lightsource_and_normal(IMG_W, IMG_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
-    fcmethod(IMG_W, IMG_H, p1_ptr, q1_ptr, d1_ptr);
+    // セマフォの取得,できなければ直ちに通過
+    // if (xSemaphoreTake(xImgSemp, 0) == pdTRUE)
+    {
+        fcmethod(IMG_W, IMG_H, p1_ptr, q1_ptr, d1_ptr);
+        // セマフォの解放
+        // xSemaphoreGive(xImgSemp);
+    }
 
     // printf("depth = [");
     // for (int i = 0; i < IMG_W; i++)
@@ -298,8 +304,8 @@ void rj45_cam(void)
 
     uint8_t udp_payload1[DEF_UDP_PAYLOAD_SIZE] = {0};
     uint32_t tx_buf_udp1[DEF_UDP_BUF_SIZE + 1] = {0};
+#if 0
 
-    /*
     uint32_t *b;
     uint32_t resp;
     // RGB565のデータの場合
@@ -326,7 +332,6 @@ void rj45_cam(void)
             (IMG_W / 2)};
 
         memcpy(udp_payload1, c, 4 * sizeof(uint32_t));
-
         memcpy(udp_payload1 + 4 * sizeof(uint32_t), b, sizeof(int32_t) * (IMG_W / 2));
         b += (IMG_W / 2);
         udp_packet_gen_10base(tx_buf_udp1, udp_payload1);
@@ -339,8 +344,8 @@ void rj45_cam(void)
 
     // send image header
     eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
-    */
 
+#else
     // Float型の場合
     float_t *b;
 
@@ -349,45 +354,48 @@ void rj45_cam(void)
     // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + column_size_in_words(total blocks per frame)
     uint32_t a[4] = {0xdeadbeef, IMG_H, IMG_W, IMG_H};
 
-    // make image header
-    udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
-
-    // send image header
-    eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
-
-    for (uint32_t i = 0; i < IMG_H; i++)
+    // セマフォの取得
+    // if (xSemaphoreTake(xImgSemp, 0) == pdTRUE)
     {
+        // make image header
+        udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
 
-        //        b = d1_ptr[i]; // d1_ptrはダブルポインタであることに注意
-
-        uint32_t c[] = {
-            0xbeefbeef,
-            i + 1,
-            1,
-            (IMG_W)};
-
-        memcpy(udp_payload1, c, 4 * sizeof(uint32_t));
-        // ヘッダサイズ分、ポインタをずらす
-        uint8_t *st_pos8 = udp_payload1 + 4 * sizeof(int32_t);
-        float_t *st_posfl;
-        st_posfl = (float_t *)st_pos8;
-        for (int j = 0; j < IMG_W; j++)
-        {
-            float_t data = d1_ptr[i][2 * j];
-            memcpy(st_posfl, &data, sizeof(float_t)); // 1行分全てコピー
-            st_posfl++;
-            // printf("st_posfl=0x%x\n", st_posfl);
-        }
-        udp_packet_gen_10base(tx_buf_udp1, udp_payload1);
+        // send image header
         eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
+
+        for (uint32_t i = 0; i < IMG_H; i++)
+        {
+            uint32_t c[] = {
+                0xbeefbeef,
+                i + 1,
+                1,
+                (IMG_W)};
+
+            memcpy(udp_payload1, c, 4 * sizeof(uint32_t));
+            // ヘッダサイズ分、ポインタをずらす
+            uint8_t *st_pos8 = udp_payload1 + 4 * sizeof(int32_t);
+            float_t *st_posfl;
+            st_posfl = (float_t *)st_pos8;
+            for (int j = 0; j < IMG_W; j++)
+            {
+                float_t data = d1_ptr[i][2 * j];
+                memcpy(st_posfl, &data, sizeof(float_t)); //
+                st_posfl++;
+                // printf("st_posfl=0x%x\n", st_posfl);
+            }
+            udp_packet_gen_10base(tx_buf_udp1, udp_payload1);
+            eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
+        }
+
+        a[0] = 0xdeaddead;
+        // make image header
+        udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
+
+        // send image header
+        eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
+        // xSemaphoreGive(xImgSemp);
     }
-
-    a[0] = 0xdeaddead;
-    // make image header
-    udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
-
-    // send image header
-    eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
+#endif
 }
 
 void free_cam()
@@ -487,9 +495,22 @@ void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_n
     pwm_set_gpio_level(gpio_num, (pwm0_slice_config.top * 0.50)); // duty:50%
 }
 
+void xMutexInit()
+{
+    // ミューテックスを生成
+    xMutex = xSemaphoreCreateMutex();
+    if (xMutex == NULL)
+    {
+        printf("ERROR:Semaphore Init NG.\n");
+    }
+    else
+        printf("Semaphore Init OK.\n");
+}
+
 void vImageProc(void *pvParameters)
 {
     printf("vImageProc - Running on Core: %d\n", get_core_num()); // 現在のコア番号を表示
+
     while (1)
     {
         calc_image();
