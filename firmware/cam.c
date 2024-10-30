@@ -182,19 +182,19 @@ void calc_image(void)
 {
     // 光源推定
 
-    for (int i = 0; i < PAD_H; i++)
-    {
-        for (int j = 0; j < PAD_W; j++)
-        {
-            int index = i * PAD_W + j;
-            // d1_ptr[i][2 * j] = 0;
-            // d1_ptr[i][2 * j + 1] = 0;
-            p1_ptr[i][2 * j] = 0;
-            p1_ptr[i][2 * j + 1] = 0;
-            q1_ptr[i][2 * j] = 0;
-            q1_ptr[i][2 * j + 1] = 0;
-        }
-    }
+    // for (int i = 0; i < PAD_H; i++)
+    // {
+    //     for (int j = 0; j < PAD_W; j++)
+    //     {
+    //         int index = i * PAD_W + j;
+    //         // d1_ptr[i][2 * j] = 0;
+    //         // d1_ptr[i][2 * j + 1] = 0;
+    //         p1_ptr[i][2 * j] = 0;
+    //         p1_ptr[i][2 * j + 1] = 0;
+    //         q1_ptr[i][2 * j] = 0;
+    //         q1_ptr[i][2 * j + 1] = 0;
+    //     }
+    // }
     float L[3];
     float k;
     uint32_t *b;
