@@ -23,28 +23,28 @@ void cftbcol(int n1, int n, float **a, float *w);
 void cftbrow(int n, int n2, float **a, float *w);
 void cftfcol(int n1, int n, float **a, float *w);
 void cftfrow(int n, int n2, float **a, float *w);
-// void rftbcol(int n1, int n, float **a, int nc, float *c);
-// void rftfcol(int n1, int n, float **a, int nc, float *c);
+void rftbcol(int n1, int n, float **a, int nc, float *c);
+void rftfcol(int n1, int n, float **a, int nc, float *c);
 
 int *alloc_1d_int(int n1)
 {
     int *i;
 
-    i = (int *)sfe_mem_malloc(sizeof(int) * n1);
+    i = (int *)malloc(sizeof(int) * n1);
     alloc_error_check(i);
     return i;
 }
 
 void free_1d_int(int *i)
 {
-    sfe_mem_free(i);
+    free(i);
 }
 
 float *alloc_1d_float(int n1)
 {
     float *d;
 
-    d = (float *)sfe_mem_malloc(sizeof(float) * n1);
+    d = (float *)malloc(sizeof(float) * n1);
     alloc_error_check(d);
     return d;
 }
@@ -59,9 +59,9 @@ float **alloc_2d_float(int n1, int n2)
     float **dd, *d;
     int j;
 
-    dd = (float **)sfe_mem_malloc(sizeof(float *) * n1);
+    dd = (float **)malloc(sizeof(float *) * n1);
     alloc_error_check(dd);
-    d = (float *)sfe_mem_malloc(sizeof(float) * n1 * n2);
+    d = (float *)malloc(sizeof(float) * n1 * n2);
     alloc_error_check(d);
     dd[0] = d;
     for (j = 1; j < n1; j++)
@@ -74,8 +74,8 @@ float **alloc_2d_float(int n1, int n2)
 void free_2d_float(float **dd)
 {
 
-    sfe_mem_free(dd[0]);
-    sfe_mem_free(dd);
+    free(dd[0]);
+    free(dd);
 }
 
 void cdft2d(int n1, int n2, int isgn, float **a, int *ip, float *w)
@@ -111,7 +111,7 @@ void cdft2d(int n1, int n2, int isgn, float **a, int *ip, float *w)
         cftbrow(n1, n2, a, w);
     }
 }
-/*
+
 void rdft2d(int n1, int n2, int isgn, float **a, int *ip, float *w)
 {
 
@@ -197,7 +197,7 @@ void rdft2d(int n1, int n2, int isgn, float **a, int *ip, float *w)
         }
     }
 }
-*/
+
 void makewt(int nw, int *ip, float *w)
 {
     void bitrv2(int n, int *ip, float *a);
@@ -958,7 +958,7 @@ void cftfrow(int n, int n2, float **a, float *w)
         }
     }
 }
-/*
+
 void rftbcol(int n1, int n, float **a, int nc, float *c)
 {
     int i, j, k, kk, ks;
@@ -1012,4 +1012,3 @@ void rftfcol(int n1, int n, float **a, int nc, float *c)
         }
     }
 }
-*/

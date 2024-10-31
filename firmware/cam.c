@@ -181,20 +181,6 @@ void config_cam_buffer()
 void calc_image(void)
 {
     // 光源推定
-
-    // for (int i = 0; i < PAD_H; i++)
-    // {
-    //     for (int j = 0; j < PAD_W; j++)
-    //     {
-    //         // int index = i * PAD_W + j;
-    //         // d1_ptr[i][2 * j] = 0;
-    //         // d1_ptr[i][2 * j + 1] = 0;
-    //         p1_ptr[i][2 * j] = 0;
-    //         p1_ptr[i][2 * j + 1] = 0;
-    //         q1_ptr[i][2 * j] = 0;
-    //         q1_ptr[i][2 * j + 1] = 0;
-    //     }
-    // }
     float L[3] = {0.2, 1, 1};
     float k;
     uint32_t *b;
@@ -202,6 +188,7 @@ void calc_image(void)
 
     extract_green_from_uint32_array(b, gray_ptr, CAM_FUL_SIZE / 2);
     zeroPadImage(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
+
     // estimate_lightsource_and_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
     estimate_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L);
 
@@ -216,17 +203,21 @@ void calc_image(void)
         // xSemaphoreGive(xImageGenBinSemaphore);
     }
     genDepth = false;
-    // printf("depth = [");
-    // for (int i = 0; i < IMG_W; i++)
-    // {
-    //     for (int j = 0; j < IMG_W; j++)
-    //     {
-    //         // int index = i * IMG_W + j;
-    //         printf("%.2f,", d1_ptr[i][2 * j]); // 実数部のみ抽出
-    //     }
-    //     printf("\n");
-    // }
-    // printf("];\n");
+
+    /*
+    // printf()で深度を確認したい場合はここをコメントアウト
+        printf("depth = [");
+        for (int i = 0; i < IMG_W; i++)
+        {
+            for (int j = 0; j < IMG_W; j++)
+            {
+                // int index = i * IMG_W + j;
+                printf("%.2f,", d1_ptr[i][2 * j]); // 実数部のみ抽出
+            }
+            printf("\n");
+        }
+        printf("];\n");
+    */
     printf(".\n");
 }
 
