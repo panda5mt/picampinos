@@ -88,7 +88,6 @@ target_sources(${target_name} PRIVATE
 
 
 target_link_libraries(${target_name} PRIVATE
-        #pico_malloc
         pico_divider 
         pico_stdlib
         pico_multicore
@@ -105,6 +104,7 @@ target_link_libraries(${target_name} PRIVATE
         pico_async_context_freertos
         FreeRTOS-Kernel
         FreeRTOS-Kernel-Heap4
+        #pico_malloc
         )
 
 
