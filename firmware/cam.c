@@ -191,8 +191,8 @@ void calc_image(void)
     extract_green_from_uint32_array(b, gray_ptr, CAM_FUL_SIZE / 2);
     zeroPadImage(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
 
-    estimate_lightsource_and_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
-    // estimate_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L);
+    // estimate_lightsource_and_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
+    estimate_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L);
 
     // セマフォの取得,できなければ直ちに通過
     sem_acquire_blocking(&fcmethod_semp);
