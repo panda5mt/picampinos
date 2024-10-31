@@ -150,14 +150,14 @@ int main()
     init_cam(DEV_OV5642);
     config_cam_buffer(); // config buffer
     start_cam();         // start streaming
-    printf("camera start\n");
+    printf("[CAM INIT]\n");
     eth_init();
     printf("[BOOT]\r\n");
 
     UBaseType_t uxCoreAffinityMask;
-    xTaskCreate(vRJ45Task, "Eth Task", configMINIMAL_STACK_SIZE * 10, NULL, tskIDLE_PRIORITY + 1, &rj45Handle);
+    xTaskCreate(vRJ45Task, "Eth Task", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, &rj45Handle);
     xTaskCreate(vLaunchRxFunc, "Rx Task", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, &rxHandle);
-    xTaskCreate(vImageProc, "Image Task", configMINIMAL_STACK_SIZE * 15, NULL, tskIDLE_PRIORITY + 2, &imageHandle);
+    xTaskCreate(vImageProc, "Image Task", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 2, &imageHandle);
     // xMutexInit();
     uxCoreAffinityMask = ((1 << 0)); // Core0
     vTaskCoreAffinitySet(rj45Handle, uxCoreAffinityMask);
