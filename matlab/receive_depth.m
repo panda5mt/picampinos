@@ -123,8 +123,9 @@ while (true)
     %imshow(G_img);
    %img = im2double(img);
    %img =img ./4e9;
-    imagesc(img);
+    h=imagesc(img);
     colormap('jet'); % カラーマップを設定
+    %clim(h.Parent,[-25 25]);  % 下限を0、上限を100に設定
     colorbar;
     drawnow;
 
