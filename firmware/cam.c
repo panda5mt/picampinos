@@ -30,8 +30,9 @@
 #endif
 #define USE_COLOR_IMAGE (0) // 0: Depth Estimate, 1:RGB565
 
-volatile bool ram_ind_read = false; // indicate Read
-volatile bool ram_in_write = false; // now writing image
+static semaphore_t fcmethod_semp;
+// volatile bool ram_ind_read = false; // indicate Read
+// volatile bool ram_in_write = false; // now writing image
 volatile bool irq_indicate_reset = true;
 
 volatile int32_t psram_access = 0; // write buffer:+=1, read buffer:-=1
@@ -139,6 +140,9 @@ void init_cam(uint8_t DEVICE_IS)
 
     // todo: check psram size
     memory_stats();
+    // init semaphore
+    sem_init(&fcmethod_semp, 1, 1);
+    sem_release(&fcmethod_semp);
 }
 
 void config_cam_buffer()
@@ -189,20 +193,21 @@ void calc_image(void)
     extract_green_from_uint32_array(b, gray_ptr, CAM_FUL_SIZE / 2);
     zeroPadImage(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
 
-    // estimate_lightsource_and_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
-    estimate_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L);
+    estimate_lightsource_and_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
+    // estimate_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L);
 
     // セマフォの取得,できなければ直ちに通過
     // if (xSemaphoreTake(xImageGenBinSemaphore, (TickType_t)10) == pdTRUE)
-    genDepth = true;
+    // genDepth = true;
+    sem_acquire_blocking(&fcmethod_semp);
     {
         // タスク排他処理
         fcmethod(PAD_W, PAD_H, p1_ptr, q1_ptr, d1_ptr);
 
         // タスク処理が完了したらセマフォを解放
-        // xSemaphoreGive(xImageGenBinSemaphore);
+        sem_release(&fcmethod_semp);
     }
-    genDepth = false;
+    // genDepth = false;
 
     /*
     // printf()で深度を確認したい場合はここをコメントアウト
@@ -249,9 +254,6 @@ void uartout_cam()
             printf("0x%08X\r\n", b[(h * (IMG_W / 2)) + i]);
         }
     }
-    // increment iot sram's address
-    // iot_addr = cam_ptr1;
-    ram_ind_read = false;
 }
 
 #if USE_100BASE_FX
@@ -351,10 +353,10 @@ void rj45_cam(void)
     // '0xdeadbeef' + row_size_in_words(unit is in words(not bytes)) + column_size_in_words(total blocks per frame)
     uint32_t a[4] = {0xdeadbeef, IMG_H, IMG_W, IMG_H};
 
-    // セマフォの取得
-    // if (xSemaphoreTake(xImageGenBinSemaphore, (TickType_t)10) == pdTRUE)
-    if (genDepth == false)
+    // セマフォの取得。できなかったら待たずに退散。
+    if (sem_try_acquire(&fcmethod_semp))
     {
+        sem_release(&fcmethod_semp);
         // タスク完了を待たずにセマフォを解放
         // xSemaphoreGive(xImageGenBinSemaphore);
         // make image header
