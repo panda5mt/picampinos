@@ -28,7 +28,7 @@
 #if USE_100BASE_FX
 #include "sfp_hw.h"
 #endif
-#define USE_COLOR_IMAGE (0)
+#define USE_COLOR_IMAGE (0) // 0: Depth Estimate, 1:RGB565
 
 volatile bool ram_ind_read = false; // indicate Read
 volatile bool ram_in_write = false; // now writing image
@@ -136,6 +136,7 @@ void init_cam(uint8_t DEVICE_IS)
         printf("Big block built in allocation failed\n");
         // return 1;
     }
+
     // todo: check psram size
     memory_stats();
 }
@@ -181,29 +182,30 @@ void calc_image(void)
 {
     // 光源推定
 
-    for (int i = 0; i < PAD_H; i++)
-    {
-        for (int j = 0; j < PAD_W; j++)
-        {
-            // int index = i * PAD_W + j;
-            // d1_ptr[i][2 * j] = 0;
-            // d1_ptr[i][2 * j + 1] = 0;
-            p1_ptr[i][2 * j] = 0;
-            p1_ptr[i][2 * j + 1] = 0;
-            q1_ptr[i][2 * j] = 0;
-            q1_ptr[i][2 * j + 1] = 0;
-        }
-    }
-    float L[3];
+    // for (int i = 0; i < PAD_H; i++)
+    // {
+    //     for (int j = 0; j < PAD_W; j++)
+    //     {
+    //         // int index = i * PAD_W + j;
+    //         // d1_ptr[i][2 * j] = 0;
+    //         // d1_ptr[i][2 * j + 1] = 0;
+    //         p1_ptr[i][2 * j] = 0;
+    //         p1_ptr[i][2 * j + 1] = 0;
+    //         q1_ptr[i][2 * j] = 0;
+    //         q1_ptr[i][2 * j + 1] = 0;
+    //     }
+    // }
+    float L[3] = {0.2, 1, 1};
     float k;
     uint32_t *b;
     b = (psram_access == 0) ? cam_ptr : cam_ptr1;
 
     extract_green_from_uint32_array(b, gray_ptr, CAM_FUL_SIZE / 2);
     zeroPadImage(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
-    estimate_lightsource_and_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
-    // セマフォの取得,できなければ直ちに通過
+    // estimate_lightsource_and_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
+    estimate_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L);
 
+    // セマフォの取得,できなければ直ちに通過
     // if (xSemaphoreTake(xImageGenBinSemaphore, (TickType_t)10) == pdTRUE)
     genDepth = true;
     {
