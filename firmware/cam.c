@@ -61,7 +61,6 @@ static float_t **q1_ptr;   // gradient map
 static float_t **d1_ptr;   // depth map.
 
 // static SemaphoreHandle_t xImageGenBinSemaphore;
-static bool genDepth = false;
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
 void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_num);
 void cam_handler();
@@ -197,8 +196,6 @@ void calc_image(void)
     // estimate_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L);
 
     // セマフォの取得,できなければ直ちに通過
-    // if (xSemaphoreTake(xImageGenBinSemaphore, (TickType_t)10) == pdTRUE)
-    // genDepth = true;
     sem_acquire_blocking(&fcmethod_semp);
     {
         // タスク排他処理
@@ -207,7 +204,6 @@ void calc_image(void)
         // タスク処理が完了したらセマフォを解放
         sem_release(&fcmethod_semp);
     }
-    // genDepth = false;
 
     /*
     // printf()で深度を確認したい場合はここをコメントアウト
