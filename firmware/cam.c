@@ -119,13 +119,13 @@ void init_cam(uint8_t DEVICE_IS)
 
     init_image_process(PAD_H, PAD_W);
     // image1 and 2
-    cam_ptr = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE * sizeof(uint32_t) / 2);
-    cam_ptr1 = (uint32_t *)sfe_mem_malloc(CAM_FUL_SIZE * sizeof(uint32_t) / 2);
-    gray_ptr = (uint8_t *)sfe_mem_malloc(CAM_FUL_SIZE * 1 * sizeof(uint8_t));
+    cam_ptr = (uint32_t *)malloc(CAM_FUL_SIZE * sizeof(uint32_t) / 2);
+    cam_ptr1 = (uint32_t *)malloc(CAM_FUL_SIZE * sizeof(uint32_t) / 2);
+    gray_ptr = (uint8_t *)malloc(CAM_FUL_SIZE * 1 * sizeof(uint8_t));
     // 262144
     //  padded image 1 and 2
     //  normal map1 and depth map1
-    pad_ptr = (uint8_t *)sfe_mem_malloc((PAD_H * PAD_W) * sizeof(uint8_t));
+    pad_ptr = (uint8_t *)malloc((PAD_H * PAD_W) * sizeof(uint8_t));
     p1_ptr = alloc_2d_float(PAD_H, PAD_W * 2);
     q1_ptr = alloc_2d_float(PAD_H, PAD_W * 2);
     d1_ptr = alloc_2d_float(PAD_H, PAD_W * 2);
