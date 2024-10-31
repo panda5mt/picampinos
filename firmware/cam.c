@@ -28,6 +28,7 @@
 #if USE_100BASE_FX
 #include "sfp_hw.h"
 #endif
+#define USE_COLOR_IMAGE (0)
 
 volatile bool ram_ind_read = false; // indicate Read
 volatile bool ram_in_write = false; // now writing image
@@ -180,19 +181,19 @@ void calc_image(void)
 {
     // 光源推定
 
-    // for (int i = 0; i < PAD_H; i++)
-    // {
-    //     for (int j = 0; j < PAD_W; j++)
-    //     {
-    //         int index = i * PAD_W + j;
-    //         // d1_ptr[i][2 * j] = 0;
-    //         // d1_ptr[i][2 * j + 1] = 0;
-    //         p1_ptr[i][2 * j] = 0;
-    //         p1_ptr[i][2 * j + 1] = 0;
-    //         q1_ptr[i][2 * j] = 0;
-    //         q1_ptr[i][2 * j + 1] = 0;
-    //     }
-    // }
+    for (int i = 0; i < PAD_H; i++)
+    {
+        for (int j = 0; j < PAD_W; j++)
+        {
+            // int index = i * PAD_W + j;
+            // d1_ptr[i][2 * j] = 0;
+            // d1_ptr[i][2 * j + 1] = 0;
+            p1_ptr[i][2 * j] = 0;
+            p1_ptr[i][2 * j + 1] = 0;
+            q1_ptr[i][2 * j] = 0;
+            q1_ptr[i][2 * j + 1] = 0;
+        }
+    }
     float L[3];
     float k;
     uint32_t *b;
@@ -200,14 +201,14 @@ void calc_image(void)
 
     extract_green_from_uint32_array(b, gray_ptr, CAM_FUL_SIZE / 2);
     zeroPadImage(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
-    estimate_lightsource_and_normal(IMG_W, IMG_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
+    estimate_lightsource_and_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
     // セマフォの取得,できなければ直ちに通過
 
     // if (xSemaphoreTake(xImageGenBinSemaphore, (TickType_t)10) == pdTRUE)
     genDepth = true;
     {
         // タスク排他処理
-        fcmethod(IMG_W, IMG_H, p1_ptr, q1_ptr, d1_ptr);
+        fcmethod(PAD_W, PAD_H, p1_ptr, q1_ptr, d1_ptr);
 
         // タスク処理が完了したらセマフォを解放
         // xSemaphoreGive(xImageGenBinSemaphore);
@@ -224,6 +225,7 @@ void calc_image(void)
     //     printf("\n");
     // }
     // printf("];\n");
+    printf(".\n");
 }
 
 void start_cam()
@@ -306,7 +308,7 @@ void rj45_cam(void)
 
     uint8_t udp_payload1[DEF_UDP_PAYLOAD_SIZE] = {0};
     uint32_t tx_buf_udp1[DEF_UDP_BUF_SIZE + 1] = {0};
-#if 0
+#if (USE_COLOR_IMAGE)
 
     uint32_t *b;
     uint32_t resp;

@@ -23,8 +23,8 @@ void cftbcol(int n1, int n, float **a, float *w);
 void cftbrow(int n, int n2, float **a, float *w);
 void cftfcol(int n1, int n, float **a, float *w);
 void cftfrow(int n, int n2, float **a, float *w);
-void rftbcol(int n1, int n, float **a, int nc, float *c);
-void rftfcol(int n1, int n, float **a, int nc, float *c);
+// void rftbcol(int n1, int n, float **a, int nc, float *c);
+// void rftfcol(int n1, int n, float **a, int nc, float *c);
 
 int *alloc_1d_int(int n1)
 {
