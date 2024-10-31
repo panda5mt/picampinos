@@ -206,15 +206,6 @@ sfp/sfp_hw{.c, .h}
 
 MIT License
 -----------
-https://github.com/kingyoPiyo/RasPico_SHIBAKI_Board
-
-sfp/ser_100base_fx.pio
-sfp/udp{.c, .h}
-sfp/tbl_8b10b{.c, .h}
-sfp/sfp_hw{.c, .h}
-
-MIT License
------------
 https://github.com/kingyoPiyo/Pico-RJ45-Sock
 
 rj45/arp{.c, .h}
@@ -233,3 +224,15 @@ MIT License
 https://github.com/sparkfun/sparkfun-pico
 
 pico_psram{.c, .h}
+
+
+
+Copyright(C) 1996-2001 Takuya OOURA
+email: ooura@mmm.t.u-tokyo.ac.jp
+https://www.kurims.kyoto-u.ac.jp/~ooura/fft.html
+
+You may use, copy, modify and distribute this code for any purpose (include commercial use) and without fee. 
+Please refer to this package when you modify this code.
+
+
+arithmetic/fft4f2d{.c, .h}
