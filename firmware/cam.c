@@ -351,9 +351,8 @@ void rj45_cam(void)
     // セマフォの取得。できなかったら待たずに退散。
     if (sem_try_acquire(&fcmethod_semp))
     {
-        sem_release(&fcmethod_semp);
-        // タスク完了を待たずにセマフォを解放
-        // xSemaphoreGive(xImageGenBinSemaphore);
+        sem_release(&fcmethod_semp); // タスク完了を待たずにセマフォを解放
+
         // make image header
         udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
 
