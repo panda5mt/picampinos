@@ -126,10 +126,15 @@ void init_cam(uint8_t DEVICE_IS)
     //  padded image 1 and 2
     //  normal map1 and depth map1
     pad_ptr = (uint8_t *)malloc((PAD_H * PAD_W) * sizeof(uint8_t));
+#if USE_REAL_FFT
+    p1_ptr = alloc_2d_float(PAD_H, PAD_W);
+    q1_ptr = alloc_2d_float(PAD_H, PAD_W);
+    d1_ptr = alloc_2d_float(PAD_H, PAD_W);
+#else
     p1_ptr = alloc_2d_float(PAD_H, PAD_W * 2);
     q1_ptr = alloc_2d_float(PAD_H, PAD_W * 2);
     d1_ptr = alloc_2d_float(PAD_H, PAD_W * 2);
-
+#endif
     if (!cam_ptr || !gray_ptr || !cam_ptr1 || !pad_ptr || !p1_ptr || !q1_ptr || !d1_ptr)
     {
         printf("Big block built in allocation failed\n");
@@ -374,7 +379,11 @@ void rj45_cam(void)
             st_posfl = (float_t *)st_pos8;
             for (int j = 0; j < IMG_W; j++)
             {
+#if USE_REAL_FFT
+                float_t data = d1_ptr[i][j];
+#else
                 float_t data = d1_ptr[i][2 * j];
+#endif
                 memcpy(st_posfl, &data, sizeof(float_t)); //
                 st_posfl++;
                 // printf("st_posfl=0x%x\n", st_posfl);
