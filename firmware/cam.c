@@ -194,7 +194,7 @@ void calc_image(void)
     // estimate_lightsource_and_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
     estimate_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L);
 
-    // セマフォの取得,できなければ直ちに通過
+    // セマフォの取得
     sem_acquire_blocking(&fcmethod_semp);
     {
         // タスク排他処理
