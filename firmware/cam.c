@@ -188,8 +188,8 @@ void calc_image(void)
     uint32_t *b;
     b = (psram_access == 0) ? cam_ptr : cam_ptr1;
 
-    extract_green_from_uint32_array(b, gray_ptr, CAM_FUL_SIZE / 2);
-    zeroPadImage(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H);
+    extract_green_from_uint32_array(b, gray_ptr, CAM_FUL_SIZE / 2); // 2つのRGB565(16bit)を32bitパッキングされたデータから2つ分のGreen(uint8_t[])データを取得している
+    zeroPadImage(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H); // ゼロパディング
 
     // estimate_lightsource_and_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
     estimate_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L);
@@ -205,7 +205,7 @@ void calc_image(void)
     }
 
     /*
-    // printf()で深度を確認したい場合はここをコメントアウト
+    // printf()で深度を確認したい場合はここのコメントアウトを解除
         printf("depth = [");
         for (int i = 0; i < IMG_W; i++)
         {
