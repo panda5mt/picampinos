@@ -15,7 +15,7 @@ COLLECT_LTO_WRAPPER=/usr/lib/gcc/arm-none-eabi/12.2.1/lto-wrapper
 
 void init_image_process(int height, int width);
 
-void estimate_lightsource_and_normal(int width, int height,
+void estimate_lightsource_and_normal(int height, int width,
                                      unsigned char *img_gray, float **p, float **q,
                                      float *L, float *absL);
 
@@ -30,10 +30,10 @@ void estimate_lightsource_and_normal(int width, int height,
 // output:
 // p: normal map(X)
 // q: normal map(Y)
-void estimate_normal(int width, int height, unsigned char *img_gray, float **p, float **q, float *L);
+void estimate_normal(int height, int width, unsigned char *img_gray, float **p, float **q, float *L);
 
 // Frankot-Chellappa algorithm(We need just *Z_real)
-int32_t fcmethod(int width, int height,
+int32_t fcmethod(int height, int width,
                  float **p, float **q,
                  float **dp);
 
