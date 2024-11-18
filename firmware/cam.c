@@ -4,7 +4,6 @@
 #include <string.h>
 #include "pico/binary_info.h"
 #include "picampinos.pio.h"
-// #include "pico_psram.h"
 #include "sfe_pico.h"
 #include "hardware/pwm.h"
 #include "hardware/irq.h"
@@ -129,7 +128,7 @@ void init_cam(uint8_t DEVICE_IS)
 #if USE_REAL_FFT
     p1_ptr = alloc_2d_float(PAD_H, PAD_W);
     q1_ptr = alloc_2d_float(PAD_H, PAD_W);
-    d1_ptr = alloc_2d_float(PAD_H, PAD_W);
+    d1_ptr = alloc_2d_float(PAD_H, PAD_W * 2);
 #else
     p1_ptr = alloc_2d_float(PAD_H, PAD_W * 2);
     q1_ptr = alloc_2d_float(PAD_H, PAD_W * 2);
@@ -380,7 +379,8 @@ void rj45_cam(void)
             for (int j = 0; j < IMG_W; j++)
             {
 #if USE_REAL_FFT
-                float_t data = d1_ptr[i][j];
+                // float_t data = d1_ptr[i][j];
+                float_t data = d1_ptr[i][2 * j];
 #else
                 float_t data = d1_ptr[i][2 * j];
 #endif
@@ -449,7 +449,7 @@ void cam_handler()
         dma_chan = DMA_CAM_RD_CH0;
         psram_access = 0;
         b = cam_ptr;
-        gpio_put(25, 1);
+        // gpio_put(25, 1);
     }
 
     if (triggered_dma & (1u << DMA_CAM_RD_CH1))
@@ -459,7 +459,7 @@ void cam_handler()
         dma_chan = DMA_CAM_RD_CH1;
         psram_access = 1;
         b = cam_ptr1;
-        gpio_put(25, 0);
+        // gpio_put(25, 0);
     }
 
     // clear interrupt flag
