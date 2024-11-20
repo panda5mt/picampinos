@@ -128,7 +128,7 @@ void init_cam(uint8_t DEVICE_IS)
 #if USE_REAL_FFT
     p1_ptr = alloc_2d_float(PAD_H, PAD_W);
     q1_ptr = alloc_2d_float(PAD_H, PAD_W);
-    d1_ptr = alloc_2d_float(PAD_H, PAD_W * 2);
+    d1_ptr = alloc_2d_float(PAD_H, PAD_W);
 #else
     p1_ptr = alloc_2d_float(PAD_H, PAD_W * 2);
     q1_ptr = alloc_2d_float(PAD_H, PAD_W * 2);
@@ -379,8 +379,8 @@ void rj45_cam(void)
             for (int j = 0; j < IMG_W; j++)
             {
 #if USE_REAL_FFT
-                // float_t data = d1_ptr[i][j];
-                float_t data = d1_ptr[i][2 * j];
+                float_t data = d1_ptr[i][j];
+                // float_t data = d1_ptr[i][2 * j];
 #else
                 float_t data = d1_ptr[i][2 * j];
 #endif
