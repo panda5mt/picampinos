@@ -187,7 +187,7 @@ void config_cam_buffer()
 void calc_image(void)
 {
     // 光源推定
-    float L[3] = {0.2, 1, 1};
+    float L[3] = {1.0, 1.0, 0.4};
     float k;
     uint32_t *b;
     b = (psram_access == 0) ? cam_ptr : cam_ptr1;
@@ -202,7 +202,7 @@ void calc_image(void)
     sem_acquire_blocking(&fcmethod_semp);
     {
         // タスク排他処理
-        fcmethod(PAD_W, PAD_H, p1_ptr, q1_ptr, d1_ptr);
+        fcmethod(PAD_W, PAD_H, q1_ptr, p1_ptr, d1_ptr);
 
         // タスク処理が完了したらセマフォを解放
         sem_release(&fcmethod_semp);
