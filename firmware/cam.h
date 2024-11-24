@@ -29,8 +29,8 @@
 // 640x480, RGB565 picture needs 640x480x2 bytes of buffers.
 #define IMG_H (256)                                  //(480)
 #define IMG_W (256)                                  //(640)
-#define PAD_H (256)                                  //(512) // in bytes
-#define PAD_W (256)                                  //(512)
+#define PAD_H (512)                                  //(512) // in bytes
+#define PAD_W (512)                                  //(512)
 #define CAM_FUL_SIZE (IMG_W * IMG_H)                 // VGA size, RGB565(16bit) format
 #define CAM_TOTAL_LEN (CAM_FUL_SIZE * 2)             // total length of pictures
 #define CAM_TOTAL_FRM (CAM_TOTAL_LEN / CAM_FUL_SIZE) // numbers(or frames) of pictures
