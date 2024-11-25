@@ -57,7 +57,6 @@ static float_t **p1_ptr;   // gradient map
 static float_t **q1_ptr;   // gradient map
 static float_t **d1_ptr;   // depth map.
 
-// static SemaphoreHandle_t xImageGenBinSemaphore;
 dma_channel_config get_cam_config(PIO pio, uint32_t sm, uint32_t dma_chan);
 void set_pwm_freq_kHz(uint32_t freq_khz, uint32_t system_clk_khz, uint8_t gpio_num);
 void cam_handler();
