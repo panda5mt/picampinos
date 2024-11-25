@@ -112,20 +112,20 @@ while (true)
     % imgG = (255/127).* bitand(lower6, bitshift(img,-5));    % Green component
     % imgB = (255/63) .* bitand(lower5, img);	                % Blue component
     % G = bitand(lower8, bitshift(img,-8));
-    % 
+    %
     % RGB_img(:,:,1) = imgR;
     % RGB_img(:,:,2) = imgG;
     % RGB_img(:,:,3) = imgB;
     % G_img(:,:,1) = G;
-    
+
     %%%%%%%%%%%%
     %imshow(RGB_img);
     %imshow(G_img);
-   %img = im2double(img);
-   %img =img ./4e9;
-    h=imagesc(img);
-    colormap('jet'); % カラーマップを設定
-    %clim(h.Parent,[-25 25]);  % 下限を0、上限を100に設定
+    %img = im2double(img);
+    %img =img ./4e9;
+    h=imagesc(-img);
+    colormap('turbo'); % カラーマップを設定
+    %clim(h.Parent,[-20 20]);  % 下限を-25、上限を25に設定
     colorbar;
     drawnow;
 
