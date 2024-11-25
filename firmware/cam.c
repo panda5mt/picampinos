@@ -30,8 +30,6 @@
 #define USE_COLOR_IMAGE (0) // 0: Depth Estimate, 1:RGB565
 
 static semaphore_t fcmethod_semp;
-// volatile bool ram_ind_read = false; // indicate Read
-// volatile bool ram_in_write = false; // now writing image
 volatile bool irq_indicate_reset = true;
 
 volatile int32_t psram_access = 0; // write buffer:+=1, read buffer:-=1
