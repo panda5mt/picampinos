@@ -1,7 +1,7 @@
 #!/bin/bash
 # for raspberry pi
 sudo apt -y update
-sudo apt -y install --no-install-recommends sudo make libtbb2 libtbbmalloc2 wget coreutils udev curl time tar nano 
+sudo apt -y install --no-install-recommends sudo make libtbbmalloc2 wget coreutils udev curl time tar nano 
 sudo apt -y install git cmake libstdc++-arm-none-eabi-newlib gcc-arm-none-eabi libnewlib-arm-none-eabi build-essential python3 
 
 cd ~/
@@ -40,7 +40,10 @@ cd pico/picampinos/
 cd ~/
 cd pico/picampinos/firmware/
 git clone https://github.com/raspberrypi/FreeRTOS-Kernel.git
-cd ..
+
+cd ~/
+cd pico/picampinos/firmware/
+cp FreeRTOS-Kernel/portable/ThirdParty/GCC/RP2350_ARM_NTZ/FreeRTOS_Kernel_import.cmake .
 #git rm --cached firmware/FreeRTOS-Kernel
 
 
