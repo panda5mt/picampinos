@@ -54,14 +54,6 @@ FDY = fft2(dy);
 % 伝達関数による深度の再構築
 Z = (1i * u .* FDX + 1i * v .* FDY) ./ denom;
 
-disp('aaa');
-% fprintf('float Z_imag[]={');
-% for i = 1:size(Z, 1)
-%     fprintf('%f,', imag(Z(i, 1:end-1)));  % 各行の最後の要素以外をカンマ区切りで表示
-%     fprintf('%f,\n', imag(Z(i, end)));     % 最後の要素を改行して表示
-% end
-% fprintf('};\n');
-
 % 形状の再構築
 depths = real(ifft2(Z));
 

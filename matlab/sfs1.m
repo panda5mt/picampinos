@@ -36,10 +36,7 @@ pos = pos * k;
 
 [p,q] = estimate_normal(I, pos);
 Z2 = fcmethod(q,p,true);
-
-%Z2 = reshape(depth,[256 256]);
 disp(pos)
-
 toc(tic)
 
 % 結果を表示する図を生成
