@@ -48,6 +48,6 @@ With the SFP module, pi-cám-pinos sends image data from the DVP camera to the o
 ## Depth Estimate
 Based on Frankot-Chellappa algorithm
 
-    [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=panda5mt/picampinos/matlab/&file=sfs1.m)
+[![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=panda5mt/picampinos&file=matlab/sfs1.m)
 
 
