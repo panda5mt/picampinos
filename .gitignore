@@ -4,6 +4,7 @@
 image_process.c
 /build/
 add_git.sh
+*.c_bak
 /matlab/*.bak
 /picotool/*
 */FreeRTOS-Kernel/

@@ -99,7 +99,7 @@ target_link_libraries(${target_name} PRIVATE
         hardware_pwm
         hardware_dma
         hardware_irq
-        image_process
+        ${STATIC_LIBRARIES} 
         sparkfun_pico
         pico_async_context_freertos
         FreeRTOS-Kernel
