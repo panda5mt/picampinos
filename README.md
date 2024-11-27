@@ -45,3 +45,9 @@ With the SFP module, pi-cám-pinos sends image data from the DVP camera to the o
 ### Using SPI Slave module(not tested)
 ### Using UART module (easiest)
 
+## Depth Estimate
+Based on Frankot-Chellappa algorithm
+
+    [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=panda5mt/picampinos/matlab/&file=sfs1.m)
+
+
