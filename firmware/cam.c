@@ -183,6 +183,7 @@ void config_cam_buffer()
 
 void calc_image(void)
 {
+    static int32_t tim32;
     // 光源推定
     float L[3] = {1.0, 1.0, 0.4};
     float k;
@@ -219,7 +220,9 @@ void calc_image(void)
         }
         printf("];\n");
     */
-    printf(".\n");
+
+    printf(".....%dmsec\n", (int)((time_us_32() - tim32) / 1e3));
+    tim32 = time_us_32();
 }
 
 void start_cam()
