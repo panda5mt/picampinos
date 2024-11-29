@@ -30,9 +30,11 @@ pico_sdk_init()
 
 add_executable(${target_name})
 
+add_subdirectory(arithmetic)
 add_subdirectory(sparkfun_pico)
 
 target_include_directories(${target_name} PRIVATE
+#     ${CMAKE_CURRENT_LIST_DIR}/FreeRTOS-Kernel/include
     ${CMAKE_CURRENT_LIST_DIR}/arithmetic
     ${CMAKE_CURRENT_LIST_DIR}/sparkfun_pico
     #${CMAKE_CURRENT_LIST_DIR}/sfp
@@ -54,20 +56,20 @@ pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/rj45/ser_10bas
 pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/rj45/des_10base_t.pio)
 
 
-# image_process.cが存在するか確認
-if(EXISTS "${CMAKE_SOURCE_DIR}/arithmetic/image_process.c")
-    # ライブラリ用のimage_process.cをコンパイルして、libimage_process.aを作成
-    add_library(image_process STATIC arithmetic/image_process.c)
+# # image_process.cが存在するか確認
+# if(EXISTS "${CMAKE_SOURCE_DIR}/arithmetic/image_process.c")
+#     # ライブラリ用のimage_process.cをコンパイルして、libimage_process.aを作成
+#     add_library(image_process STATIC arithmetic/image_process.c)
 
-    # libimage_process.aをbuild/以外に配置
-    set_target_properties(image_process PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/arithmetic)
-else()
-    message(STATUS "image_process.c was not found. We'll use static library")
-endif()
+#     # libimage_process.aをbuild/以外に配置
+#     set_target_properties(image_process PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/arithmetic)
+# else()
+#     message(STATUS "image_process.c was not found. We'll use static library")
+# endif()
 
-set(STATIC_LIBRARIES
-        ${CMAKE_CURRENT_LIST_DIR}/arithmetic/libimage_process.a
-        )
+# set(STATIC_LIBRARIES
+#         ${CMAKE_CURRENT_LIST_DIR}/arithmetic/libimage_process.a
+#         )
 
 target_sources(${target_name} PRIVATE
         # sfp/tbl_8b10b.c
@@ -82,10 +84,7 @@ target_sources(${target_name} PRIVATE
         main.c
         cam.c
         sccb_if.c
-        arithmetic/fft4f2d.c
         )
-
-
 
 target_link_libraries(${target_name} PRIVATE
         pico_divider 
@@ -99,7 +98,7 @@ target_link_libraries(${target_name} PRIVATE
         hardware_pwm
         hardware_dma
         hardware_irq
-        ${STATIC_LIBRARIES} 
+        image_process
         sparkfun_pico
         pico_async_context_freertos
         FreeRTOS-Kernel
