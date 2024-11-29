@@ -2,6 +2,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "fft4f2d.h"
+
+#include "FreeRTOS.h"
+#include "task.h"
+#include "timers.h"
+#include "semphr.h"
+#include "pico/async_context_freertos.h"
 /*
 
 compiler infomation: You should same compiler version when rebuild this code.
@@ -11,6 +17,13 @@ Using built-in specs.
 COLLECT_GCC=arm-none-eabi-gcc
 COLLECT_LTO_WRAPPER=/usr/lib/gcc/arm-none-eabi/12.2.1/lto-wrapper
 */
+
+typedef struct
+{
+    int param1;
+    float param2;
+} TaskArgs;
+
 #define USE_REAL_FFT (true) // do not change
 
 void init_image_process(int height, int width);
@@ -47,3 +60,6 @@ void zeroPadImage(const unsigned char *input,
 // length: input's length. you will need output[2*length]
 // (length = sizeof(input[array])/sizeof(input[0]) )
 void extract_green_from_uint32_array(const uint32_t *input, uint8_t *output, size_t length);
+
+// FFT task
+void vProcessingFFTTask(void *pvParameters);

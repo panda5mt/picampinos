@@ -37,7 +37,6 @@
 
 // FreeRTOS Tasks
 void vImageProc(void *pvParameters);
-// void xMutexInit();
 
 // high layer APIs
 void init_cam(uint8_t DEVICE_IS);
