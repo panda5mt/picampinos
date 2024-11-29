@@ -56,17 +56,7 @@ pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/rj45/ser_10bas
 pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/rj45/des_10base_t.pio)
 
 
-# # image_process.cが存在するか確認
-# if(EXISTS "${CMAKE_SOURCE_DIR}/arithmetic/image_process.c")
-#     # ライブラリ用のimage_process.cをコンパイルして、libimage_process.aを作成
-#     add_library(image_process STATIC arithmetic/image_process.c)
-
-#     # libimage_process.aをbuild/以外に配置
-#     set_target_properties(image_process PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/arithmetic)
-# else()
-#     message(STATUS "image_process.c was not found. We'll use static library")
-# endif()
-
+# image_process.cが存在するか確認
 if(EXISTS "${CMAKE_SOURCE_DIR}/arithmetic/image_process.c")    
     set(STATIC_LIBRARIES image_process)            
 else()
