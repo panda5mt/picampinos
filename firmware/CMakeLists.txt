@@ -67,12 +67,13 @@ pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/rj45/des_10bas
 #     message(STATUS "image_process.c was not found. We'll use static library")
 # endif()
 
-if(EXISTS "${CMAKE_SOURCE_DIR}/arithmetic/libimage_process.a")    
+if(EXISTS "${CMAKE_SOURCE_DIR}/arithmetic/image_process.c")    
+    set(STATIC_LIBRARIES image_process)            
+else()
+    message(STATUS "image_process.c was not found. We'll use static library")
     set(STATIC_LIBRARIES
         ${CMAKE_CURRENT_LIST_DIR}/arithmetic/libimage_process.a
-        )        
-else()
-    set(STATIC_LIBRARIES image_process)        
+        )            
 endif()
 
 target_sources(${target_name} PRIVATE
