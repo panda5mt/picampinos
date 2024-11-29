@@ -67,9 +67,13 @@ pico_generate_pio_header(${target_name} ${CMAKE_CURRENT_LIST_DIR}/rj45/des_10bas
 #     message(STATUS "image_process.c was not found. We'll use static library")
 # endif()
 
-# set(STATIC_LIBRARIES
-#         ${CMAKE_CURRENT_LIST_DIR}/arithmetic/libimage_process.a
-#         )
+if(EXISTS "${CMAKE_SOURCE_DIR}/arithmetic/libimage_process.a")    
+    set(STATIC_LIBRARIES
+        ${CMAKE_CURRENT_LIST_DIR}/arithmetic/libimage_process.a
+        )        
+else()
+    set(STATIC_LIBRARIES image_process)        
+endif()
 
 target_sources(${target_name} PRIVATE
         # sfp/tbl_8b10b.c
@@ -98,7 +102,8 @@ target_link_libraries(${target_name} PRIVATE
         hardware_pwm
         hardware_dma
         hardware_irq
-        image_process
+        #image_process
+        ${STATIC_LIBRARIES}
         sparkfun_pico
         pico_async_context_freertos
         FreeRTOS-Kernel
