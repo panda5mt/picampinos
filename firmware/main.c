@@ -158,6 +158,9 @@ int main()
     xTaskCreate(vRJ45Task, "Eth Task", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, &rj45Handle);
     xTaskCreate(vLaunchRxFunc, "Rx Task", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, &rxHandle);
     xTaskCreate(vImageProc, "Image Task", configMINIMAL_STACK_SIZE * 5, NULL, tskIDLE_PRIORITY + 2, &imageHandle);
+    // 処理タスクの作成
+    xTaskCreate(vProcessingFFTTask, "ProcessingTask", configMINIMAL_STACK_SIZE + 100, NULL, 2, &xProcessingFFTTaskHandle);
+
     // xMutexInit();
     uxCoreAffinityMask = ((1 << 0)); // Core0
     vTaskCoreAffinitySet(rj45Handle, uxCoreAffinityMask);
