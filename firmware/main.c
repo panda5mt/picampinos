@@ -164,6 +164,7 @@ int main()
     // xMutexInit();
     uxCoreAffinityMask = ((1 << 0)); // Core0
     vTaskCoreAffinitySet(rj45Handle, uxCoreAffinityMask);
+    vTaskCoreAffinitySet(xProcessingFFTTaskHandle, uxCoreAffinityMask);
 
     uxCoreAffinityMask = ((1 << 1)); // Core1
     vTaskCoreAffinitySet(rxHandle, uxCoreAffinityMask);

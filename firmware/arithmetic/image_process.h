@@ -21,6 +21,7 @@ COLLECT_LTO_WRAPPER=/usr/lib/gcc/arm-none-eabi/12.2.1/lto-wrapper
 
 // 他のソースファイルで定義するタスクハンドルの宣言
 extern TaskHandle_t xProcessingFFTTaskHandle;
+extern TaskHandle_t imageHandle;
 
 #define USE_REAL_FFT (true) // do not change
 
