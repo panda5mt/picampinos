@@ -17,10 +17,11 @@ compiler infomation: You should same compiler version when rebuild this code.
 Using built-in specs.
 COLLECT_GCC=arm-none-eabi-gcc
 COLLECT_LTO_WRAPPER=/usr/lib/gcc/arm-none-eabi/12.2.1/lto-wrapper
+
 */
 
 // 他のソースファイルで定義するタスクハンドルの宣言
-extern TaskHandle_t xProcessingFFTTaskHandle;
+extern TaskHandle_t FFTTaskHandle;
 extern TaskHandle_t imageHandle;
 
 #define USE_REAL_FFT (true) // do not change
