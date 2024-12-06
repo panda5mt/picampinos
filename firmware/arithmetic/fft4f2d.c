@@ -550,8 +550,8 @@ void rdft2d(int n1, int n2, int isgn, float **a, int *ip, float *w)
         }
         if (n2 > 4)
         {
-            // rftfcol(n1, n2, a, nc, w + nw); // todo: 並列処理
-            parallel_rftfcol(n1, n2, a, nc, w + nw);
+            rftfcol(n1, n2, a, nc, w + nw); // todo: 並列処理
+            // parallel_rftfcol(n1, n2, a, nc, w + nw);
             bitrv2col(n1, n2, ip + 2, a);
         }
         cftfcol(n1, n2, a, w);
