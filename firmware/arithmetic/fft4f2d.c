@@ -46,7 +46,7 @@ void parallel_rftfcol(int n1, int n, float **a, int nc, float *c, int is_rft)
     xTaskNotify(rftfcol_task_handle, 0, eNoAction);
 
     // 自コアで前半部分を処理
-    if (is_rft)
+    if (is_rft == 1)
     {
         my_rftfcol(0, mid_row, n, a, nc, c);
     }
