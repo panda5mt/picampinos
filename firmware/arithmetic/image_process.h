@@ -3,12 +3,6 @@
 #include <stdbool.h>
 #include "fft4f2d.h"
 
-#include "FreeRTOS.h"
-#include "task.h"
-#include "timers.h"
-#include "semphr.h"
-#include "pico/async_context_freertos.h"
-
 /*
 
 compiler infomation: You should same compiler version when rebuild this code.
@@ -19,10 +13,6 @@ COLLECT_GCC=arm-none-eabi-gcc
 COLLECT_LTO_WRAPPER=/usr/lib/gcc/arm-none-eabi/12.2.1/lto-wrapper
 
 */
-
-// 他のソースファイルで定義するタスクハンドルの宣言
-extern TaskHandle_t FFTTaskHandle;
-extern TaskHandle_t imageHandle;
 
 #define USE_REAL_FFT (true) // do not change
 

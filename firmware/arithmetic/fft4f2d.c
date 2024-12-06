@@ -15,6 +15,100 @@
         }                                             \
     }
 
+typedef struct
+{
+    int start_row; // 処理開始行
+    int end_row;   // 処理終了行
+    int n;         // 列数
+    float **a;     // データ配列
+    int nc;        // FFT係数関連データ
+    float *c;      // 係数テーブル
+} RftfcolParams;
+
+TaskHandle_t rftfcol_task_handle_0;
+TaskHandle_t rftfcol_task_handle;
+RftfcolParams rft_params;
+
+void parallel_rftfcol(int n1, int n, float **a, int nc, float *c)
+{
+    int mid_row = n1 / 2;
+
+    rft_params.start_row = mid_row; // 後半部分をコア1が処理
+    rft_params.end_row = n1;
+    rft_params.n = n;
+    rft_params.a = a;
+    rft_params.nc = nc;
+    rft_params.c = c;
+
+    // 別コアに通知
+    printf("Triggering processing task...\n");
+    xTaskNotify(rftfcol_task_handle, 0, eNoAction);
+
+    // 自コアで前半部分を処理
+    my_rftfcol(0, mid_row, n, a, nc, c);
+
+    // 処理終了フラグを確認
+    uint32_t ulNotificationValue = 0; // 初期化
+    if (xTaskNotifyWait(0, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY) == pdTRUE)
+    {
+        if (ulNotificationValue & 0x1)
+        {
+            printf("Processing completed. Waiting for next trigger...\n");
+        }
+    }
+}
+
+void rftfcol_task(void *pvParameters)
+{
+    uint32_t ulNotificationValue;
+    printf("RFTCOL_Taask - Running on Core: %d\n", get_core_num()); // 現在のコア番号を表示
+
+    for (;;)
+    {
+        // 通知値（構造体へのポインタ）を受け取る
+        if (xTaskNotifyWait(0, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY) == pdTRUE)
+        {
+            uint32_t ulNotificationValue;
+
+            // 範囲指定された行を処理
+            my_rftfcol(rft_params.start_row, rft_params.end_row, rft_params.n, rft_params.a, rft_params.nc, rft_params.c);
+
+            // タスク完了通知を送信
+            // xTaskNotifyGive(xTaskGetCurrentTaskHandle());
+
+            // トリガータスクへ通知を送信
+            xTaskNotify(imageHandle, 0x1, eSetValueWithoutOverwrite);
+        }
+    }
+}
+
+void my_rftfcol(int start_row, int end_row, int n, float **a, int nc, float *c)
+{
+    int i, j, k, kk, ks;
+    float wkr, wki, xr, xi, yr, yi;
+
+    ks = (nc << 2) / n;
+    for (i = start_row; i < end_row; i++)
+    { // 指定された範囲のみ処理
+        kk = 0;
+        for (k = (n >> 1) - 2; k >= 2; k -= 2)
+        {
+            j = n - k;
+            kk += ks;
+            wkr = 0.5 - c[kk];
+            wki = c[nc - kk];
+            xr = a[i][k] - a[i][j];
+            xi = a[i][k + 1] + a[i][j + 1];
+            yr = wkr * xr + wki * xi;
+            yi = wkr * xi - wki * xr;
+            a[i][k] -= yr;
+            a[i][k + 1] -= yi;
+            a[i][j] += yr;
+            a[i][j + 1] -= yi;
+        }
+    }
+}
+
 void makewt(int nw, int *ip, float *w);
 void makect(int nc, int *ip, float *c);
 void bitrv2col(int n1, int n, int *ip, float **a);
@@ -456,7 +550,8 @@ void rdft2d(int n1, int n2, int isgn, float **a, int *ip, float *w)
         }
         if (n2 > 4)
         {
-            rftfcol(n1, n2, a, nc, w + nw); // todo: 並列処理
+            // rftfcol(n1, n2, a, nc, w + nw); // todo: 並列処理
+            parallel_rftfcol(n1, n2, a, nc, w + nw);
             bitrv2col(n1, n2, ip + 2, a);
         }
         cftfcol(n1, n2, a, w);
