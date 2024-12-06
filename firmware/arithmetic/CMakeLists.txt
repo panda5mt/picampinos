@@ -11,8 +11,9 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/arithmetic/image_process.c")
     # インクルードパスを指定
     target_include_directories(
         image_process PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}                        
+        ${CMAKE_CURRENT_LIST_DIR}/                        
         ${CMAKE_CURRENT_LIST_DIR}/../
+        ${CMAKE_CURRENT_LIST_DIR}/../sparkfun_pico/
     )
 
     target_link_libraries(image_process PUBLIC

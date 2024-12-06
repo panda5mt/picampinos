@@ -2,7 +2,13 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdbool.h>
-#include "../sparkfun_pico/sfe_pico.h"
+#include "sfe_pico.h"
+
+#include "FreeRTOS.h"
+#include "task.h"
+#include "timers.h"
+#include "semphr.h"
+#include "pico/async_context_freertos.h"
 
 int *alloc_1d_int(int n1);
 void free_1d_int(int *i);
