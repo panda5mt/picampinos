@@ -23,13 +23,14 @@ typedef struct
     float **a;     // データ配列
     int nc;        // FFT係数関連データ
     float *c;      // 係数テーブル
+    int is_rft;    // 1ならrftfcol、0ならcftfcol
 } RftfcolParams;
 
 TaskHandle_t rftfcol_task_handle_0;
 TaskHandle_t rftfcol_task_handle;
 RftfcolParams rft_params;
 
-void parallel_rftfcol(int n1, int n, float **a, int nc, float *c)
+void parallel_rftfcol(int n1, int n, float **a, int nc, float *c, int is_rft)
 {
     int mid_row = n1 / 2;
 
@@ -39,14 +40,20 @@ void parallel_rftfcol(int n1, int n, float **a, int nc, float *c)
     rft_params.a = a;
     rft_params.nc = nc;
     rft_params.c = c;
-
+    rft_params.is_rft = is_rft;
     // 別コアに通知
     printf("Triggering processing task...\n");
     xTaskNotify(rftfcol_task_handle, 0, eNoAction);
 
     // 自コアで前半部分を処理
-    my_rftfcol(0, mid_row, n, a, nc, c);
-
+    if (is_rft)
+    {
+        my_rftfcol(0, mid_row, n, a, nc, c);
+    }
+    else
+    {
+        my_cftfcol(0, mid_row, n, a, c);
+    }
     // 処理終了フラグを確認
     uint32_t ulNotificationValue = 0; // 初期化
     if (xTaskNotifyWait(0, 0xFFFFFFFF, &ulNotificationValue, portMAX_DELAY) == pdTRUE)
@@ -70,8 +77,17 @@ void rftfcol_task(void *pvParameters)
         {
             uint32_t ulNotificationValue;
 
+            if (rft_params.is_rft == 1)
+            {
+                // rftfcol 処理
+                my_rftfcol(rft_params.start_row, rft_params.end_row, rft_params.n, rft_params.a, rft_params.nc, rft_params.c);
+            }
+            else
+            {
+                // cftfcol 処理
+                my_cftfcol(rft_params.start_row, rft_params.end_row, rft_params.n, rft_params.a, rft_params.c);
+            }
             // 範囲指定された行を処理
-            my_rftfcol(rft_params.start_row, rft_params.end_row, rft_params.n, rft_params.a, rft_params.nc, rft_params.c);
 
             // タスク完了通知を送信
             // xTaskNotifyGive(xTaskGetCurrentTaskHandle());
@@ -105,6 +121,129 @@ void my_rftfcol(int start_row, int end_row, int n, float **a, int nc, float *c)
             a[i][k + 1] -= yi;
             a[i][j] += yr;
             a[i][j + 1] -= yi;
+        }
+    }
+}
+
+void my_cftfcol(int start_row, int end_row, int n, float **a, float *w)
+{
+    int i, j, j1, j2, j3, k, k1, ks, l, m;
+    float wk1r, wk1i, wk2r, wk2i, wk3r, wk3i;
+    float x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
+
+    for (i = start_row; i < end_row; i++)
+    {
+        l = 2;
+        while ((l << 1) < n)
+        {
+            m = l << 2;
+            for (j = 0; j <= l - 2; j += 2)
+            {
+                j1 = j + l;
+                j2 = j1 + l;
+                j3 = j2 + l;
+                x0r = a[i][j] + a[i][j1];
+                x0i = a[i][j + 1] + a[i][j1 + 1];
+                x1r = a[i][j] - a[i][j1];
+                x1i = a[i][j + 1] - a[i][j1 + 1];
+                x2r = a[i][j2] + a[i][j3];
+                x2i = a[i][j2 + 1] + a[i][j3 + 1];
+                x3r = a[i][j2] - a[i][j3];
+                x3i = a[i][j2 + 1] - a[i][j3 + 1];
+                a[i][j] = x0r + x2r;
+                a[i][j + 1] = x0i + x2i;
+                a[i][j2] = x0r - x2r;
+                a[i][j2 + 1] = x0i - x2i;
+                a[i][j1] = x1r + x3i;
+                a[i][j1 + 1] = x1i - x3r;
+                a[i][j3] = x1r - x3i;
+                a[i][j3 + 1] = x1i + x3r;
+            }
+            if (m < n)
+            {
+                wk1r = w[2];
+                for (j = m; j <= l + m - 2; j += 2)
+                {
+                    j1 = j + l;
+                    j2 = j1 + l;
+                    j3 = j2 + l;
+                    x0r = a[i][j] + a[i][j1];
+                    x0i = a[i][j + 1] + a[i][j1 + 1];
+                    x1r = a[i][j] - a[i][j1];
+                    x1i = a[i][j + 1] - a[i][j1 + 1];
+                    x2r = a[i][j2] + a[i][j3];
+                    x2i = a[i][j2 + 1] + a[i][j3 + 1];
+                    x3r = a[i][j2] - a[i][j3];
+                    x3i = a[i][j2 + 1] - a[i][j3 + 1];
+                    a[i][j] = x0r + x2r;
+                    a[i][j + 1] = x0i + x2i;
+                    a[i][j2] = x0i - x2i;
+                    a[i][j2 + 1] = x2r - x0r;
+                    x0r = x1r + x3i;
+                    x0i = x1i - x3r;
+                    a[i][j1] = wk1r * (x0i + x0r);
+                    a[i][j1 + 1] = wk1r * (x0i - x0r);
+                    x0r = x3i - x1r;
+                    x0i = x3r + x1i;
+                    a[i][j3] = wk1r * (x0r + x0i);
+                    a[i][j3 + 1] = wk1r * (x0r - x0i);
+                }
+                k1 = 1;
+                ks = -1;
+                for (k = (m << 1); k <= n - m; k += m)
+                {
+                    k1++;
+                    ks = -ks;
+                    wk1r = w[k1 << 1];
+                    wk1i = w[(k1 << 1) + 1];
+                    wk2r = ks * w[k1];
+                    wk2i = w[k1 + ks];
+                    wk3r = wk1r - 2 * wk2i * wk1i;
+                    wk3i = 2 * wk2i * wk1r - wk1i;
+                    for (j = k; j <= l + k - 2; j += 2)
+                    {
+                        j1 = j + l;
+                        j2 = j1 + l;
+                        j3 = j2 + l;
+                        x0r = a[i][j] + a[i][j1];
+                        x0i = a[i][j + 1] + a[i][j1 + 1];
+                        x1r = a[i][j] - a[i][j1];
+                        x1i = a[i][j + 1] - a[i][j1 + 1];
+                        x2r = a[i][j2] + a[i][j3];
+                        x2i = a[i][j2 + 1] + a[i][j3 + 1];
+                        x3r = a[i][j2] - a[i][j3];
+                        x3i = a[i][j2 + 1] - a[i][j3 + 1];
+                        a[i][j] = x0r + x2r;
+                        a[i][j + 1] = x0i + x2i;
+                        x0r -= x2r;
+                        x0i -= x2i;
+                        a[i][j2] = wk2r * x0r + wk2i * x0i;
+                        a[i][j2 + 1] = wk2r * x0i - wk2i * x0r;
+                        x0r = x1r + x3i;
+                        x0i = x1i - x3r;
+                        a[i][j1] = wk1r * x0r + wk1i * x0i;
+                        a[i][j1 + 1] = wk1r * x0i - wk1i * x0r;
+                        x0r = x1r - x3i;
+                        x0i = x1i + x3r;
+                        a[i][j3] = wk3r * x0r + wk3i * x0i;
+                        a[i][j3 + 1] = wk3r * x0i - wk3i * x0r;
+                    }
+                }
+            }
+            l = m;
+        }
+        if (l < n)
+        {
+            for (j = 0; j <= l - 2; j += 2)
+            {
+                j1 = j + l;
+                x0r = a[i][j] - a[i][j1];
+                x0i = a[i][j + 1] - a[i][j1 + 1];
+                a[i][j] += a[i][j1];
+                a[i][j + 1] += a[i][j1 + 1];
+                a[i][j1] = x0r;
+                a[i][j1 + 1] = x0i;
+            }
         }
     }
 }
@@ -551,10 +690,11 @@ void rdft2d(int n1, int n2, int isgn, float **a, int *ip, float *w)
         if (n2 > 4)
         {
             // rftfcol(n1, n2, a, nc, w + nw); // todo: 並列処理
-            parallel_rftfcol(n1, n2, a, nc, w + nw);
+            parallel_rftfcol(n1, n2, a, nc, w + nw, 1);
             bitrv2col(n1, n2, ip + 2, a);
         }
-        cftfcol(n1, n2, a, w);
+        // cftfcol(n1, n2, a, w);
+        parallel_rftfcol(n1, n2, a, nc, w, 0);
     }
     else
     {

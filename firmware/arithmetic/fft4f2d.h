@@ -24,3 +24,4 @@ void cdft2d(int n1, int n2, int isgn, float **a, int *ip, float *w);
 void rdft2d(int n1, int n2, int isgn, float **a, int *ip, float *w);
 void rftfcol_task(void *pvParameters);
 void my_rftfcol(int start_row, int end_row, int n, float **a, int nc, float *c);
+void my_cftfcol(int start_row, int end_row, int n, float **a, float *w);
