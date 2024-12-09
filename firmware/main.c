@@ -166,7 +166,6 @@ int main()
     uxCoreAffinityMask = ((1 << 0)); // Core0
     vTaskCoreAffinitySet(rj45Handle, uxCoreAffinityMask);
     vTaskCoreAffinitySet(FFTTaskHandle, uxCoreAffinityMask);
-    // vTaskCoreAffinitySet(rftfcol_task_handle, uxCoreAffinityMask);
 
     uxCoreAffinityMask = ((1 << 1)); // Core1
     vTaskCoreAffinitySet(rxHandle, uxCoreAffinityMask);
