@@ -39,6 +39,9 @@ void zeroPadImageWithBorder(const unsigned char *input,
 // (length = sizeof(input[array])/sizeof(input[0]) )
 void extract_green_from_uint32_array(const uint32_t *input, uint8_t *output, size_t length);
 
+// RGB565のGreen成分を8bitにスケールアップ
+uint8_t extract_green_from_rgb565(uint16_t rgb565);
+
 // FFT task
 void vProcessingFFTTask(void *pvParameters);
 void send_notify_to_task(void);
