@@ -148,11 +148,11 @@ int main()
     printf("[BOOT]\r\n");
 
     UBaseType_t uxCoreAffinityMask;
-    xTaskCreate(vRJ45Task, "Eth Task", configMINIMAL_STACK_SIZE * 4, NULL, tskIDLE_PRIORITY + 1, &rj45Handle);
-    xTaskCreate(vLaunchRxFunc, "Rx Task", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, &rxHandle);
+    xTaskCreate(vRJ45Task, "Eth Task", configMINIMAL_STACK_SIZE * 5, NULL, tskIDLE_PRIORITY + 1, &rj45Handle);
+    xTaskCreate(vLaunchRxFunc, "Rx Task", configMINIMAL_STACK_SIZE * 2, NULL, tskIDLE_PRIORITY + 2, &rxHandle);
     xTaskCreate(vImageProc, "Image Task", configMINIMAL_STACK_SIZE * 5, NULL, tskIDLE_PRIORITY + 2, &imageHandle);
     // 処理タスクの作成
-    xTaskCreate(vProcessingFFTTask, "ProcessingTask", configMINIMAL_STACK_SIZE + 100, NULL, 2, &FFTTaskHandle);
+    xTaskCreate(vProcessingFFTTask, "ProcessingTask", configMINIMAL_STACK_SIZE * 1, NULL, 2, &FFTTaskHandle);
     // xTaskCreate(rftfcol_task, "Rftfcol_Task_1", 2048, NULL, 1, &rftfcol_task_handle);
 
     // xMutexInit();
