@@ -24,20 +24,12 @@
 // GP27 --> SCL(SCCB CLK/I2C)
 
 #include <stdio.h>
-#include <stdlib.h>
-#include "pico/stdlib.h"
-#include "pico/multicore.h"
 #include "hardware/clocks.h"
-#include "hardware/gpio.h"
 #include "hardware/vreg.h"
-#include "hardware/i2c.h"
-#include "hardware/dma.h"
-#include "hardware/irq.h"
 
 #include "cam.h"
 #include "hwinit.h"
 #include "eth.h"
-#include "arithmetic/image_process.h"
 #include "arithmetic/fft_helper.h"
 
 #include "FreeRTOS.h"

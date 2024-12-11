@@ -1,19 +1,9 @@
 #include <stdio.h>
-#include "pico/stdlib.h"
-#include <math.h>
 #include <string.h>
-#include "pico/binary_info.h"
-#include "picampinos.pio.h"
-#include "sfe_pico.h"
+
 #include "hardware/pwm.h"
-#include "hardware/irq.h"
 #include "hardware/dma.h"
-#include "hardware/pio.h"
-
-#include "hardware/clocks.h"
 #include "pico/multicore.h"
-
-#include "cam.h"
 
 #include "system.h"
 #include "eth.h"
@@ -23,8 +13,11 @@
 #include "image_process.h"
 #include "fft_helper.h"
 
+#include "picampinos.pio.h"
 #include "ser_10base_t.pio.h"
 #include "des_10base_t.pio.h"
+
+#include "cam.h"
 
 #if USE_100BASE_FX
 #include "sfp_hw.h"
