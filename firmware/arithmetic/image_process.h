@@ -39,16 +39,3 @@ void estimate_normal(int height, int width, unsigned char *img_gray, float **p, 
 int32_t fcmethod(int height, int width,
                  float **p, float **q,
                  float **dp);
-
-// Function to perform zero-padding on an image
-void zeroPadImage(const unsigned char *input,
-                  unsigned char *output,
-                  int originalWidth, int originalHeight, int channels,
-                  int paddedWidth, int paddedHeight);
-
-void zeroPadImageWithBorder(const unsigned char *input, unsigned char *output, int width, int height, int channels, int borderWidth);
-
-// extract green from RGB565 packed data.
-// length: input's length. you will need output[2*length]
-// (length = sizeof(input[array])/sizeof(input[0]) )
-void extract_green_from_uint32_array(const uint32_t *input, uint8_t *output, size_t length);
