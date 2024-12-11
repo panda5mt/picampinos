@@ -363,34 +363,6 @@ void rj45_cam(void)
         // send image header
         eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
 
-        //         for (uint32_t i = 0; i < IMG_H; i++)
-        //         {
-        //             uint32_t c[] = {
-        //                 0xbeefbeef,
-        //                 i + 1,
-        //                 1,
-        //                 (IMG_W)};
-
-        //             memcpy(udp_payload1, c, 4 * sizeof(uint32_t));
-        //             // ヘッダサイズ分、ポインタをずらす
-        //             uint8_t *st_pos8 = udp_payload1 + 4 * sizeof(int32_t);
-        //             float_t *st_posfl;
-        //             st_posfl = (float_t *)st_pos8;
-        //             for (int j = 0; j < IMG_W; j++)
-        //             {
-        // #if USE_REAL_FFT
-        //                 float_t data = d1_ptr[i][j];
-        //                 // float_t data = d1_ptr[i][2 * j];
-        // #else
-        //                 float_t data = d1_ptr[i][2 * j];
-        // #endif
-        //                 memcpy(st_posfl, &data, sizeof(float_t)); //
-        //                 st_posfl++;
-        //                 // printf("st_posfl=0x%x\n", st_posfl);
-        //             }
-        //             udp_packet_gen_10base(tx_buf_udp1, udp_payload1);
-        //             eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
-        //         }
         for (uint32_t i = 0; i < IMG_H; i++)
         {
             uint32_t c[] = {
