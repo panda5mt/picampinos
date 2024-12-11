@@ -268,7 +268,8 @@ void eth_tx_data(uint32_t *aBuf, uint32_t aCount)
         true                 // Start yet
     );
     dma_channel_wait_for_finish_blocking(dma_ch_10base_t);
-    sleep_us(10); // IFG
+    // sleep_us(10); // IFG
+    vTaskDelay(pdUS_TO_TICKS(10));
     _clear_nflp_timer_cnt();
     _busy_led_update(true);
 }
