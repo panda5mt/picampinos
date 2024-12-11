@@ -356,7 +356,8 @@ void rj45_cam(void)
     if (sem_try_acquire(&fcmethod_semp))
     {
 
-        // make image header
+        // sem_release(&fcmethod_semp); // タスク完了を待たずにセマフォを解放
+        //  make image header
         udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
 
         // send image header
@@ -424,9 +425,8 @@ void rj45_cam(void)
 
         // send image header
         eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
-        sem_release(&fcmethod_semp); // タスク完了を待たずにセマフォを解放
+        sem_release(&fcmethod_semp);
     }
-
 #endif
 }
 
