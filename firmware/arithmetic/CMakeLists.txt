@@ -6,7 +6,8 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/arithmetic/image_process.c")
 
     add_library(image_process STATIC 
         image_process.c 
-        fft4f2d.c)
+        fft4f2d.c
+        fft_helper.c)
 
     # インクルードパスを指定
     target_include_directories(

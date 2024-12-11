@@ -38,6 +38,7 @@
 #include "hwinit.h"
 #include "eth.h"
 #include "arithmetic/image_process.h"
+#include "arithmetic/fft_helper.h"
 
 #include "FreeRTOS.h"
 #include "task.h"

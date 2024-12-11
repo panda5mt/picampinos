@@ -1,13 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
 #include "fft4f2d.h"
-#include "FreeRTOS.h"
-#include "task.h"
-#include "timers.h"
-#include "semphr.h"
-#include "pico/async_context_freertos.h"
 
 /*
 
@@ -19,9 +13,6 @@ COLLECT_GCC=arm-none-eabi-gcc
 COLLECT_LTO_WRAPPER=/usr/lib/gcc/arm-none-eabi/12.2.1/lto-wrapper
 
 */
-// 他のソースファイルで定義するタスクハンドルの宣言
-extern TaskHandle_t FFTTaskHandle;
-extern TaskHandle_t imageHandle;
 
 #define USE_REAL_FFT (true) // do not change
 
@@ -55,10 +46,9 @@ void zeroPadImage(const unsigned char *input,
                   int originalWidth, int originalHeight, int channels,
                   int paddedWidth, int paddedHeight);
 
+void zeroPadImageWithBorder(const unsigned char *input, unsigned char *output, int width, int height, int channels, int borderWidth);
+
 // extract green from RGB565 packed data.
 // length: input's length. you will need output[2*length]
 // (length = sizeof(input[array])/sizeof(input[0]) )
 void extract_green_from_uint32_array(const uint32_t *input, uint8_t *output, size_t length);
-
-// FFT task
-void vProcessingFFTTask(void *pvParameters);

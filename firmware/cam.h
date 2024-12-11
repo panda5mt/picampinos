@@ -13,7 +13,7 @@
 
 #define USE_100BASE_FX (false)
 
-#define SYS_CLK_IN_KHZ (260000) // 192000 ~ 250000 (if you use sfp, SYS_CLK_KHZ must be just 250000)
+#define SYS_CLK_IN_KHZ (250000) // 192000 ~ 250000 (if you use sfp, SYS_CLK_KHZ must be just 250000)
 #define CAM_BASE_PIN (1)        // GP1 (camera module needs 11pin)
 #define PIN_PWM0 (0)            // GP0 (camera's xclk(24MHz))
 #define LINEAR_BURST (512)      // IoT SRAM's burst length(in bytes)
@@ -28,8 +28,8 @@
 // 640x480, RGB565 picture needs 640x480x2 bytes of buffers.
 #define IMG_H (256)                                  //(480)
 #define IMG_W (256)                                  //(640)
-#define PAD_H (512)                                  //(512) // in bytes
-#define PAD_W (512)                                  //(512)
+#define PAD_H (256)                                  //(512) // in bytes
+#define PAD_W (256)                                  //(512)
 #define CAM_FUL_SIZE (IMG_W * IMG_H)                 // VGA size, RGB565(16bit) format
 #define CAM_TOTAL_LEN (CAM_FUL_SIZE * 2)             // total length of pictures
 #define CAM_TOTAL_FRM (CAM_TOTAL_LEN / CAM_FUL_SIZE) // numbers(or frames) of pictures

@@ -189,9 +189,12 @@ void calc_image(void)
     float k;
     uint32_t *b;
     b = (psram_access == 0) ? cam_ptr : cam_ptr1;
+#if (USE_COLOR_IMAGE)
 
+#else
     extract_green_from_uint32_array(b, gray_ptr, CAM_FUL_SIZE / 2); // 2つのRGB565(16bit)を32bitパッキングされたデータから2つ分のGreen(uint8_t[])データを取得している
-    zeroPadImage(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H); // ゼロパディング
+    zeroPadImageWithBorder(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, 30);
+    // zeroPadImage(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H); // ゼロパディング
 
     estimate_lightsource_and_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
     // estimate_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L);
@@ -223,6 +226,7 @@ void calc_image(void)
 
     printf(".....%dmsec\n", (int)((time_us_32() - tim32) / 1e3));
     tim32 = time_us_32();
+#endif
 }
 
 void start_cam()
@@ -355,7 +359,7 @@ void rj45_cam(void)
     // セマフォの取得。できなかったら待たずに退散。
     if (sem_try_acquire(&fcmethod_semp))
     {
-        sem_release(&fcmethod_semp); // タスク完了を待たずにセマフォを解放
+        // sem_release(&fcmethod_semp); // タスク完了を待たずにセマフォを解放
 
         // make image header
         udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
@@ -398,6 +402,7 @@ void rj45_cam(void)
 
         // send image header
         eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
+        sem_release(&fcmethod_semp); // タスク完了を待たずにセマフォを解放
     }
 #endif
 }
