@@ -355,7 +355,6 @@ void rj45_cam(void)
     // セマフォの取得。できなかったら待たずに退散。
     if (sem_try_acquire(&fcmethod_semp))
     {
-        // sem_release(&fcmethod_semp); // タスク完了を待たずにセマフォを解放
 
         // make image header
         udp_packet_gen_10base(tx_buf_udp1, (uint8_t *)&a);
@@ -363,6 +362,34 @@ void rj45_cam(void)
         // send image header
         eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
 
+        //         for (uint32_t i = 0; i < IMG_H; i++)
+        //         {
+        //             uint32_t c[] = {
+        //                 0xbeefbeef,
+        //                 i + 1,
+        //                 1,
+        //                 (IMG_W)};
+
+        //             memcpy(udp_payload1, c, 4 * sizeof(uint32_t));
+        //             // ヘッダサイズ分、ポインタをずらす
+        //             uint8_t *st_pos8 = udp_payload1 + 4 * sizeof(int32_t);
+        //             float_t *st_posfl;
+        //             st_posfl = (float_t *)st_pos8;
+        //             for (int j = 0; j < IMG_W; j++)
+        //             {
+        // #if USE_REAL_FFT
+        //                 float_t data = d1_ptr[i][j];
+        //                 // float_t data = d1_ptr[i][2 * j];
+        // #else
+        //                 float_t data = d1_ptr[i][2 * j];
+        // #endif
+        //                 memcpy(st_posfl, &data, sizeof(float_t)); //
+        //                 st_posfl++;
+        //                 // printf("st_posfl=0x%x\n", st_posfl);
+        //             }
+        //             udp_packet_gen_10base(tx_buf_udp1, udp_payload1);
+        //             eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
+        //         }
         for (uint32_t i = 0; i < IMG_H; i++)
         {
             uint32_t c[] = {
@@ -372,22 +399,21 @@ void rj45_cam(void)
                 (IMG_W)};
 
             memcpy(udp_payload1, c, 4 * sizeof(uint32_t));
+
             // ヘッダサイズ分、ポインタをずらす
-            uint8_t *st_pos8 = udp_payload1 + 4 * sizeof(int32_t);
-            float_t *st_posfl;
-            st_posfl = (float_t *)st_pos8;
+            float_t *st_posfl = (float_t *)(udp_payload1 + 4 * sizeof(uint32_t));
+
+#if USE_REAL_FFT
+            // USE_REAL_FFTが有効な場合、そのままの並びでIMG_W個コピー可能であればmemcpy一発でOK
+            memcpy(st_posfl, d1_ptr[i], IMG_W * sizeof(float_t));
+#else
+            // USE_REAL_FFTが無効な場合は2倍インデックスでアクセス
             for (int j = 0; j < IMG_W; j++)
             {
-#if USE_REAL_FFT
-                float_t data = d1_ptr[i][j];
-                // float_t data = d1_ptr[i][2 * j];
-#else
-                float_t data = d1_ptr[i][2 * j];
-#endif
-                memcpy(st_posfl, &data, sizeof(float_t)); //
-                st_posfl++;
-                // printf("st_posfl=0x%x\n", st_posfl);
+                st_posfl[j] = d1_ptr[i][2 * j];
             }
+#endif
+
             udp_packet_gen_10base(tx_buf_udp1, udp_payload1);
             eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
         }
@@ -400,6 +426,7 @@ void rj45_cam(void)
         eth_tx_data(tx_buf_udp1, DEF_UDP_BUF_SIZE);
         sem_release(&fcmethod_semp); // タスク完了を待たずにセマフォを解放
     }
+
 #endif
 }
 
