@@ -35,7 +35,7 @@ tic
 pos = pos * k;
 
 [p,q] = estimate_normal(I, pos);
-Z2 = fcmethod(q,p,true);
+Z2 = fcmethod(q,p,false);
 disp(pos)
 toc(tic)
 
@@ -44,8 +44,8 @@ figure;
 imshow(RGB_I); % 画像を表示
 hold on; % この図に更にプロットを追加する
 % 深度データをカラーマップとともに重ねて表示
-h = imagesc(-Z2,'AlphaData', .75); % 透明度を50%に設定
-colormap('jet'); % カラーマップを設定
+h = imagesc(-Z2,'AlphaData', .95); % 透明度を95%に設定
+colormap('pink'); % カラーマップを設定
 colorbar; % カラーバーを表示
 
 % 軸の設定

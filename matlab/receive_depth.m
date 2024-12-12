@@ -123,9 +123,9 @@ while (true)
     %imshow(G_img);
     %img = im2double(img);
     %img =img ./4e9;
-    h=imagesc(-img);
-    colormap('turbo'); % カラーマップを設定
-    %clim(h.Parent,[-20 20]);  % 下限を-25、上限を25に設定
+    h=imagesc(img);
+    colormap('pink'); % カラーマップを設定
+    % clim(h.Parent,[-60 100]);  % 下限を-25、上限を25に設定
     colorbar;
     drawnow;
 
