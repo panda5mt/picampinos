@@ -180,7 +180,7 @@ void calc_image(void)
 {
     static int32_t tim32;
     // 光源推定
-    float L[3] = {1.0, 1.0, 0.4};
+    float L[3] = {0.7, 0.2, 1.0};
     float k;
     uint32_t *b;
     b = (psram_access == 0) ? cam_ptr : cam_ptr1;
@@ -189,8 +189,8 @@ void calc_image(void)
 #else
     extract_green_from_uint32_array(b, gray_ptr, CAM_FUL_SIZE / 2); // 2つのRGB565(16bit)を32bitパッキングされたデータから2つ分のGreen(uint8_t[])データを取得している
 
-    zeroPadImageWithBorder(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, 20); // パディング：上下左右それぞれ20pix
-    // zeroPadImage(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H); // ゼロパディング
+    zeroPadImageWithBorder(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, 10); // パディング：上下左右それぞれ20pix
+                                                                    // zeroPadImage(gray_ptr, pad_ptr, IMG_W, IMG_H, 1, PAD_W, PAD_H); // ゼロパディング
 
     estimate_lightsource_and_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L, &k);
     // estimate_normal(PAD_W, PAD_H, pad_ptr, p1_ptr, q1_ptr, L);
