@@ -16,7 +16,7 @@ function [L, k] = estimateLightSource(img)
     % I: 画素の明るさ, k: 反射率, L: 光源の方向, N: 法線ベクトル
 
     % 照明の強度 (仮定: 画素の明るさを正規化)
-    intensity = (gray_img);% / 255;
+    intensity = (gray_img) / 255;
 
     % 法線ベクトルと強度を用いて光源方向を推定
     L = sum(sum(normals .* repmat(intensity, [1, 1, 3]), 1), 2);

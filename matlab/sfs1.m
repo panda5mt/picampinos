@@ -25,17 +25,13 @@ I = im2double(I);
 %
 
 
-pos1 =[0.7; .21; 1]; % z方向からの光源を仮定
-
 % FFTを使う方法
 tic
 
-%pos = estimate_lightsource(I);
 [pos,k] = estimateLightSource(I);
 pos = pos * k;
-
 [p,q] = estimate_normal(I, pos);
-Z2 = fcmethod(q,p,false);
+Z2 = fcmethod(q,p,true);
 disp(pos)
 toc(tic)
 
@@ -45,7 +41,7 @@ imshow(RGB_I); % 画像を表示
 hold on; % この図に更にプロットを追加する
 % 深度データをカラーマップとともに重ねて表示
 h = imagesc(-Z2,'AlphaData', .95); % 透明度を95%に設定
-colormap('pink'); % カラーマップを設定
+colormap('turbo'); % カラーマップを設定
 colorbar; % カラーバーを表示
 
 % 軸の設定
@@ -59,8 +55,11 @@ ly = light_pos(2) ;
 lz = light_pos(3) ;
 
 % 画像勾配を計算（輝度から法線を推定）
-p = image * lx / lz;
-q = image * ly / lz;
+%p = image * lx / lz;
+%q = image * ly / lz;
+N_dot_L = image / norm([lx; ly; lz]);  % I = k * dot(N,L) を仮定
+p = -lx / lz * N_dot_L;
+q = -ly / lz * N_dot_L;
 
 end
 
